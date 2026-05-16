@@ -1,0 +1,32 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 環境変数・シークレット（プロジェクト外で管理すること）
+.env
+*.env
+secrets/
+credentials/
+service_account*.json
+*_service_account.json
+
+# ログ・テスト結果
+logs/
+*.log
+test_results/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# node (docs用ツールを使う場合)
+node_modules/

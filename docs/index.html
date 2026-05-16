@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NYSEO内部リンクAIエージェント 技術仕様書</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --sidebar-width: 264px;
+      --sidebar-bg: #0f172a;
+      --sidebar-text: #94a3b8;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: #60a5fa;
+      --header-bg: #1e3a8a;
+      --content-bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --accent: #1d4ed8;
+      --accent-light: #dbeafe;
+      --border: #e2e8f0;
+      --code-bg: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text-primary);
+      background: var(--content-bg);
+    }
+
+    /* ---- Layout ---- */
+    .wrapper { display: flex; min-height: 100vh; }
+
+    /* ---- Sidebar ---- */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 100;
+      scrollbar-width: thin;
+      scrollbar-color: #334155 transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+    .sidebar-header {
+      padding: 24px 20px 18px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .sidebar-meta {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 6px;
+    }
+
+    .sidebar-nav { padding: 8px 0 24px; }
+    .nav-group-label {
+      padding: 16px 20px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #334155;
+    }
+    .nav-item {
+      display: block;
+      padding: 7px 20px;
+      color: var(--sidebar-text);
+      text-decoration: none;
+      font-size: 13px;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-item:hover {
+      background: var(--sidebar-hover);
+      color: #e2e8f0;
+    }
+    .nav-item.active {
+      border-left-color: var(--sidebar-active);
+      color: var(--sidebar-active);
+      background: rgba(96,165,250,0.08);
+    }
+    .nav-sub {
+      padding-left: 34px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .nav-sub:hover { color: #94a3b8; }
+
+    /* ---- Main ---- */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+    }
+
+    /* ---- Page header ---- */
+    .page-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      padding: 44px 52px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::after {
+      content: '';
+      position: absolute;
+      right: -60px; top: -60px;
+      width: 280px; height: 280px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+    .page-header-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #93c5fd;
+      margin-bottom: 10px;
+    }
+    .page-header-title {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.35;
+      margin-bottom: 16px;
+    }
+    .page-header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .ph-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #bfdbfe;
+      background: rgba(255,255,255,0.1);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ---- Content ---- */
+    .content {
+      padding: 36px 52px 80px;
+      max-width: 980px;
+    }
+
+    /* ---- Doc section ---- */
+    .doc-section { margin-bottom: 56px; }
+    .doc-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--accent);
+    }
+    .doc-num {
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 14px;
+      letter-spacing: 0.05em;
+    }
+    .doc-title {
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ---- Card ---- */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    h4 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin: 18px 0 8px;
+    }
+    h4:first-child { margin-top: 0; }
+
+    p { margin-bottom: 12px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { margin-bottom: 5px; }
+
+    /* ---- Tables ---- */
+    .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 14px;
+      text-align: left;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; }
+    tr:nth-child(even) td { background: #fafbfc; }
+
+    /* ---- Code ---- */
+    code {
+      font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+      font-size: 12px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #1d4ed8;
+    }
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+      font-size: 12.5px;
+      line-height: 1.65;
+      font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+    }
+    pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+
+    /* ---- Step cards ---- */
+    .step-card {
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .step-header {
+      background: var(--accent-light);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+    .step-num {
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title { font-size: 13px; font-weight: 700; color: #1e40af; }
+    .step-body { padding: 14px 16px; background: white; }
+    .step-body ul { margin: 0; }
+    .step-body li { font-size: 13px; }
+
+    /* ---- Alerts ---- */
+    .alert {
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    .alert-info {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      color: #1e40af;
+    }
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      color: #78350f;
+    }
+
+    /* ---- Badges ---- */
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-orange { background: #ffedd5; color: #9a3412; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+
+    /* ---- Score rows ---- */
+    .score-high td { background: #f0fdf4 !important; }
+    .score-mid td { background: #fefce8 !important; }
+    .score-low td { background: #fff7ed !important; }
+    .score-none td { background: #fef2f2 !important; }
+
+    /* ---- Phase timeline ---- */
+    .phase-item { display: flex; gap: 16px; margin-bottom: 16px; }
+    .phase-dot {
+      width: 32px; height: 32px;
+      background: var(--accent-light);
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .phase-content {
+      flex: 1;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .phase-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .phase-tasks { list-style: none; padding: 0; margin: 0; }
+    .phase-tasks li { font-size: 12px; color: var(--text-secondary); padding: 2px 0; }
+    .phase-tasks li::before { content: '→ '; color: var(--accent); }
+
+    /* ---- Mermaid ---- */
+    .mermaid-wrap {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      text-align: center;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    /* ---- Checklist ---- */
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li { padding: 4px 0 4px 26px; position: relative; }
+    .checklist li::before { content: '☐'; position: absolute; left: 0; color: var(--accent); font-size: 15px; line-height: 1.4; }
+
+    /* ---- Table highlight ---- */
+    .hl-output { background: #eff6ff; }
+    .hl-flag { background: #fffbeb; }
+
+    /* ---- Footer ---- */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      margin-top: 32px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: center;
+    }
+    .footer p { margin-bottom: 4px; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 800px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; }
+      .content { padding: 24px 20px; }
+      .page-header { padding: 28px 20px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .card { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-label">System Specification</div>
+      <div class="sidebar-title">NYSEO<br>内部リンクAIエージェント</div>
+      <div class="sidebar-meta">Ver 1.0 &nbsp;|&nbsp; 2026-05-16</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">目次</div>
+      <a class="nav-item" href="#req">01. 要件定義書</a>
+      <a class="nav-item nav-sub" href="#req-overview">プロジェクト概要</a>
+      <a class="nav-item nav-sub" href="#req-func">機能要件（5STEP）</a>
+      <a class="nav-item nav-sub" href="#req-nonfunc">非機能要件・制約</a>
+      <a class="nav-item nav-sub" href="#req-client">クライアント準備事項</a>
+      <a class="nav-item" href="#design">02. 基本設計書</a>
+      <a class="nav-item nav-sub" href="#design-stack">技術スタック</a>
+      <a class="nav-item nav-sub" href="#design-arch">システム構成</a>
+      <a class="nav-item nav-sub" href="#design-module">モジュール構成</a>
+      <a class="nav-item nav-sub" href="#design-error">エラー処理</a>
+      <a class="nav-item nav-sub" href="#design-phase">開発フェーズ</a>
+      <a class="nav-item" href="#ai">03. AI判定ロジック設計</a>
+      <a class="nav-item nav-sub" href="#ai-score">スコアリング設計</a>
+      <a class="nav-item nav-sub" href="#ai-prompt">プロンプト設計</a>
+      <a class="nav-item" href="#data">04. データ設計</a>
+      <a class="nav-item nav-sub" href="#data-sheet">Spreadsheet列定義</a>
+      <a class="nav-item nav-sub" href="#data-struct">中間データ構造</a>
+      <a class="nav-item" href="#flow">05. 処理フロー設計</a>
+      <a class="nav-item nav-sub" href="#flow-main">メイン処理フロー</a>
+      <a class="nav-item nav-sub" href="#flow-error">エラー時処理</a>
+      <a class="nav-item nav-sub" href="#flow-ops">クライアント運用フロー</a>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-label">System Specification Document</div>
+      <div class="page-header-title">NYSEO内部リンクAIエージェント<br>技術仕様書</div>
+      <div class="page-header-badges">
+        <span class="ph-badge">📅 作成日: 2026-05-16</span>
+        <span class="ph-badge">🏷 Ver 1.0 (MVP)</span>
+        <span class="ph-badge">⚙️ ステータス: 設計中</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ========================================
+           SECTION 1: 要件定義書
+      ======================================== -->
+      <div class="doc-section" id="req">
+        <div class="doc-header">
+          <span class="doc-num">01</span>
+          <span class="doc-title">要件定義書</span>
+        </div>
+
+        <!-- 1.1 プロジェクト概要 -->
+        <div class="card" id="req-overview">
+          <div class="card-title">1.1 プロジェクト概要</div>
+          <h4>目的</h4>
+          <p>NYSEO出力データをもとに、内部リンク不足記事（内部リンク数1件以下）に対して、関連性の高い他記事からの内部リンク設置候補を自動提案し、SEO内部リンク構築業務を半自動化する。</p>
+          <div class="alert alert-info">
+            💡 本システムは「提案型」MVPです。最終的な内部リンク設置はクライアント担当者が確認・判断します。完全自動投稿は行いません。
+          </div>
+          <h4>主要機能</h4>
+          <ul>
+            <li>内部リンク不足記事の自動抽出（E列 ≤ 1）</li>
+            <li>メインKW（C列）を起点とした関連記事探索（KW一致・部分一致・関連語・共起語・類義語）</li>
+            <li>候補記事のHTML解析（title / h1 / h2 / h3 / 本文）</li>
+            <li>Claude AIによる関連性スコアリング（100点満点・5観点）</li>
+            <li>内部リンク設置候補のGoogle Spreadsheet自動出力（H列以降）</li>
+          </ul>
+        </div>
+
+        <!-- 1.2 ユーザー・権限 -->
+        <div class="card">
+          <div class="card-title">1.2 ユーザー・権限定義</div>
+          <div class="table-wrap">
+            <table>
+              <tr>
+                <th>ロール</th><th>説明</th><th>できること</th><th>できないこと</th>
+              </tr>
+              <tr>
+                <td><strong>システム運用者</strong><br><span class="badge badge-blue">エージェント実行者</span></td>
+                <td>Cowork上でエージェントを起動する</td>
+                <td>エージェント実行・再実行・ログ確認</td>
+                <td>WordPress自動投稿（本フェーズ対象外）</td>
+              </tr>
+              <tr>
+                <td><strong>クライアント担当者</strong><br><span class="badge badge-green">レビュアー</span></td>
+                <td>提案結果を確認・レビューする</td>
+                <td>スプレッドシート閲覧・内部リンク実施の最終判断</td>
+                <td>エージェントの直接操作</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 1.3 機能要件 -->
+        <div class="card" id="req-func">
+          <div class="card-title">1.3 機能要件（5ステップ処理）</div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">1</div>
+              <div class="step-title">STEP1 — 対象記事抽出</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>Google SpreadsheetのE列（内部リンク数）を全行読み取る</li>
+                <li>E列 ≤ 1 かつ N列（処理済みフラグ）が空白の行を対象に選定する</li>
+                <li>対象行のC列（メインKW）・D列（記事URL）を取得する</li>
+                <li>C列またはD列が空の場合はその行をスキップしてログに記録する</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">2</div>
+              <div class="step-title">STEP2 — 関連記事候補探索</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>メインKW（C列）とスプレッドシート内の全記事KWをKW完全一致・部分一致で比較する</li>
+                <li>Claude APIを用いてKWの関連語・共起語・類義語を生成し探索範囲を拡張する</li>
+                <li>対象記事自身のURL・すでに採用済みのURLは除外する</li>
+                <li>候補リストを最大20件生成してSTEP3へ渡す</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">3</div>
+              <div class="step-title">STEP3 — 候補記事取得・解析</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>各候補記事URLへHTTPSリクエストを送信する（タイムアウト10秒）</li>
+                <li>BeautifulSoupで以下を抽出: <code>&lt;title&gt;</code>・<code>&lt;h1&gt;</code>・<code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code>一覧・本文テキスト（先頭800文字）</li>
+                <li>HTTP失敗（404・タイムアウト等）はスキップ・警告ログ出力・処理継続する</li>
+                <li>最大2回リトライ後に失敗した場合は候補から除外する</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">4</div>
+              <div class="step-title">STEP4 — AI関連性判定</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>Claude APIを使用し、5観点で関連性を100点満点でスコアリングする</li>
+                <li>スコア ≥ 60点の記事を採用候補とする</li>
+                <li>候補が2件未満の場合は閾値を40点に下げて再判定する</li>
+                <li>採用候補から「貼る箇所の見出し」もAIが合わせて提案する</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">5</div>
+              <div class="step-title">STEP5 — 内部リンク設置候補生成・出力</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>採用候補をスコア降順で並び替え、上位2〜3件をSpreadsheetに出力する</li>
+                <li>H列: 貼るURL① / I列: 貼る箇所見出し① / J列: 貼るURL② / K列: 貼る箇所見出し②</li>
+                <li>3件目以降はL列・M列に出力する</li>
+                <li>処理完了後にN列へ「done」フラグを書き込む</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1.4 ビジネスロジック -->
+        <div class="card">
+          <div class="card-title">1.4 ビジネスロジック・業務ルール</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>ルール</th><th>内容</th></tr>
+              <tr><td>抽出条件</td><td>E列 ≤ 1（E列が空白の場合も対象に含める）</td></tr>
+              <tr><td>重複防止</td><td>同一URLへの重複提案は除外する</td></tr>
+              <tr><td>自己参照除外</td><td>対象記事自身のURLは候補から除外する</td></tr>
+              <tr><td>提案件数</td><td>最低2件・最大3件（MVPフェーズ）</td></tr>
+              <tr><td>再実行制御</td><td>N列に「done」がある行は処理をスキップする</td></tr>
+              <tr><td>出力保護</td><td>H列以降にすでにデータがある行はスキップする（上書き防止）</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 1.5 非機能要件 -->
+        <div class="card" id="req-nonfunc">
+          <div class="card-title">1.5 非機能要件</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th></tr>
+              <tr><td>対象デバイス</td><td>PC（Cowork実行環境）</td></tr>
+              <tr><td>同時利用人数</td><td>1名（シングルエージェント実行）</td></tr>
+              <tr><td>処理速度</td><td>1記事あたり最大30秒以内（API・HTTP取得込み）</td></tr>
+              <tr><td>認証方式</td><td>Google OAuthサービスアカウント（Sheets API）</td></tr>
+              <tr><td>通信</td><td>HTTPS（外部URL取得・Claude API通信）</td></tr>
+              <tr><td>エラー耐性</td><td>個別記事のHTTP失敗は警告ログを出してスキップ。全体処理は継続する</td></tr>
+              <tr><td>デプロイ先</td><td>Cowork（クラウド実行環境）</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 1.6 制約条件 -->
+        <div class="card">
+          <div class="card-title">1.6 制約条件</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th></tr>
+              <tr><td>インフラ</td><td>AWSなどの大規模インフラは使用しない</td></tr>
+              <tr><td>実行環境</td><td>Cowork上で完結させる</td></tr>
+              <tr><td>言語</td><td>Python 3.10以上（BeautifulSoup / requests / gspread）</td></tr>
+              <tr><td>AI</td><td>Claude API（Anthropic / claude-sonnet-4-6）</td></tr>
+              <tr><td>データ基盤</td><td>Google Spreadsheet（クライアント提供）</td></tr>
+              <tr><td>WordPress自動投稿</td><td>本フェーズ対象外</td></tr>
+              <tr><td>アンカーテキスト自動生成</td><td>本フェーズ対象外</td></tr>
+              <tr><td>Embedding活用</td><td>本フェーズ対象外</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 1.7 未確定事項 -->
+        <div class="card">
+          <div class="card-title">1.7 未確定事項</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>#</th><th>項目</th><th>優先度</th><th>対応方針</th></tr>
+              <tr>
+                <td>1</td>
+                <td>対象記事がクロール可能かどうか</td>
+                <td><span class="badge badge-orange">高</span></td>
+                <td>クライアントに確認が必要。非公開・Basic認証記事は取得不可</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Google SpreadsheetのシートID・列構成の確定</td>
+                <td><span class="badge badge-orange">高</span></td>
+                <td>クライアントからシートIDの提供が必要</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>処理済みフラグ列の位置（N列固定でよいか）</td>
+                <td><span class="badge badge-blue">中</span></td>
+                <td>クライアントのシート構成確認後に決定</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>候補記事の最大探索件数</td>
+                <td><span class="badge badge-blue">中</span></td>
+                <td>MVP段階では全記事を対象（上限は後から設定可能）</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>エラーログの保存先</td>
+                <td><span class="badge badge-gray">低</span></td>
+                <td>Cowork実行ログに出力する形でよい</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 1.8 クライアント準備事項 -->
+        <div class="card" id="req-client">
+          <div class="card-title">1.8 クライアント側の準備事項</div>
+          <div class="alert alert-warning">
+            ⚠️ 以下の準備が完了していないとシステムは動作しません。事前にご確認ください。
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th><th>確認状況</th></tr>
+              <tr>
+                <td>Cowork環境</td>
+                <td>Coworkアカウントの用意・エージェント実行権限の確認</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>Google Spreadsheet共有</td>
+                <td>対象シートをシステム運用者のGoogleアカウントと共有（編集権限）</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>記事のアクセス可否</td>
+                <td>D列の記事URLがHTTPSで公開済みであること（非公開・Basic認証不可）</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>Googleアカウント</td>
+                <td>Sheets APIを利用するためのGoogleアカウント</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>APIキー</td>
+                <td>Claude APIキー（別途発行・シークレット管理）</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================
+           SECTION 2: 基本設計書
+      ======================================== -->
+      <div class="doc-section" id="design">
+        <div class="doc-header">
+          <span class="doc-num">02</span>
+          <span class="doc-title">基本設計書</span>
+        </div>
+
+        <!-- 2.1 技術スタック -->
+        <div class="card" id="design-stack">
+          <div class="card-title">2.1 技術スタック</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>カテゴリ</th><th>技術</th><th>バージョン</th><th>選定理由</th></tr>
+              <tr><td>エージェント実行環境</td><td><strong>Cowork</strong></td><td>最新</td><td>クライアント要件・ノーインフラ運用</td></tr>
+              <tr><td>AI / LLM</td><td><strong>Claude API</strong>（claude-sonnet-4-6）</td><td>claude-sonnet-4-6</td><td>日本語SEO関連性判定の高精度・コスト効率</td></tr>
+              <tr><td>スクリプト言語</td><td><strong>Python</strong></td><td>3.10以上</td><td>BeautifulSoup・Sheets API・requests全対応</td></tr>
+              <tr><td>HTML解析</td><td><strong>BeautifulSoup4 + lxml</strong></td><td>4.12.x</td><td>軽量・安定した記事解析・日本語対応</td></tr>
+              <tr><td>HTTPクライアント</td><td><strong>requests</strong></td><td>2.31.x</td><td>シンプルな外部URL取得・セッション管理</td></tr>
+              <tr><td>データ基盤</td><td><strong>Google Spreadsheet</strong></td><td>—</td><td>クライアントの既存環境を活用・操作が容易</td></tr>
+              <tr><td>Sheets API</td><td><strong>gspread + google-auth</strong></td><td>6.x</td><td>Python連携が最も容易・メンテナンス良好</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2.2 システム構成 -->
+        <div class="card" id="design-arch">
+          <div class="card-title">2.2 システム構成</div>
+          <pre>
+[クライアント]
+    ↓ NYSEOデータ投入（手動 or 自動）
+[Google Spreadsheet]
+    ↓ Sheets API経由で読み取り
+[Cowork + Pythonスクリプト]
+    ├─ STEP1: 対象記事抽出
+    ├─ STEP2: 関連記事候補探索 ──→ [Claude API]（KW拡張）
+    ├─ STEP3: 記事HTML取得・解析（requests + BeautifulSoup）
+    ├─ STEP4: 関連性判定 ──→ [Claude API]（スコアリング）
+    └─ STEP5: 結果出力
+         ↓ Sheets API経由で書き込み
+[Google Spreadsheet H列以降]
+    ↓ クライアントが確認・最終判断
+[担当者がWordPressに手動で内部リンクを設置]</pre>
+        </div>
+
+        <!-- 2.3 モジュール構成 -->
+        <div class="card" id="design-module">
+          <div class="card-title">2.3 モジュール構成・ディレクトリ</div>
+          <pre>
+nyseo-internal-link-agent/
+├── main.py                    # エントリーポイント・全STEPを順次実行
+├── config.py                  # 設定値（閾値・API設定・列番号定義）
+├── requirements.txt
+├── .gitignore
+│
+├── steps/
+│   ├── step1_extract.py       # STEP1: 対象記事抽出
+│   ├── step2_search.py        # STEP2: 関連記事候補探索
+│   ├── step3_fetch.py         # STEP3: 記事HTML取得・解析
+│   ├── step4_judge.py         # STEP4: AI関連性判定
+│   └── step5_output.py        # STEP5: スプレッドシート出力
+│
+├── utils/
+│   ├── sheets_client.py       # Google Sheets API ラッパー
+│   ├── claude_client.py       # Claude API ラッパー
+│   └── logger.py              # ログ出力ユーティリティ
+│
+├── prompts/
+│   ├── kw_expansion.txt       # STEP2: KW拡張プロンプト
+│   └── relevance_judge.txt    # STEP4: 関連性判定プロンプト
+│
+└── docs/
+    └── index.html             # GitHub Pages（本仕様書）</pre>
+        </div>
+
+        <!-- 2.4 外部連携 -->
+        <div class="card">
+          <div class="card-title">2.4 外部連携</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>外部サービス</th><th>用途</th><th>認証</th><th>注意事項</th></tr>
+              <tr>
+                <td><strong>Google Sheets API</strong></td>
+                <td>Spreadsheet読み取り・書き込み</td>
+                <td>サービスアカウント（JSONキー）</td>
+                <td>スコープ: spreadsheets読み書き権限</td>
+              </tr>
+              <tr>
+                <td><strong>Claude API</strong>（Anthropic）</td>
+                <td>STEP2 KW拡張・STEP4 関連性判定</td>
+                <td>APIキー（x-api-keyヘッダー）</td>
+                <td>呼び出し間に0.5秒sleep・レート制限対応</td>
+              </tr>
+              <tr>
+                <td><strong>対象サイト</strong>（HTTP）</td>
+                <td>STEP3 記事HTML取得</td>
+                <td>なし（公開ページのみ）</td>
+                <td>タイムアウト10秒・リトライ2回・UA設定必須</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2.5 エラー処理 -->
+        <div class="card" id="design-error">
+          <div class="card-title">2.5 エラー処理</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>エラー種別</th><th>対応</th><th>処理継続</th></tr>
+              <tr><td>HTTP取得失敗（404・タイムアウト等）</td><td>該当記事をスキップ・警告ログ出力</td><td>✅ 継続</td></tr>
+              <tr><td>Claude API エラー（5xx等）</td><td>最大2回リトライ後、スキップ・エラーログ</td><td>✅ 継続</td></tr>
+              <tr><td>Sheets API 書き込みエラー</td><td>エラーログ出力・実行停止・手動確認を求める</td><td>❌ 停止</td></tr>
+              <tr><td>候補記事が2件未満</td><td>閾値を60→40に下げて再判定。不足なら空欄出力</td><td>✅ 継続</td></tr>
+              <tr><td>C列・D列が空白</td><td>該当行をスキップ・警告ログ</td><td>✅ 継続</td></tr>
+              <tr><td>N列が「done」</td><td>処理済みとして完全スキップ</td><td>✅ 継続</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2.6 セキュリティ -->
+        <div class="card">
+          <div class="card-title">2.6 セキュリティ考慮事項</div>
+          <ul class="checklist">
+            <li>Claude APIキー・Googleサービスアカウントキーはプロジェクトフォルダ外のシークレットフォルダで管理</li>
+            <li><code>.gitignore</code> でAPIキー・認証ファイル（<code>*.json</code>・<code>.env</code>）をGit管理対象外に設定</li>
+            <li>スプレッドシートの共有権限は最小限（必要なアカウントのみ編集権限）</li>
+            <li>外部サイトへのHTTPリクエストはGET取得のみ（書き込み・POST等は行わない）</li>
+            <li>User-Agentに識別可能な文字列を設定（<code>NYSEOInternalLinkAgent/1.0</code>）</li>
+          </ul>
+        </div>
+
+        <!-- 2.7 開発フェーズ -->
+        <div class="card" id="design-phase">
+          <div class="card-title">2.7 開発フェーズ</div>
+          <div class="phase-item">
+            <div class="phase-dot">P1</div>
+            <div class="phase-content">
+              <div class="phase-title">Phase 1 — 環境構築・基盤</div>
+              <ul class="phase-tasks">
+                <li>Pythonプロジェクト初期化（requirements.txt）</li>
+                <li>Google Sheets API認証・接続テスト</li>
+                <li>Claude API接続テスト</li>
+                <li>スプレッドシートの読み取り動作確認</li>
+              </ul>
+            </div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-dot">P2</div>
+            <div class="phase-content">
+              <div class="phase-title">Phase 2 — コア機能実装</div>
+              <ul class="phase-tasks">
+                <li>STEP1: 対象記事抽出ロジック実装</li>
+                <li>STEP2: KW探索・Claude APIによるKW拡張実装</li>
+                <li>STEP3: 記事HTML取得・BeautifulSoupパース実装</li>
+                <li>STEP4: Claude APIによる関連性スコアリング実装</li>
+                <li>STEP5: スプレッドシートへの書き込み実装</li>
+              </ul>
+            </div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-dot">P3</div>
+            <div class="phase-content">
+              <div class="phase-title">Phase 3 — エラー処理・安定化</div>
+              <ul class="phase-tasks">
+                <li>HTTPタイムアウト・エラー処理実装</li>
+                <li>APIリトライ・レート制限対応</li>
+                <li>処理済みフラグ機能実装</li>
+                <li>ログ出力整備</li>
+              </ul>
+            </div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-dot">P4</div>
+            <div class="phase-content">
+              <div class="phase-title">Phase 4 — Cowork対応・テスト・引き渡し</div>
+              <ul class="phase-tasks">
+                <li>Cowork上での動作確認</li>
+                <li>テストスプレッドシートでのエンドツーエンドテスト</li>
+                <li>実データでの精度確認・閾値調整</li>
+                <li>クライアントへの説明・デモ・本番運用開始</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================
+           SECTION 3: AI判定ロジック設計
+      ======================================== -->
+      <div class="doc-section" id="ai">
+        <div class="doc-header">
+          <span class="doc-num">03</span>
+          <span class="doc-title">AI判定ロジック設計</span>
+        </div>
+
+        <!-- 3.1 スコアリング -->
+        <div class="card" id="ai-score">
+          <div class="card-title">3.1 関連性スコアリング設計</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>判定観点</th><th>重み</th><th>配点</th><th>判定内容</th></tr>
+              <tr><td><strong>検索意図一致度</strong></td><td>30%</td><td>0〜30点</td><td>対象記事を読むユーザーの検索意図と候補記事が一致するか</td></tr>
+              <tr><td><strong>トピック一致度</strong></td><td>25%</td><td>0〜25点</td><td>扱っているトピック・テーマが同一または密接に関連しているか</td></tr>
+              <tr><td><strong>文脈自然性</strong></td><td>20%</td><td>0〜20点</td><td>対象記事の文中で候補記事へのリンクが自然に機能するか</td></tr>
+              <tr><td><strong>SEO妥当性</strong></td><td>15%</td><td>0〜15点</td><td>SEO観点でリンク元→リンク先のテーマ関連性が適切か</td></tr>
+              <tr><td><strong>内部リンク自然性</strong></td><td>10%</td><td>0〜10点</td><td>具体的なアンカーテキストとしてリンクが機能するか</td></tr>
+              <tr style="background:#f8fafc"><td><strong>合計</strong></td><td><strong>100%</strong></td><td><strong>0〜100点</strong></td><td></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3.2 判定基準 -->
+        <div class="card">
+          <div class="card-title">3.2 判定基準・閾値設定</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>スコア</th><th>評価</th><th>採用判定</th></tr>
+              <tr class="score-high"><td>80〜100点</td><td>強く関連あり</td><td>✅ 優先採用（最上位で出力）</td></tr>
+              <tr class="score-mid"><td>60〜79点</td><td>関連あり</td><td>✅ 通常採用</td></tr>
+              <tr class="score-low"><td>40〜59点</td><td>やや関連あり</td><td>⚠️ 候補が2件未満の場合のみ採用（閾値下げ時）</td></tr>
+              <tr class="score-none"><td>0〜39点</td><td>関連なし</td><td>❌ 除外</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3.3 除外条件 -->
+        <div class="card">
+          <div class="card-title">3.3 除外条件</div>
+          <ul>
+            <li>対象記事自身のURLと同一（自己リンク防止）</li>
+            <li>スコア &lt; 40点（最低閾値ライン）</li>
+            <li>HTTP取得に失敗した記事（404・タイムアウト等）</li>
+            <li>カテゴリページ・タグページ・アーカイブページ（<code>/category/</code>・<code>/tag/</code>・<code>/page/</code> 含むURL）</li>
+            <li>同一対象記事内でH列以降にすでに提案済みのURL</li>
+          </ul>
+        </div>
+
+        <!-- 3.4 プロンプト設計 -->
+        <div class="card" id="ai-prompt">
+          <div class="card-title">3.4 プロンプト設計</div>
+          <h4>STEP2: KW拡張プロンプト</h4>
+          <pre>
+あなたはSEO専門家です。
+以下のメインキーワードに対して、内部リンク候補記事を探すために
+関連語・共起語・類義語を10個以内で生成してください。
+
+メインKW: {target_kw}
+
+出力形式（JSON配列）:
+["関連語1", "関連語2", "共起語1", ...]
+
+注意: 日本語で、SEO実務で実際に使用されるキーワードのみ出力すること。</pre>
+
+          <h4>STEP4: 関連性判定プロンプト</h4>
+          <pre>
+あなたはSEO専門家です。以下の2記事の関連性を評価してください。
+
+## 対象記事（内部リンクを貼りたい記事）
+- メインKW: {target_kw}
+- URL: {target_url}
+
+## 候補記事（内部リンクとして貼る候補）
+- タイトル: {candidate_title}
+- URL: {candidate_url}
+- 主要見出し: {candidate_headings}
+- 本文冒頭: {candidate_body[:800]}
+
+## 評価基準（100点満点）
+- 検索意図一致度 (0-30点)
+- トピック一致度 (0-25点)
+- 文脈自然性 (0-20点)
+- SEO妥当性 (0-15点)
+- 内部リンク自然性 (0-10点)
+
+## 出力形式（JSON）
+{
+  "score": 整数(0-100),
+  "reason": "判定理由（1-2文で簡潔に）",
+  "recommended_heading": "リンクを貼るのに最適な候補記事内の見出しテキスト"
+}</pre>
+        </div>
+      </div>
+
+      <!-- ========================================
+           SECTION 4: データ設計
+      ======================================== -->
+      <div class="doc-section" id="data">
+        <div class="doc-header">
+          <span class="doc-num">04</span>
+          <span class="doc-title">データ設計</span>
+        </div>
+
+        <!-- 4.1 Spreadsheet列定義 -->
+        <div class="card" id="data-sheet">
+          <div class="card-title">4.1 Google Spreadsheet 列定義</div>
+          <div class="alert alert-info">
+            📋 H列以降はシステムの出力領域です。手動で編集しないでください。N列（処理済みフラグ）を削除すると再実行されます。
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>列</th><th>内容</th><th>型</th><th>役割</th><th>操作</th></tr>
+              <tr><td><strong>C列</strong></td><td>メインKW（GSCクリック最多）</td><td>string</td><td>STEP2の起点キーワード</td><td>読み取りのみ</td></tr>
+              <tr><td><strong>D列</strong></td><td>記事URL</td><td>string（URL）</td><td>クロール対象URL・対象記事の識別子</td><td>読み取りのみ</td></tr>
+              <tr><td><strong>E列</strong></td><td>現在の内部リンク数</td><td>integer</td><td>対象記事の抽出条件（≤ 1）</td><td>読み取りのみ</td></tr>
+              <tr class="hl-output"><td><strong>H列</strong></td><td>貼るURL①</td><td>string（URL）</td><td>システム出力：内部リンク候補1件目URL</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>I列</strong></td><td>貼る箇所見出し①</td><td>string</td><td>システム出力：候補1件目の設置箇所見出し</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>J列</strong></td><td>貼るURL②</td><td>string（URL）</td><td>システム出力：内部リンク候補2件目URL</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>K列</strong></td><td>貼る箇所見出し②</td><td>string</td><td>システム出力：候補2件目の設置箇所見出し</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>L列</strong></td><td>貼るURL③（任意）</td><td>string（URL）</td><td>システム出力：内部リンク候補3件目URL</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>M列</strong></td><td>貼る箇所見出し③（任意）</td><td>string</td><td>システム出力：候補3件目の設置箇所見出し</td><td>書き込み</td></tr>
+              <tr class="hl-flag"><td><strong>N列</strong></td><td>処理済みフラグ</td><td>string</td><td>「done」で再処理スキップ。再実行するには削除する</td><td>書き込み</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4.2 中間データ構造 -->
+        <div class="card" id="data-struct">
+          <div class="card-title">4.2 中間データ構造（Pythonオブジェクト）</div>
+          <h4>対象記事リスト（STEP1出力）</h4>
+          <pre>
+target_articles = [
+    {
+        "row": 3,               # スプレッドシート行番号
+        "kw": "SEO 内部リンク", # C列メインKW
+        "url": "https://example.com/seo-internal-link/"
+    }, ...
+]</pre>
+          <h4>候補記事解析結果（STEP3出力）</h4>
+          <pre>
+parsed_article = {
+    "url": "https://example.com/article/",
+    "title": "記事タイトル",
+    "h1": "見出しH1",
+    "h2_list": ["見出しA", "見出しB"],
+    "h3_list": ["見出しC", "見出しD"],
+    "body_text": "本文テキスト（先頭800文字）"
+}</pre>
+          <h4>AI判定結果（STEP4出力）</h4>
+          <pre>
+judgment_result = {
+    "url": "https://example.com/article/",
+    "score": 85,
+    "reason": "検索意図が一致し、トピックの親和性が高い。",
+    "recommended_heading": "内部リンクの重要性について"
+}</pre>
+          <h4>Spreadsheet書き込みデータ（STEP5→出力）</h4>
+          <pre>
+output_row = {
+    "row": 3,
+    "H": "https://example.com/related-1/",  # 貼るURL①
+    "I": "内部リンクの重要性について",        # 貼る箇所見出し①
+    "J": "https://example.com/related-2/",  # 貼るURL②
+    "K": "SEOの基礎知識",                   # 貼る箇所見出し②
+    "L": "",                                 # 3件目なければ空
+    "M": "",
+    "N": "done"                              # 処理済みフラグ
+}</pre>
+        </div>
+      </div>
+
+      <!-- ========================================
+           SECTION 5: 処理フロー設計
+      ======================================== -->
+      <div class="doc-section" id="flow">
+        <div class="doc-header">
+          <span class="doc-num">05</span>
+          <span class="doc-title">処理フロー設計</span>
+        </div>
+
+        <!-- 5.1 メイン処理フロー -->
+        <div class="card" id="flow-main">
+          <div class="card-title">5.1 メイン処理フロー</div>
+          <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart TD
+    START([処理開始]) --> LOAD[Spreadsheet全データ読み込み\nGoogle Sheets API]
+    LOAD --> LOOP{未処理行あり?}
+    LOOP -- No --> DONE([全処理完了])
+    LOOP -- Yes --> CHECK{E列 ≤ 1\nかつN列が空?}
+    CHECK -- No --> LOOP
+    CHECK -- Yes --> STEP1[STEP1: 対象記事抽出\nC列KW・D列URL取得]
+    STEP1 --> STEP2[STEP2: 関連記事候補探索\nKW完全一致・部分一致]
+    STEP2 --> CLAUDE1[Claude API\nKW拡張・関連語生成]
+    CLAUDE1 --> CAND[候補記事リスト生成\n自己参照・重複除外]
+    CAND --> CAND_CHECK{候補記事あり?}
+    CAND_CHECK -- No --> EMPTY[出力なしで\n処理済みフラグ書き込み]
+    EMPTY --> LOOP
+    CAND_CHECK -- Yes --> FETCH[STEP3: 記事HTML取得\nrequests + タイムアウト10秒]
+    FETCH --> HTTP{取得成功?}
+    HTTP -- No --> SKIP_LOG[スキップ・警告ログ\n次の候補へ]
+    SKIP_LOG --> CAND_CHECK
+    HTTP -- Yes --> PARSE[BeautifulSoup解析\ntitle/h1/h2/h3/本文]
+    PARSE --> STEP4[STEP4: Claude API関連性判定\n100点・5観点スコアリング]
+    STEP4 --> SCORE{スコア ≥ 60?}
+    SCORE -- No --> CAND_CHECK
+    SCORE -- Yes --> ADD[採用リストに追加]
+    ADD --> COUNT{採用 ≥ 2件?}
+    COUNT -- No --> CAND_CHECK
+    COUNT -- Yes --> STEP5[STEP5: Spreadsheet書き込み\nH列以降にURL・見出しを出力]
+    STEP5 --> FLAG[N列に done フラグ書き込み]
+    FLAG --> LOOP
+            </pre>
+          </div>
+        </div>
+
+        <!-- 5.2 エラー時処理 -->
+        <div class="card" id="flow-error">
+          <div class="card-title">5.2 エラー時処理フロー</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>発生箇所</th><th>エラー内容</th><th>処理フロー</th></tr>
+              <tr><td>STEP3</td><td>HTTP 404・タイムアウト</td><td>警告ログ出力 → 当該候補をスキップ → 次の候補へ進む</td></tr>
+              <tr><td>STEP4</td><td>Claude API 5xx / レート制限</td><td>0.5秒待機 → リトライ（最大2回）→ 失敗時はスキップ → 次の候補へ</td></tr>
+              <tr><td>STEP5</td><td>Sheets API 書き込み失敗</td><td>エラーログ出力 → 実行停止 → ユーザーに手動確認を要求</td></tr>
+              <tr><td>全体</td><td>採用候補が2件未満</td><td>閾値を60→40に引き下げ → 再評価 → それでも不足なら空欄で出力</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 5.3 運用フロー -->
+        <div class="card" id="flow-ops">
+          <div class="card-title">5.3 クライアント運用フロー</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>手順</th><th>担当</th><th>操作内容</th></tr>
+              <tr><td>①</td><td>クライアント</td><td>NYSEOデータをGoogle Spreadsheetに投入する</td></tr>
+              <tr><td>②</td><td>システム運用者</td><td>Cowork上でエージェントを起動する</td></tr>
+              <tr><td>③</td><td>システム（自動）</td><td>STEP1〜5を自動実行し、H列以降に結果を出力する</td></tr>
+              <tr><td>④</td><td>クライアント</td><td>スプレッドシートのH列以降を確認し、提案内容をレビューする</td></tr>
+              <tr><td>⑤</td><td>クライアント</td><td>レビューOKの内容をWordPressに手動で内部リンクを設置する</td></tr>
+              <tr><td>⑥</td><td>クライアント</td><td>再実行が必要な場合、N列の「done」フラグを削除してから再起動する</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- 5.4 将来拡張 -->
+        <div class="card">
+          <div class="card-title">5.4 将来拡張（本フェーズ対象外）</div>
+          <div class="alert alert-info">
+            以下の機能は本MVPフェーズでは実装しません。拡張可能な設計としているため、将来対応が可能です。
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>機能</th><th>概要</th><th>優先度</th></tr>
+              <tr><td>WordPressへの自動反映</td><td>承認済みの内部リンクをWordPress REST APIで自動設置</td><td><span class="badge badge-orange">高</span></td></tr>
+              <tr><td>アンカーテキスト自動生成</td><td>AIがリンクアンカーテキストまで自動提案する</td><td><span class="badge badge-blue">中</span></td></tr>
+              <tr><td>Embedding活用</td><td>テキストEmbeddingによる高精度な意味的関連性判定</td><td><span class="badge badge-blue">中</span></td></tr>
+              <tr><td>Search Console連携</td><td>GSCデータと連携してリンク効果を計測・フィードバック</td><td><span class="badge badge-gray">低</span></td></tr>
+              <tr><td>内部リンク最適化スコアリング</td><td>サイト全体の内部リンク構造を最適化する高度ロジック</td><td><span class="badge badge-gray">低</span></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>NYSEO内部リンクAIエージェント 技術仕様書 v1.0 — 作成日: 2026-05-16</p>
+          <p>本ドキュメントは GitHub Pages で公開されています。内容は開発進捗に応じて更新されます。</p>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /wrapper -->
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#dbeafe',
+      primaryTextColor: '#1e293b',
+      primaryBorderColor: '#3b82f6',
+      lineColor: '#64748b',
+      secondaryColor: '#f1f5f9',
+      tertiaryColor: '#f8fafc',
+      edgeLabelBackground: '#ffffff'
+    },
+    flowchart: { curve: 'basis' }
+  });
+
+  // Sidebar active link on scroll
+  const navLinks = document.querySelectorAll('.nav-item[href^="#"]');
+  const sections = [...document.querySelectorAll('[id]')];
+
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY + 100;
+    let current = '';
+    sections.forEach(s => {
+      if (s.getBoundingClientRect().top + window.scrollY <= scrollY) {
+        current = s.id;
+      }
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>
