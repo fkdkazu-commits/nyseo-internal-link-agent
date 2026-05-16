@@ -646,7 +646,7 @@
               <tr><td>インフラ</td><td>AWSなどの大規模インフラは使用しない</td></tr>
               <tr><td>実行環境</td><td>Cowork上で完結させる</td></tr>
               <tr><td>言語</td><td>Python 3.10以上（BeautifulSoup / requests / gspread）</td></tr>
-              <tr><td>AI</td><td>Claude API（Anthropic / claude-sonnet-4-6）</td></tr>
+              <tr><td>AI</td><td>Cowork内蔵 Claude AI（APIキー不要）</td></tr>
               <tr><td>データ基盤</td><td>CSV（NYSEO出力・クライアント提供）</td></tr>
               <tr><td>WordPress自動投稿</td><td>本フェーズ対象外</td></tr>
               <tr><td>アンカーテキスト自動生成</td><td>本フェーズ対象外</td></tr>
@@ -720,8 +720,8 @@
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
               <tr>
-                <td>APIキー</td>
-                <td>Claude APIキー（別途発行・シークレット管理）</td>
+                <td>Coworkプラン</td>
+                <td>Claude Proプラン以上（月額約$20〜）へのご加入</td>
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
             </table>
@@ -745,7 +745,7 @@
             <table>
               <tr><th>カテゴリ</th><th>技術</th><th>バージョン</th><th>選定理由</th></tr>
               <tr><td>エージェント実行環境</td><td><strong>Cowork</strong></td><td>最新</td><td>クライアント要件・ノーインフラ運用</td></tr>
-              <tr><td>AI / LLM</td><td><strong>Claude API</strong>（claude-sonnet-4-6）</td><td>claude-sonnet-4-6</td><td>日本語SEO関連性判定の高精度・コスト効率</td></tr>
+              <tr><td>AI / LLM</td><td><strong>Cowork内蔵 Claude AI</strong></td><td>Coworkプランに準拠</td><td>APIキー不要・Proプランの範囲内で動作・日本語SEO判定の高精度</td></tr>
               <tr><td>スクリプト言語</td><td><strong>Python</strong></td><td>3.10以上</td><td>BeautifulSoup・Sheets API・requests全対応</td></tr>
               <tr><td>HTML解析</td><td><strong>BeautifulSoup4 + lxml</strong></td><td>4.12.x</td><td>軽量・安定した記事解析・日本語対応</td></tr>
               <tr><td>HTTPクライアント</td><td><strong>requests</strong></td><td>2.31.x</td><td>シンプルな外部URL取得・セッション管理</td></tr>
@@ -762,11 +762,11 @@
     ↓ NYSEOデータ（CSV）を配置
 [入力CSV]
     ↓ Python標準csvモジュールで読み取り
-[Cowork + Pythonスクリプト]
+[Cowork エージェント（Claude AI内蔵）]
     ├─ STEP1: 対象記事抽出
-    ├─ STEP2: 全記事HTML一括取得・関連記事候補探索 ──→ [Claude API]（KW拡張）
+    ├─ STEP2: 全記事HTML一括取得・関連記事候補探索（KW拡張はCowork内蔵AIが判断）
     ├─ STEP3: 候補記事コンテンツ解析（BeautifulSoup）
-    ├─ STEP4: 関連性判定 ──→ [Claude API]（スコアリング）
+    ├─ STEP4: 関連性判定（Cowork内蔵AIがスコアリング・APIキー不要）
     └─ STEP5: 結果出力
          ↓ csvモジュールで書き込み
 [出力CSV（H列以降にURL・見出しを追記）]
@@ -793,12 +793,11 @@ nyseo-internal-link-agent/
 │
 ├── utils/
 │   ├── csv_client.py          # CSV読み書きユーティリティ
-│   ├── claude_client.py       # Claude API ラッパー
 │   └── logger.py              # ログ出力ユーティリティ
 │
 ├── prompts/
-│   ├── kw_expansion.txt       # STEP2: KW拡張プロンプト
-│   └── relevance_judge.txt    # STEP4: 関連性判定プロンプト
+│   ├── kw_expansion.txt       # STEP2: KW拡張指示（Cowork内蔵AIへの指示文）
+│   └── relevance_judge.txt    # STEP4: 関連性判定指示（Cowork内蔵AIへの指示文）
 │
 └── docs/
     └── index.html             # GitHub Pages（本仕様書）</pre>
@@ -811,10 +810,10 @@ nyseo-internal-link-agent/
             <table>
               <tr><th>外部サービス</th><th>用途</th><th>認証</th><th>注意事項</th></tr>
               <tr>
-                <td><strong>Claude API</strong>（Anthropic）</td>
+                <td><strong>Cowork内蔵 Claude AI</strong></td>
                 <td>STEP2 KW拡張・STEP4 関連性判定</td>
-                <td>APIキー（x-api-keyヘッダー）</td>
-                <td>呼び出し間に0.5秒sleep・レート制限対応</td>
+                <td>不要（Coworkプラン内で動作）</td>
+                <td>APIキー・従量課金なし。Cowork Proプラン以上が必要</td>
               </tr>
               <tr>
                 <td><strong>対象サイト</strong>（HTTP）</td>
@@ -833,7 +832,7 @@ nyseo-internal-link-agent/
             <table>
               <tr><th>エラー種別</th><th>対応</th><th>処理継続</th></tr>
               <tr><td>HTTP取得失敗（404・タイムアウト等）</td><td>該当記事をスキップ・警告ログ出力</td><td>✅ 継続</td></tr>
-              <tr><td>Claude API エラー（5xx等）</td><td>最大2回リトライ後、スキップ・エラーログ</td><td>✅ 継続</td></tr>
+              <tr><td>Cowork AI判定エラー</td><td>最大2回リトライ後、スキップ・エラーログ</td><td>✅ 継続</td></tr>
               <tr><td>CSV書き込みエラー</td><td>エラーログ出力・実行停止・手動確認を求める</td><td>❌ 停止</td></tr>
               <tr><td>候補記事が2件未満</td><td>閾値を60→40に下げて再判定。不足なら空欄出力</td><td>✅ 継続</td></tr>
               <tr><td>B列（記事URL）が空白</td><td>該当行をスキップ・警告ログ</td><td>✅ 継続</td></tr>
@@ -846,8 +845,8 @@ nyseo-internal-link-agent/
         <div class="card">
           <div class="card-title">2.6 セキュリティ考慮事項</div>
           <ul class="checklist">
-            <li>Claude APIキー・Googleサービスアカウントキーはプロジェクトフォルダ外のシークレットフォルダで管理</li>
-            <li><code>.gitignore</code> でAPIキー・認証ファイル（<code>*.json</code>・<code>.env</code>）をGit管理対象外に設定</li>
+            <li>APIキー・認証情報は一切不要（Cowork内蔵AIを使用するため）</li>
+            <li><code>.gitignore</code> で機密ファイル（<code>.env</code>等）をGit管理対象外に設定</li>
             <li>CSVファイルはローカル環境またはCowork内のみで取り扱い、外部共有しない</li>
             <li>外部サイトへのHTTPリクエストはGET取得のみ（書き込み・POST等は行わない）</li>
             <li>User-Agentに識別可能な文字列を設定（<code>NYSEOInternalLinkAgent/1.0</code>）</li>
@@ -1192,21 +1191,15 @@ flowchart TD
         <div class="card" id="flow-cost">
           <div class="card-title">5.5 費用について</div>
           <h4>開発費用</h4>
-          <p>開発期間中に発生するClaude APIの利用料（テスト実行分）は開発費用に含まれます。別途ご負担いただく費用はありません。</p>
+          <p>開発期間中に発生するテスト実行分の費用は開発費用に含まれます。別途ご負担いただく費用はありません。</p>
           <h4>運用時の継続コスト</h4>
           <div class="table-wrap">
             <table>
               <tr><th>項目</th><th>内容</th><th>目安</th><th>負担</th></tr>
               <tr>
-                <td><strong>Claude API利用料</strong></td>
-                <td>STEP2（KW拡張・全記事コンテンツ解析）・STEP4（関連性判定）での使用。実行のたびに発生する。</td>
-                <td>1回の実行あたり<br>¥500〜2,000程度<br><small>※対象記事数・候補数により変動</small></td>
-                <td>クライアント様</td>
-              </tr>
-              <tr>
-                <td><strong>Coworkプラットフォーム</strong></td>
-                <td>エージェントの実行環境。ご契約プランに依存する。</td>
-                <td>プランによる</td>
+                <td><strong>Cowork（Claude Proプラン）</strong></td>
+                <td>エージェント実行環境・AI判定（KW拡張・関連性スコアリング）を含む。APIキー・従量課金は発生しない。</td>
+                <td>約$20/月（¥3,000程度）</td>
                 <td>クライアント様</td>
               </tr>
               <tr>
@@ -1218,7 +1211,7 @@ flowchart TD
             </table>
           </div>
           <div class="alert alert-info">
-            💡 Claude APIの利用料はAnthropicへの従量課金です。月に数回の実行であれば数千円程度に収まる見込みです。APIキーはクライアント様ご自身で発行・管理いただきます。
+            💡 Cowork内蔵のClaude AIを使用するため、別途APIキーの発行・管理は不要です。Claude Proプラン（約$20/月）のご契約のみで運用いただけます。
           </div>
         </div>
 
