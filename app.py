@@ -44,13 +44,14 @@ def _shorten_kw(title: str) -> str:
     """タイトルから検索に使える短いキーワードを抽出する。
     例: '品川区の風俗街の特徴は？料金相場・歴史' → '品川区の風俗街'
     """
-    # 区切り文字で分割し、2文字以上の最初のかたまりを返す
+    # 大きな区切りで分割し最初のまとまりを取る
     parts = re.split(r"[？！、。｜【】「」『』\s]", title)
-    for part in parts:
-        part = part.strip()
-        if len(part) >= 2:
-            return part[:20]
-    return title[:20]
+    first = next((p.strip() for p in parts if len(p.strip()) >= 2), title)
+    # さらに「の」で区切り、先頭2セグメントを返す（例: 品川区 + 風俗街）
+    no_parts = first.split("の")
+    if len(no_parts) >= 2:
+        return "の".join(no_parts[:2])
+    return first[:20]
 
 
 # ------------------------------------------------------------------ ページ設定

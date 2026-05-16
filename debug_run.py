@@ -71,12 +71,16 @@ if target["kw_source"] == "auto_detect":
     if article:
         raw = (article.get("title") or article.get("h1") or "").strip()
         parts = re.split(r"[？！、。｜【】「」『』\s]", raw)
-        kw = next((p.strip() for p in parts if len(p.strip()) >= 2), raw)
-        target["kw"] = kw[:20]
+        first = next((p.strip() for p in parts if len(p.strip()) >= 2), raw)
+        no_parts = first.split("の")
+        kw = "の".join(no_parts[:2]) if len(no_parts) >= 2 else first[:20]
+        target["kw"] = kw
     print(f"  KW自動検出: {target['kw'] or '(検出失敗)'}")
 
 all_articles = []
-for i, row in enumerate(data[:20]):  # 高速化のため先頭20行のみ取得
+fetch_limit = 50  # デバッグ用（全件は時間がかかるため先頭N件）
+fetch_rows = data[:fetch_limit]
+for i, row in enumerate(fetch_rows):
     url = row[COL_URL].strip() if len(row) > COL_URL else ""
     kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
     if url:
@@ -84,9 +88,9 @@ for i, row in enumerate(data[:20]):  # 高速化のため先頭20行のみ取得
         if parsed:
             parsed["kw"] = kw
             all_articles.append(parsed)
-    print(f"  {i+1}/20 完了", end="\r")
+    print(f"  {i+1}/{fetch_limit} 完了", end="\r")
 
-print(f"\n  取得成功: {len(all_articles)} 件")
+print(f"\n  取得成功: {len(all_articles)} 件（先頭{fetch_limit}行から）")
 
 # --- STEP2 ---
 candidates = search_candidates(target, all_articles)
