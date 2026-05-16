@@ -1,31 +1,30 @@
 @echo off
+chcp 65001 >nul
+cd /d %~dp0
+
 echo ================================================
-echo  NYSEO エージェント スタートアップ登録
+echo  NYSEO Internal Link Agent - Setup
 echo ================================================
 echo.
 
-:: 依存パッケージのインストール
-echo [1/2] 依存パッケージをインストールしています...
+echo [1/2] Installing packages...
 pip install -r requirements.txt --quiet
-echo 完了
+echo Done.
 echo.
 
-:: Windows スタートアップフォルダへ登録
-echo [2/2] スタートアップへ登録しています...
+echo [2/2] Registering startup...
 set STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
 copy /Y "%~dp0start_background.vbs" "%STARTUP%\nyseo_agent.vbs" >nul
-echo 完了
+echo Done.
 echo.
 
 echo ================================================
-echo  セットアップ完了！
+echo  Setup complete!
 echo.
-echo  次回からPCを起動するだけで自動的にエージェントが
-echo  バックグラウンドで立ち上がります。
-echo.
-echo  ブラウザで以下をブックマーク登録してください：
+echo  The agent will start automatically on next boot.
+echo  Bookmark this URL in your browser:
 echo  http://localhost:8501
 echo.
-echo  ※ 今すぐ使う場合は start.bat を実行してください
+echo  To start now, run start.bat
 echo ================================================
 pause

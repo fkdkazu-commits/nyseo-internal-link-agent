@@ -1,6 +1,7 @@
 @echo off
+chcp 65001 >nul
 cd /d %~dp0
-echo NYSEO 内部リンク構築エージェントを起動しています...
+echo Starting NYSEO Internal Link Agent...
 pip install -r requirements.txt --quiet
 streamlit run app.py
 pause
