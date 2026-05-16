@@ -533,7 +533,7 @@
             <div class="step-body">
               <ul>
                 <li>入力CSVのE列（被リンク数）を全行読み取る</li>
-                <li>E列 ≤ 1 かつ N列（処理済みフラグ）が空白の行を対象に選定する</li>
+                <li>E列 ≤ 1 かつ H列が空白の行を対象に選定する（H列にデータがある行はスキップ）</li>
                 <li>対象行のB列（記事URL）・C列（メインKW）を取得する</li>
                 <li><strong>C列にKWが入っている場合</strong>：そのKWをSTEP2の起点として使用する</li>
                 <li><strong>C列が空白の場合</strong>：B列のURLから記事を取得し、<code>&lt;title&gt;</code> / <code>&lt;h1&gt;</code> / <code>&lt;h2&gt;</code> / <code>&lt;h3&gt;</code>（本文見出し全体）を解析してメインKWを自動検出する（全記事を対象にするため）</li>
@@ -598,7 +598,7 @@
                 <li>採用候補をスコア降順で並び替え、上位2〜3件を出力CSVに書き込む</li>
                 <li>H列: 候補記事URL①（この記事から対象記事へリンクを設置）/ I列: リンク設置箇所見出し①（候補記事内の見出し）</li>
                 <li>J列: 候補記事URL② / K列: リンク設置箇所見出し② / 3件目はL列・M列に出力する</li>
-                <li>処理完了後にN列へ「done」フラグを書き込む</li>
+                <li>出力CSVのH列以降にURL・見出しを書き込んで完了</li>
               </ul>
             </div>
           </div>
@@ -614,8 +614,7 @@
               <tr><td>重複防止</td><td>同一URLへの重複提案は除外する</td></tr>
               <tr><td>自己参照除外</td><td>対象記事自身のURLは候補から除外する</td></tr>
               <tr><td>提案件数</td><td>最低2件・最大3件（MVPフェーズ）</td></tr>
-              <tr><td>再実行制御</td><td>N列に「done」がある行は処理をスキップする</td></tr>
-              <tr><td>出力保護</td><td>H列以降にすでにデータがある行はスキップする（上書き防止）</td></tr>
+              <tr><td>再実行制御</td><td>H列にデータがある行はスキップする（再取り込み時も同様）</td></tr>
             </table>
           </div>
         </div>
@@ -672,12 +671,6 @@
                 <td>入力CSVの列構成の最終確認</td>
                 <td><span class="badge badge-orange">高</span></td>
                 <td>クライアントからシートIDの提供が必要</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td>処理済みフラグ列の位置（N列固定でよいか）</td>
-                <td><span class="badge badge-blue">中</span></td>
-                <td>クライアントのシート構成確認後に決定</td>
               </tr>
               <tr>
                 <td>4</td>
@@ -746,7 +739,7 @@
               <tr><th>カテゴリ</th><th>技術</th><th>バージョン</th><th>選定理由</th></tr>
               <tr><td>エージェント実行環境</td><td><strong>Cowork</strong></td><td>最新</td><td>クライアント要件・ノーインフラ運用</td></tr>
               <tr><td>AI / LLM</td><td><strong>Cowork内蔵 Claude AI</strong></td><td>Coworkプランに準拠</td><td>APIキー不要・Proプランの範囲内で動作・日本語SEO判定の高精度</td></tr>
-              <tr><td>スクリプト言語</td><td><strong>Python</strong></td><td>3.10以上</td><td>BeautifulSoup・Sheets API・requests全対応</td></tr>
+              <tr><td>スクリプト言語</td><td><strong>Python</strong></td><td>3.10以上</td><td>BeautifulSoup・requests・csv全対応</td></tr>
               <tr><td>HTML解析</td><td><strong>BeautifulSoup4 + lxml</strong></td><td>4.12.x</td><td>軽量・安定した記事解析・日本語対応</td></tr>
               <tr><td>HTTPクライアント</td><td><strong>requests</strong></td><td>2.31.x</td><td>シンプルな外部URL取得・セッション管理</td></tr>
               <tr><td>入出力データ</td><td><strong>CSV</strong></td><td>—</td><td>NYSEOの出力形式・追加ライブラリ不要</td></tr>
@@ -836,7 +829,7 @@ nyseo-internal-link-agent/
               <tr><td>CSV書き込みエラー</td><td>エラーログ出力・実行停止・手動確認を求める</td><td>❌ 停止</td></tr>
               <tr><td>候補記事が2件未満</td><td>閾値を60→40に下げて再判定。不足なら空欄出力</td><td>✅ 継続</td></tr>
               <tr><td>B列（記事URL）が空白</td><td>該当行をスキップ・警告ログ</td><td>✅ 継続</td></tr>
-              <tr><td>N列が「done」</td><td>処理済みとして完全スキップ</td><td>✅ 継続</td></tr>
+              <tr><td>H列にデータあり（処理済み）</td><td>処理済みとして完全スキップ</td><td>✅ 継続</td></tr>
             </table>
           </div>
         </div>
@@ -862,7 +855,7 @@ nyseo-internal-link-agent/
               <div class="phase-title">Phase 1 — 環境構築・基盤</div>
               <ul class="phase-tasks">
                 <li>Pythonプロジェクト初期化（requirements.txt）</li>
-                <li>Google Sheets API認証・接続テスト</li>
+                <li>CSV読み取り・書き込み・文字コード動作確認</li>
                 <li>Cowork内蔵AI動作確認</li>
                 <li>CSV読み取り・書き込み動作確認</li>
               </ul>
@@ -888,7 +881,7 @@ nyseo-internal-link-agent/
               <ul class="phase-tasks">
                 <li>HTTPタイムアウト・エラー処理実装</li>
                 <li>APIリトライ・レート制限対応</li>
-                <li>処理済みフラグ機能実装</li>
+                <li>H列チェックによる再処理スキップ実装</li>
                 <li>ログ出力整備</li>
               </ul>
             </div>
@@ -1018,7 +1011,7 @@ nyseo-internal-link-agent/
         <div class="card" id="data-sheet">
           <div class="card-title">4.1 CSV 列定義</div>
           <div class="alert alert-info">
-            📋 A〜G列はNYSEO出力データ（入力領域）、H列以降はシステムの出力領域です。入力CSVをそのまま読み込み、H〜N列を追記した出力CSVを生成します。N列（処理済みフラグ）を削除すると再実行されます。<br>
+            📋 A〜G列はNYSEO出力データ（入力領域）、H列以降はシステムの出力領域です。入力CSVをそのまま読み込み、H〜M列を追記した出力CSVを生成します。H列にデータが入っている行は再取り込み時にスキップされます（再実行したい場合はH列以降を削除してください）。<br>
             🔗 <strong>リンク方向について</strong>：H列以降に出力される「候補記事URL」は、<em>その記事から</em>対象記事（E列≤1の記事）へ内部リンクを新たに設置する記事です。対象記事の被リンク数（E列）を増やすことが目的です。
           </div>
           <div class="table-wrap">
@@ -1037,7 +1030,6 @@ nyseo-internal-link-agent/
               <tr class="hl-output"><td><strong>K列</strong></td><td>リンク設置箇所見出し②</td><td>string</td><td>システム出力：候補記事②内でリンクを設置するのに最適な見出し箇所</td><td>書き込み</td></tr>
               <tr class="hl-output"><td><strong>L列</strong></td><td>候補記事URL③（任意）</td><td>string（URL）</td><td>システム出力：対象記事へリンクを設置する候補記事のURL（3件目）</td><td>書き込み</td></tr>
               <tr class="hl-output"><td><strong>M列</strong></td><td>リンク設置箇所見出し③（任意）</td><td>string</td><td>システム出力：候補記事③内でリンクを設置するのに最適な見出し箇所</td><td>書き込み</td></tr>
-              <tr class="hl-flag"><td><strong>N列</strong></td><td>処理済みフラグ</td><td>string</td><td>「done」で再処理スキップ。再実行するには削除する</td><td>書き込み</td></tr>
             </table>
           </div>
         </div>
@@ -1084,7 +1076,6 @@ output_row = {
     "K": "SEOの基礎知識",                   # 候補記事②内でリンクを設置する見出し箇所
     "L": "",                                 # 3件目なければ空
     "M": "",
-    "N": "done"                              # 処理済みフラグ
 }</pre>
         </div>
       </div>
@@ -1107,9 +1098,9 @@ flowchart TD
     START([処理開始]) --> LOAD[入力CSV全データ読み込み]
     LOAD --> LOOP{未処理行あり?}
     LOOP -- No --> DONE([全処理完了])
-    LOOP -- Yes --> CHECK{E列 被リンク数 ≤ 1\nかつN列が空?}
-    CHECK -- No --> LOOP
-    CHECK -- Yes --> STEP1[STEP1: 対象記事抽出\nB列URL・C列KW取得]
+    LOOP -- Yes --> CHECK{E列 被リンク数 ≤ 1\nかつH列が空?}
+    CHECK -- No（H列あり/E列>1） --> LOOP
+    CHECK -- Yes（H列空・E列≤1） --> STEP1[STEP1: 対象記事抽出\nB列URL・C列KW取得]
     STEP1 --> KW_CHECK{C列KWあり?}
     KW_CHECK -- Yes --> USE_KW[C列KWをそのまま使用]
     KW_CHECK -- No --> AUTO_KW[B列URLから記事を取得\ntitle/h1/h2/h3から\nKW自動検出]
@@ -1119,7 +1110,7 @@ flowchart TD
     STEP2 --> CLAUDE1[Cowork内蔵AI\nKW拡張・関連語生成]
     CLAUDE1 --> CAND[候補記事リスト生成\n自己参照・重複除外]
     CAND --> CAND_CHECK{候補記事あり?}
-    CAND_CHECK -- No --> EMPTY[出力なしで\n処理済みフラグ書き込み]
+    CAND_CHECK -- No --> EMPTY[候補なし：空欄のまま出力]
     EMPTY --> LOOP
     CAND_CHECK -- Yes --> FETCH[STEP3: 記事HTML取得\nrequests + タイムアウト10秒]
     FETCH --> HTTP{取得成功?}
@@ -1133,8 +1124,7 @@ flowchart TD
     ADD --> COUNT{採用 ≥ 2件?}
     COUNT -- No --> CAND_CHECK
     COUNT -- Yes --> STEP5[STEP5: 出力CSV書き込み\nH列以降にURL・見出しを追記]
-    STEP5 --> FLAG[N列に done フラグ書き込み]
-    FLAG --> LOOP
+    STEP5 --> LOOP
             </pre>
           </div>
         </div>
@@ -1147,7 +1137,7 @@ flowchart TD
               <tr><th>発生箇所</th><th>エラー内容</th><th>処理フロー</th></tr>
               <tr><td>STEP3</td><td>HTTP 404・タイムアウト</td><td>警告ログ出力 → 当該候補をスキップ → 次の候補へ進む</td></tr>
               <tr><td>STEP4</td><td>Cowork AI判定エラー</td><td>0.5秒待機 → リトライ（最大2回）→ 失敗時はスキップ → 次の候補へ</td></tr>
-              <tr><td>STEP5</td><td>Sheets API 書き込み失敗</td><td>エラーログ出力 → 実行停止 → ユーザーに手動確認を要求</td></tr>
+              <tr><td>STEP5</td><td>CSV書き込み失敗</td><td>エラーログ出力 → 実行停止 → ユーザーに手動確認を要求</td></tr>
               <tr><td>全体</td><td>採用候補が2件未満</td><td>閾値を60→40に引き下げ → 再評価 → それでも不足なら空欄で出力</td></tr>
             </table>
           </div>
@@ -1164,7 +1154,7 @@ flowchart TD
               <tr><td>③</td><td>システム（自動）</td><td>STEP1〜5を自動実行し、出力CSV（H列以降にURL・見出しを追記）を生成する</td></tr>
               <tr><td>④</td><td>クライアント</td><td>出力CSVのH列以降を確認し、提案内容をレビューする</td></tr>
               <tr><td>⑤</td><td>クライアント</td><td>レビューOKの内容をもとに、H列の候補記事（WordPressの当該記事）を開き、I列の見出し箇所に対象記事へのリンクを手動で設置する</td></tr>
-              <tr><td>⑥</td><td>クライアント</td><td>再実行が必要な場合、出力CSVのN列の「done」フラグを削除してから再起動する</td></tr>
+              <tr><td>⑥</td><td>クライアント</td><td>再実行が必要な場合、出力CSVのH列以降のデータを削除した上で再取り込みし、エージェントを再起動する</td></tr>
             </table>
           </div>
         </div>
