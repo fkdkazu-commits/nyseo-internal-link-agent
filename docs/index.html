@@ -527,14 +527,16 @@
           <div class="step-card">
             <div class="step-header">
               <div class="step-num">1</div>
-              <div class="step-title">STEP1 — 対象記事抽出</div>
+              <div class="step-title">STEP1 — 対象記事抽出・KW取得</div>
             </div>
             <div class="step-body">
               <ul>
                 <li>Google SpreadsheetのE列（被リンク数）を全行読み取る</li>
                 <li>E列 ≤ 1 かつ N列（処理済みフラグ）が空白の行を対象に選定する</li>
                 <li>対象行のB列（記事URL）・C列（メインKW）を取得する</li>
-                <li>B列またはC列が空の場合はその行をスキップしてログに記録する</li>
+                <li><strong>C列にKWが入っている場合</strong>：そのKWをSTEP2の起点として使用する</li>
+                <li><strong>C列が空白の場合</strong>：B列のURLから記事を取得し、<code>&lt;title&gt;</code> / <code>&lt;h1&gt;</code> を解析してメインKWを自動検出する（全記事を対象にするため）</li>
+                <li>B列が空の場合のみその行をスキップしてログに記録する</li>
               </ul>
             </div>
           </div>
@@ -546,7 +548,8 @@
             </div>
             <div class="step-body">
               <ul>
-                <li>メインKW（C列）とスプレッドシート内の全記事KWをKW完全一致・部分一致で比較する</li>
+                <li>STEP1で取得したメインKW（C列またはtitle/h1から自動検出）を起点とする</li>
+                <li>スプレッドシート内の全記事のC列KWとKW完全一致・部分一致で比較する</li>
                 <li>Claude APIを用いてKWの関連語・共起語・類義語を生成し探索範囲を拡張する</li>
                 <li>対象記事自身のURL・すでに採用済みのURLは除外する</li>
                 <li>候補リストを最大20件生成してSTEP3へ渡す</li>
@@ -1057,10 +1060,11 @@ nyseo-internal-link-agent/
           <pre>
 target_articles = [
     {
-        "row": 3,               # スプレッドシート行番号
+        "row": 3,
         "url": "https://mensheaven.jp/journal/archives/XXXX",  # B列: 記事URL
-        "kw": "風俗 キャンセル",   # C列: メインKW
-        "inbound_links": 0,     # E列: 被リンク数（抽出条件 ≤ 1）
+        "kw": "風俗 キャンセル",   # C列にある場合はそのまま使用
+        "kw_source": "column_c", # "column_c" or "auto_detected"（C列空白時はtitle/h1から自動検出）
+        "inbound_links": 0,      # E列: 被リンク数（抽出条件 ≤ 1）
     }, ...
 ]</pre>
           <h4>候補記事解析結果（STEP3出力）</h4>
@@ -1117,7 +1121,12 @@ flowchart TD
     LOOP -- Yes --> CHECK{E列 被リンク数 ≤ 1\nかつN列が空?}
     CHECK -- No --> LOOP
     CHECK -- Yes --> STEP1[STEP1: 対象記事抽出\nB列URL・C列KW取得]
-    STEP1 --> STEP2[STEP2: 関連記事候補探索\nKW完全一致・部分一致]
+    STEP1 --> KW_CHECK{C列KWあり?}
+    KW_CHECK -- Yes --> USE_KW[C列KWをそのまま使用]
+    KW_CHECK -- No --> AUTO_KW[B列URLから記事を取得\ntitle/h1からKW自動検出]
+    USE_KW --> STEP2
+    AUTO_KW --> STEP2
+    STEP2[STEP2: 関連記事候補探索\nKW完全一致・部分一致]
     STEP2 --> CLAUDE1[Claude API\nKW拡張・関連語生成]
     CLAUDE1 --> CAND[候補記事リスト生成\n自己参照・重複除外]
     CAND --> CAND_CHECK{候補記事あり?}
