@@ -128,7 +128,9 @@ if page == "内部リンク提案":
     log(f"HTML取得完了: {len(all_articles)}/{len(data)} 件成功")
 
     # STEP2・4・5（対象記事ごと）
+    ai_progress = st.progress(0, text="AI判定を実行しています…")
     for i, target in enumerate(targets, start=1):
+        ai_progress.progress(i / len(targets), text=f"AI判定中… {i}/{len(targets)} 件")
         log(f"[{i}/{len(targets)}] 処理中: {target['url']}")
 
         if target["kw_source"] == "auto_detect":
@@ -158,6 +160,7 @@ if page == "内部リンク提案":
         log(f"→ 採用 {len(adopted)} 件を出力")
         time.sleep(0.3)
 
+    ai_progress.empty()
     # 出力CSV生成
     buf    = io.StringIO()
     writer = csv.writer(buf)
