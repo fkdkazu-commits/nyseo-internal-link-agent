@@ -535,7 +535,7 @@
                 <li>E列 ≤ 1 かつ N列（処理済みフラグ）が空白の行を対象に選定する</li>
                 <li>対象行のB列（記事URL）・C列（メインKW）を取得する</li>
                 <li><strong>C列にKWが入っている場合</strong>：そのKWをSTEP2の起点として使用する</li>
-                <li><strong>C列が空白の場合</strong>：B列のURLから記事を取得し、<code>&lt;title&gt;</code> / <code>&lt;h1&gt;</code> を解析してメインKWを自動検出する（全記事を対象にするため）</li>
+                <li><strong>C列が空白の場合</strong>：B列のURLから記事を取得し、<code>&lt;title&gt;</code> / <code>&lt;h1&gt;</code> / <code>&lt;h2&gt;</code> / <code>&lt;h3&gt;</code>（本文見出し全体）を解析してメインKWを自動検出する（全記事を対象にするため）</li>
                 <li>B列が空の場合のみその行をスキップしてログに記録する</li>
               </ul>
             </div>
@@ -1124,7 +1124,7 @@ flowchart TD
     CHECK -- Yes --> STEP1[STEP1: 対象記事抽出\nB列URL・C列KW取得]
     STEP1 --> KW_CHECK{C列KWあり?}
     KW_CHECK -- Yes --> USE_KW[C列KWをそのまま使用]
-    KW_CHECK -- No --> AUTO_KW[B列URLから記事を取得\ntitle/h1からKW自動検出]
+    KW_CHECK -- No --> AUTO_KW[B列URLから記事を取得\ntitle/h1/h2/h3から\nKW自動検出]
     USE_KW --> STEP2
     AUTO_KW --> STEP2
     STEP2[STEP2: 関連記事候補探索\nKW完全一致・部分一致]
