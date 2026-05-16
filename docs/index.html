@@ -531,10 +531,10 @@
             </div>
             <div class="step-body">
               <ul>
-                <li>Google SpreadsheetのE列（内部リンク数）を全行読み取る</li>
+                <li>Google SpreadsheetのE列（被リンク数）を全行読み取る</li>
                 <li>E列 ≤ 1 かつ N列（処理済みフラグ）が空白の行を対象に選定する</li>
-                <li>対象行のC列（メインKW）・D列（記事URL）を取得する</li>
-                <li>C列またはD列が空の場合はその行をスキップしてログに記録する</li>
+                <li>対象行のB列（記事URL）・C列（メインKW）を取得する</li>
+                <li>B列またはC列が空の場合はその行をスキップしてログに記録する</li>
               </ul>
             </div>
           </div>
@@ -606,7 +606,7 @@
           <div class="table-wrap">
             <table>
               <tr><th>ルール</th><th>内容</th></tr>
-              <tr><td>抽出条件</td><td>E列 ≤ 1（E列が空白の場合も対象に含める）</td></tr>
+              <tr><td>抽出条件</td><td>E列（被リンク数）≤ 1（E列が空白の場合も対象に含める）</td></tr>
               <tr><td>重複防止</td><td>同一URLへの重複提案は除外する</td></tr>
               <tr><td>自己参照除外</td><td>対象記事自身のURLは候補から除外する</td></tr>
               <tr><td>提案件数</td><td>最低2件・最大3件（MVPフェーズ）</td></tr>
@@ -1027,14 +1027,18 @@ nyseo-internal-link-agent/
         <div class="card" id="data-sheet">
           <div class="card-title">4.1 Google Spreadsheet 列定義</div>
           <div class="alert alert-info">
-            📋 H列以降はシステムの出力領域です。手動で編集しないでください。N列（処理済みフラグ）を削除すると再実行されます。
+            📋 A〜G列はNYSEO出力データ（入力領域）、H列以降はシステムの出力領域です。H列以降を手動で編集しないでください。N列（処理済みフラグ）を削除すると再実行されます。
           </div>
           <div class="table-wrap">
             <table>
               <tr><th>列</th><th>内容</th><th>型</th><th>役割</th><th>操作</th></tr>
+              <tr><td><strong>A列</strong></td><td>NO（連番）</td><td>integer</td><td>記事の管理番号</td><td>読み取りのみ</td></tr>
+              <tr><td><strong>B列</strong></td><td>記事URL</td><td>string（URL）</td><td>クロール対象URL・対象記事の識別子</td><td>読み取りのみ</td></tr>
               <tr><td><strong>C列</strong></td><td>メインKW（GSCクリック最多）</td><td>string</td><td>STEP2の起点キーワード</td><td>読み取りのみ</td></tr>
-              <tr><td><strong>D列</strong></td><td>記事URL</td><td>string（URL）</td><td>クロール対象URL・対象記事の識別子</td><td>読み取りのみ</td></tr>
-              <tr><td><strong>E列</strong></td><td>現在の内部リンク数</td><td>integer</td><td>対象記事の抽出条件（≤ 1）</td><td>読み取りのみ</td></tr>
+              <tr><td><strong>D列</strong></td><td>発リンク数</td><td>integer</td><td>この記事から他記事への内部リンク数（参考値）</td><td>読み取りのみ</td></tr>
+              <tr><td><strong>E列</strong></td><td>被リンク数</td><td>integer</td><td>他記事からこの記事への内部リンク数。<strong>≤ 1 が対象抽出条件</strong></td><td>読み取りのみ</td></tr>
+              <tr><td><strong>F列</strong></td><td>クリック数</td><td>integer</td><td>GSCクリック数（参考値）</td><td>読み取りのみ</td></tr>
+              <tr><td><strong>G列</strong></td><td>表示回数</td><td>integer</td><td>GSC表示回数（参考値）</td><td>読み取りのみ</td></tr>
               <tr class="hl-output"><td><strong>H列</strong></td><td>貼るURL①</td><td>string（URL）</td><td>システム出力：内部リンク候補1件目URL</td><td>書き込み</td></tr>
               <tr class="hl-output"><td><strong>I列</strong></td><td>貼る箇所見出し①</td><td>string</td><td>システム出力：候補1件目の設置箇所見出し</td><td>書き込み</td></tr>
               <tr class="hl-output"><td><strong>J列</strong></td><td>貼るURL②</td><td>string（URL）</td><td>システム出力：内部リンク候補2件目URL</td><td>書き込み</td></tr>
@@ -1054,8 +1058,9 @@ nyseo-internal-link-agent/
 target_articles = [
     {
         "row": 3,               # スプレッドシート行番号
-        "kw": "SEO 内部リンク", # C列メインKW
-        "url": "https://example.com/seo-internal-link/"
+        "url": "https://mensheaven.jp/journal/archives/XXXX",  # B列: 記事URL
+        "kw": "風俗 キャンセル",   # C列: メインKW
+        "inbound_links": 0,     # E列: 被リンク数（抽出条件 ≤ 1）
     }, ...
 ]</pre>
           <h4>候補記事解析結果（STEP3出力）</h4>
@@ -1109,9 +1114,9 @@ flowchart TD
     START([処理開始]) --> LOAD[Spreadsheet全データ読み込み\nGoogle Sheets API]
     LOAD --> LOOP{未処理行あり?}
     LOOP -- No --> DONE([全処理完了])
-    LOOP -- Yes --> CHECK{E列 ≤ 1\nかつN列が空?}
+    LOOP -- Yes --> CHECK{E列 被リンク数 ≤ 1\nかつN列が空?}
     CHECK -- No --> LOOP
-    CHECK -- Yes --> STEP1[STEP1: 対象記事抽出\nC列KW・D列URL取得]
+    CHECK -- Yes --> STEP1[STEP1: 対象記事抽出\nB列URL・C列KW取得]
     STEP1 --> STEP2[STEP2: 関連記事候補探索\nKW完全一致・部分一致]
     STEP2 --> CLAUDE1[Claude API\nKW拡張・関連語生成]
     CLAUDE1 --> CAND[候補記事リスト生成\n自己参照・重複除外]
