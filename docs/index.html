@@ -773,9 +773,16 @@
           <pre>
 nyseo-internal-link-agent/
 ├── main.py                    # エントリーポイント・全STEPを順次実行
-├── config.py                  # 設定値（閾値・API設定・列番号定義）
+├── config.py                  # 設定値（閾値・列番号定義）
+├── CLAUDE.md                  # Cowork起動指示書（エージェントへの実行手順）
 ├── requirements.txt
 ├── .gitignore
+│
+├── input/                     # 【クライアント操作】NYSEOから出力したCSVをここに置く
+│   └── .gitkeep
+│
+├── output/                    # 【システム出力】処理済みCSV（H列以降追記済み）が生成される
+│   └── .gitkeep
 │
 ├── steps/
 │   ├── step1_extract.py       # STEP1: 対象記事抽出
@@ -854,10 +861,9 @@ nyseo-internal-link-agent/
             <div class="phase-content">
               <div class="phase-title">Phase 1 — 環境構築・基盤</div>
               <ul class="phase-tasks">
-                <li>Pythonプロジェクト初期化（requirements.txt）</li>
-                <li>CSV読み取り・書き込み・文字コード動作確認</li>
-                <li>Cowork内蔵AI動作確認</li>
-                <li>CSV読み取り・書き込み動作確認</li>
+                <li>Pythonプロジェクト初期化（requirements.txt・ディレクトリ構成）</li>
+                <li>input/ ・output/ フォルダ作成・CSV読み書き動作確認</li>
+                <li>Cowork内蔵AI動作確認・CLAUDE.md 作成</li>
               </ul>
             </div>
           </div>
@@ -889,12 +895,14 @@ nyseo-internal-link-agent/
           <div class="phase-item">
             <div class="phase-dot">P4</div>
             <div class="phase-content">
-              <div class="phase-title">Phase 4 — Cowork対応・テスト・引き渡し</div>
+              <div class="phase-title">Phase 4 — テスト・引き渡し</div>
               <ul class="phase-tasks">
-                <li>Cowork上での動作確認</li>
-                <li>テスト用CSVでのエンドツーエンドテスト</li>
+                <li>テスト用CSVでのエンドツーエンドテスト（input/→output/ の一連確認）</li>
                 <li>実データでの精度確認・閾値調整</li>
-                <li>クライアントへの説明・デモ・本番運用開始</li>
+                <li>コード一式をZIPで納品</li>
+                <li>クライアント環境セットアップ立ち会い（ZIPを解凍・Coworkで開く）</li>
+                <li>実データでの動作確認デモ</li>
+                <li>操作マニュアル引き渡し・本番運用開始</li>
               </ul>
             </div>
           </div>
