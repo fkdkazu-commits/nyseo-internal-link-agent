@@ -444,7 +444,7 @@
       <a class="nav-item nav-sub" href="#ai-score">スコアリング設計</a>
       <a class="nav-item nav-sub" href="#ai-prompt">プロンプト設計</a>
       <a class="nav-item" href="#data">04. データ設計</a>
-      <a class="nav-item nav-sub" href="#data-sheet">Spreadsheet列定義</a>
+      <a class="nav-item nav-sub" href="#data-sheet">CSV列定義</a>
       <a class="nav-item nav-sub" href="#data-struct">中間データ構造</a>
       <a class="nav-item" href="#flow">05. 処理フロー設計</a>
       <a class="nav-item nav-sub" href="#flow-main">メイン処理フロー</a>
@@ -484,7 +484,7 @@
           <h4>目的</h4>
           <p>NYSEO出力データをもとに、被リンク不足記事（被リンク数1件以下）に対して、関連性の高い他記事から内部リンクを設置する候補を自動提案し、SEO内部リンク構築業務を半自動化する。</p>
           <div class="alert alert-info">
-            💡 本システムは「提案型」MVPです。最終的な内部リンク設置はクライアント担当者が確認・判断します。完全自動投稿は行いません。
+            💡 本システムは「提案型」MVPです。最終的な内部リンク設置はクライアント担当者が確認・判断します。WordPressへの自動反映は本フェーズでは対象外となります。
           </div>
           <h4>主要機能</h4>
           <ul>
@@ -513,7 +513,7 @@
               <tr>
                 <td><strong>クライアント担当者</strong><br><span class="badge badge-green">レビュアー</span></td>
                 <td>提案結果を確認・レビューする</td>
-                <td>スプレッドシート閲覧・内部リンク実施の最終判断</td>
+                <td>出力CSV閲覧・内部リンク実施の最終判断</td>
                 <td>エージェントの直接操作</td>
               </tr>
             </table>
@@ -668,7 +668,7 @@
               </tr>
               <tr>
                 <td>2</td>
-                <td>Google SpreadsheetのシートID・列構成の確定</td>
+                <td>入力CSVの列構成の最終確認</td>
                 <td><span class="badge badge-orange">高</span></td>
                 <td>クライアントからシートIDの提供が必要</td>
               </tr>
@@ -698,7 +698,7 @@
         <div class="card" id="req-client">
           <div class="card-title">1.8 クライアント側の準備事項</div>
           <div class="alert alert-warning">
-            ⚠️ 以下の準備が完了していないとシステムは動作しません。事前にご確認ください。
+            ⚠️ 以下の項目はシステム稼働前にご準備いただく必要があります。事前にご確認ください。
           </div>
           <div class="table-wrap">
             <table>
@@ -788,7 +788,7 @@ nyseo-internal-link-agent/
 │   ├── step2_search.py        # STEP2: 関連記事候補探索
 │   ├── step3_fetch.py         # STEP3: 記事HTML取得・解析
 │   ├── step4_judge.py         # STEP4: AI関連性判定
-│   └── step5_output.py        # STEP5: スプレッドシート出力
+│   └── step5_output.py        # STEP5: CSV出力
 │
 ├── utils/
 │   ├── csv_client.py          # CSV読み書きユーティリティ
@@ -847,7 +847,7 @@ nyseo-internal-link-agent/
           <ul class="checklist">
             <li>Claude APIキー・Googleサービスアカウントキーはプロジェクトフォルダ外のシークレットフォルダで管理</li>
             <li><code>.gitignore</code> でAPIキー・認証ファイル（<code>*.json</code>・<code>.env</code>）をGit管理対象外に設定</li>
-            <li>スプレッドシートの共有権限は最小限（必要なアカウントのみ編集権限）</li>
+            <li>CSVファイルはローカル環境またはCowork内のみで取り扱い、外部共有しない</li>
             <li>外部サイトへのHTTPリクエストはGET取得のみ（書き込み・POST等は行わない）</li>
             <li>User-Agentに識別可能な文字列を設定（<code>NYSEOInternalLinkAgent/1.0</code>）</li>
           </ul>
@@ -864,7 +864,7 @@ nyseo-internal-link-agent/
                 <li>Pythonプロジェクト初期化（requirements.txt）</li>
                 <li>Google Sheets API認証・接続テスト</li>
                 <li>Claude API接続テスト</li>
-                <li>スプレッドシートの読み取り動作確認</li>
+                <li>CSV読み取り・書き込み動作確認</li>
               </ul>
             </div>
           </div>
@@ -877,7 +877,7 @@ nyseo-internal-link-agent/
                 <li>STEP2: KW探索・Claude APIによるKW拡張実装</li>
                 <li>STEP3: 記事HTML取得・BeautifulSoupパース実装</li>
                 <li>STEP4: Claude APIによる関連性スコアリング実装</li>
-                <li>STEP5: スプレッドシートへの書き込み実装</li>
+                <li>STEP5: CSVへの書き込み実装</li>
               </ul>
             </div>
           </div>
@@ -899,7 +899,7 @@ nyseo-internal-link-agent/
               <div class="phase-title">Phase 4 — Cowork対応・テスト・引き渡し</div>
               <ul class="phase-tasks">
                 <li>Cowork上での動作確認</li>
-                <li>テストスプレッドシートでのエンドツーエンドテスト</li>
+                <li>テスト用CSVでのエンドツーエンドテスト</li>
                 <li>実データでの精度確認・閾値調整</li>
                 <li>クライアントへの説明・デモ・本番運用開始</li>
               </ul>
@@ -1074,7 +1074,7 @@ judgment_result = {
     "reason": "検索意図が一致し、トピックの親和性が高い。",
     "recommended_heading": "内部リンクの重要性について"
 }</pre>
-          <h4>Spreadsheet書き込みデータ（STEP5→出力）</h4>
+          <h4>CSV書き込みデータ（STEP5→出力）</h4>
           <pre>
 output_row = {
     "row": 3,
@@ -1104,7 +1104,7 @@ output_row = {
           <div class="mermaid-wrap">
             <pre class="mermaid">
 flowchart TD
-    START([処理開始]) --> LOAD[Spreadsheet全データ読み込み\nGoogle Sheets API]
+    START([処理開始]) --> LOAD[入力CSV全データ読み込み]
     LOAD --> LOOP{未処理行あり?}
     LOOP -- No --> DONE([全処理完了])
     LOOP -- Yes --> CHECK{E列 被リンク数 ≤ 1\nかつN列が空?}
@@ -1132,7 +1132,7 @@ flowchart TD
     SCORE -- Yes --> ADD[採用リストに追加]
     ADD --> COUNT{採用 ≥ 2件?}
     COUNT -- No --> CAND_CHECK
-    COUNT -- Yes --> STEP5[STEP5: Spreadsheet書き込み\nH列以降にURL・見出しを出力]
+    COUNT -- Yes --> STEP5[STEP5: 出力CSV書き込み\nH列以降にURL・見出しを追記]
     STEP5 --> FLAG[N列に done フラグ書き込み]
     FLAG --> LOOP
             </pre>
@@ -1159,8 +1159,8 @@ flowchart TD
           <div class="table-wrap">
             <table>
               <tr><th>手順</th><th>担当</th><th>操作内容</th></tr>
-              <tr><td>①</td><td>クライアント</td><td>NYSEOデータ（CSV）を所定のフォルダに配置する</td></tr>
-              <tr><td>②</td><td>システム運用者</td><td>Cowork上でエージェントを起動する</td></tr>
+              <tr><td>①</td><td>クライアント</td><td>Cowork画面上でNYSEOデータ（CSV）を読み込む</td></tr>
+              <tr><td>②</td><td>クライアント</td><td>Cowork上でエージェントを起動する</td></tr>
               <tr><td>③</td><td>システム（自動）</td><td>STEP1〜5を自動実行し、出力CSV（H列以降にURL・見出しを追記）を生成する</td></tr>
               <tr><td>④</td><td>クライアント</td><td>出力CSVのH列以降を確認し、提案内容をレビューする</td></tr>
               <tr><td>⑤</td><td>クライアント</td><td>レビューOKの内容をもとに、H列の候補記事（WordPressの当該記事）を開き、I列の見出し箇所に対象記事へのリンクを手動で設置する</td></tr>
@@ -1173,7 +1173,7 @@ flowchart TD
         <div class="card">
           <div class="card-title">5.4 将来拡張（本フェーズ対象外）</div>
           <div class="alert alert-info">
-            以下の機能は本MVPフェーズでは実装しません。拡張可能な設計としているため、将来対応が可能です。
+            以下の機能は本MVPフェーズでは対象外としています。拡張可能な設計となっているため、将来的に対応予定です。
           </div>
           <div class="table-wrap">
             <table>
