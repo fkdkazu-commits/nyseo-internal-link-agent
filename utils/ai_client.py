@@ -24,6 +24,7 @@ def _call_claude(prompt: str, retries: int = 2) -> "str | None":
                 ["claude", "-p", prompt, "--output-format", "text"],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
                 timeout=CLI_TIMEOUT,
             )
             if result.returncode == 0:
