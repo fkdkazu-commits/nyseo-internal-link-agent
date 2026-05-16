@@ -89,6 +89,7 @@ if page == "内部リンク提案":
     max_cols = max(13, len(header))
 
     st.markdown("---")
+    progress_placeholder = st.empty()
     st.markdown("##### 処理ログ")
     log_box  = st.empty()
     logs: list[str] = []
@@ -111,7 +112,6 @@ if page == "内部リンク提案":
 
     # STEP3（全記事HTML一括取得）
     log(f"全記事 {len(data)} 件のHTML取得を開始します…")
-    progress = st.progress(0, text="記事を取得しています…")
     all_articles: list[dict] = []
 
     for i, row in enumerate(data):
@@ -122,15 +122,20 @@ if page == "内部リンク提案":
             if parsed:
                 parsed["kw"] = kw
                 all_articles.append(parsed)
-        progress.progress((i + 1) / len(data), text=f"記事を取得しています… {i + 1}/{len(data)} 件")
+        progress_placeholder.progress(
+            (i + 1) / len(data),
+            text=f"記事を取得しています… {i + 1}/{len(data)} 件",
+        )
 
-    progress.empty()
+    progress_placeholder.empty()
     log(f"HTML取得完了: {len(all_articles)}/{len(data)} 件成功")
 
     # STEP2・4・5（対象記事ごと）
-    ai_progress = st.progress(0, text="AI判定を実行しています…")
     for i, target in enumerate(targets, start=1):
-        ai_progress.progress(i / len(targets), text=f"AI判定中… {i}/{len(targets)} 件")
+        progress_placeholder.progress(
+            i / len(targets),
+            text=f"AI判定中… {i}/{len(targets)} 件",
+        )
         log(f"[{i}/{len(targets)}] 処理中: {target['url']}")
 
         if target["kw_source"] == "auto_detect":
@@ -160,7 +165,7 @@ if page == "内部リンク提案":
         log(f"→ 採用 {len(adopted)} 件を出力")
         time.sleep(0.3)
 
-    ai_progress.empty()
+    progress_placeholder.empty()
     # 出力CSV生成
     buf    = io.StringIO()
     writer = csv.writer(buf)
