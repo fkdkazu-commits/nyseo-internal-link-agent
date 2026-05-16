@@ -2,6 +2,8 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from config import HTTP_TIMEOUT, HTTP_RETRY, USER_AGENT, COL_URL, COL_KW
+
+PARSER = "html.parser"  # lxml不要・Python標準パーサー
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -63,7 +65,7 @@ def fetch_and_parse(url: str) -> "dict | None":
 
 def _parse_html(url: str, html: str) -> dict:
     """HTMLからtitle/h1/h2/h3/本文を抽出して返す。"""
-    soup = BeautifulSoup(html, "lxml")
+    soup = BeautifulSoup(html, PARSER)
 
     title = soup.title.string.strip() if soup.title and soup.title.string else ""
     h1 = soup.find("h1").get_text(strip=True) if soup.find("h1") else ""
