@@ -450,6 +450,7 @@
       <a class="nav-item nav-sub" href="#flow-main">メイン処理フロー</a>
       <a class="nav-item nav-sub" href="#flow-error">エラー時処理</a>
       <a class="nav-item nav-sub" href="#flow-ops">クライアント運用フロー</a>
+      <a class="nav-item nav-sub" href="#flow-cost">費用について</a>
     </nav>
   </aside>
 
@@ -1177,13 +1178,47 @@ flowchart TD
           </div>
           <div class="table-wrap">
             <table>
-              <tr><th>機能</th><th>概要</th><th>優先度</th></tr>
-              <tr><td>WordPressへの自動反映</td><td>承認済みの内部リンクをWordPress REST APIで自動設置</td><td><span class="badge badge-orange">高</span></td></tr>
-              <tr><td>アンカーテキスト自動生成</td><td>AIがリンクアンカーテキストまで自動提案する</td><td><span class="badge badge-blue">中</span></td></tr>
-              <tr><td>Embedding活用</td><td>テキストEmbeddingによる高精度な意味的関連性判定</td><td><span class="badge badge-blue">中</span></td></tr>
-              <tr><td>Search Console連携</td><td>GSCデータと連携してリンク効果を計測・フィードバック</td><td><span class="badge badge-gray">低</span></td></tr>
-              <tr><td>内部リンク最適化スコアリング</td><td>サイト全体の内部リンク構造を最適化する高度ロジック</td><td><span class="badge badge-gray">低</span></td></tr>
+              <tr><th>機能</th><th>概要</th><th>追加コスト（目安）</th></tr>
+              <tr><td>WordPressへの自動反映</td><td>承認済みの内部リンクをWordPress REST APIで自動設置</td><td>＋5〜8万円</td></tr>
+              <tr><td>アンカーテキスト自動生成</td><td>AIがリンクアンカーテキストまで自動提案する</td><td>＋1万円</td></tr>
+              <tr><td>Embedding活用</td><td>テキストEmbeddingによる高精度な意味的関連性判定</td><td>＋3〜5万円</td></tr>
+              <tr><td>Search Console連携</td><td>GSCデータと連携してリンク効果を計測・フィードバック</td><td>＋3〜5万円</td></tr>
+              <tr><td>内部リンク最適化スコアリング</td><td>サイト全体の内部リンク構造を最適化する高度ロジック</td><td>＋5〜8万円</td></tr>
             </table>
+          </div>
+        </div>
+
+        <!-- 5.5 費用について -->
+        <div class="card" id="flow-cost">
+          <div class="card-title">5.5 費用について</div>
+          <h4>開発費用</h4>
+          <p>開発期間中に発生するClaude APIの利用料（テスト実行分）は開発費用に含まれます。別途ご負担いただく費用はありません。</p>
+          <h4>運用時の継続コスト</h4>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th><th>目安</th><th>負担</th></tr>
+              <tr>
+                <td><strong>Claude API利用料</strong></td>
+                <td>STEP2（KW拡張・全記事コンテンツ解析）・STEP4（関連性判定）での使用。実行のたびに発生する。</td>
+                <td>1回の実行あたり<br>¥500〜2,000程度<br><small>※対象記事数・候補数により変動</small></td>
+                <td>クライアント様</td>
+              </tr>
+              <tr>
+                <td><strong>Coworkプラットフォーム</strong></td>
+                <td>エージェントの実行環境。ご契約プランに依存する。</td>
+                <td>プランによる</td>
+                <td>クライアント様</td>
+              </tr>
+              <tr>
+                <td><strong>その他</strong></td>
+                <td>記事HTMLの取得（HTTPリクエスト）・CSV読み書きなど</td>
+                <td>無料</td>
+                <td>—</td>
+              </tr>
+            </table>
+          </div>
+          <div class="alert alert-info">
+            💡 Claude APIの利用料はAnthropicへの従量課金です。月に数回の実行であれば数千円程度に収まる見込みです。APIキーはクライアント様ご自身で発行・管理いただきます。
           </div>
         </div>
 
