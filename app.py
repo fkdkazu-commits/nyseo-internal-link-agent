@@ -167,16 +167,28 @@ if page == "内部リンク提案":
         )
         log(f"[{i}/{len(targets)}] 処理中: {target['url']}")
 
+        # C列空の記事はSTEP3取得済みのh2/h3をKW代わりに使う
+        search_kws: list[str] = []
         if target["kw_source"] == "auto_detect":
-            article = fetch_article(target["url"])
-            if article:
-                raw = (article.get("title") or article.get("h1") or "").strip()
-                target["kw"] = _shorten_kw(raw)
+            cached_article = next((a for a in all_articles if a["url"] == target["url"]), None)
+            if cached_article:
+                h2h3 = cached_article.get("h2_list", [])[:4] + cached_article.get("h3_list", [])[:3]
+                search_kws = [h for h in h2h3 if len(h) >= 2]
+                target["kw"] = search_kws[0] if search_kws else _shorten_kw(
+                    cached_article.get("title") or cached_article.get("h1") or ""
+                )
             if not target["kw"]:
                 log("KW検出できず → スキップ", "WARNING")
                 continue
+        else:
+            search_kws = [target["kw"]]
 
-        candidates = search_candidates(target, all_articles)
+        # STEP2: 全KWで候補を集約
+        candidates: list[dict] = []
+        for kw in search_kws or [target["kw"]]:
+            for c in search_candidates({**target, "kw": kw}, all_articles):
+                if not any(x["url"] == c["url"] for x in candidates):
+                    candidates.append(c)
         for ekw in expand_keywords(target["kw"]):
             for c in search_candidates({**target, "kw": ekw}, all_articles):
                 if not any(x["url"] == c["url"] for x in candidates):

@@ -66,21 +66,9 @@ print(f"  KW: {target['kw'] or '(空・自動検出)'}")
 
 # --- STEP3（対象記事のみ + 全記事HTML取得） ---
 print("\n[STEP3] HTML取得中…")
-if target["kw_source"] == "auto_detect":
-    article = fetch_article(target["url"])
-    if article:
-        raw = (article.get("title") or article.get("h1") or "").strip()
-        parts = re.split(r"[？！、。｜【】「」『』\s]", raw)
-        first = next((p.strip() for p in parts if len(p.strip()) >= 2), raw)
-        no_parts = first.split("の")
-        kw = "の".join(no_parts[:2]) if len(no_parts) >= 2 else first[:20]
-        target["kw"] = kw
-    print(f"  KW自動検出: {target['kw'] or '(検出失敗)'}")
-
 all_articles = []
 fetch_limit = 50  # デバッグ用（全件は時間がかかるため先頭N件）
-fetch_rows = data[:fetch_limit]
-for i, row in enumerate(fetch_rows):
+for i, row in enumerate(data[:fetch_limit]):
     url = row[COL_URL].strip() if len(row) > COL_URL else ""
     kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
     if url:
@@ -92,8 +80,24 @@ for i, row in enumerate(fetch_rows):
 
 print(f"\n  取得成功: {len(all_articles)} 件（先頭{fetch_limit}行から）")
 
+# C列空の記事はh2/h3をKW代わりに使う
+search_kws: list[str] = []
+if target["kw_source"] == "auto_detect":
+    cached_article = next((a for a in all_articles if a["url"] == target["url"]), None)
+    if cached_article:
+        h2h3 = cached_article.get("h2_list", [])[:4] + cached_article.get("h3_list", [])[:3]
+        search_kws = [h for h in h2h3 if len(h) >= 2]
+        target["kw"] = search_kws[0] if search_kws else ""
+    print(f"  KW(h2/h3): {search_kws[:3]}")
+else:
+    search_kws = [target["kw"]]
+
 # --- STEP2 ---
-candidates = search_candidates(target, all_articles)
+candidates: list[dict] = []
+for kw in search_kws or [target["kw"]]:
+    for c in search_candidates({**target, "kw": kw}, all_articles):
+        if not any(x["url"] == c["url"] for x in candidates):
+            candidates.append(c)
 for ekw in expand_fn(target["kw"]):
     for c in search_candidates({**target, "kw": ekw}, all_articles):
         if not any(x["url"] == c["url"] for x in candidates):
