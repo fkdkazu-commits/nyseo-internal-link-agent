@@ -25,7 +25,7 @@ def fetch_all_articles(data: list[list[str]]) -> list[dict]:
             continue
 
         logger.info(f"全記事取得中 ({i}/{total}): {url}")
-        parsed = _fetch_and_parse(url)
+        parsed = fetch_and_parse(url)
         if parsed:
             parsed["kw"] = kw
             results.append(parsed)
@@ -36,10 +36,10 @@ def fetch_all_articles(data: list[list[str]]) -> list[dict]:
 
 def fetch_article(url: str) -> "dict | None":
     """単一記事URLのコンテンツを取得・解析して返す。失敗時はNoneを返す。"""
-    return _fetch_and_parse(url)
+    return fetch_and_parse(url)
 
 
-def _fetch_and_parse(url: str) -> "dict | None":
+def fetch_and_parse(url: str) -> "dict | None":
     """HTTPリクエストを送信し、BeautifulSoupで解析した結果を返す。"""
     for attempt in range(1, HTTP_RETRY + 2):
         try:
