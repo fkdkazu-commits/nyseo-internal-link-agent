@@ -548,12 +548,18 @@
             </div>
             <div class="step-body">
               <ul>
-                <li>STEP1で取得したメインKW（C列またはtitle/h1から自動検出）を起点とする</li>
+                <li>STEP1で取得したメインKW（C列またはtitle/h1/h2/h3から自動検出）を起点とする</li>
                 <li>スプレッドシート内の全記事のC列KWとKW完全一致・部分一致で比較する</li>
                 <li>Claude APIを用いてKWの関連語・共起語・類義語を生成し探索範囲を拡張する</li>
                 <li>対象記事自身のURL・すでに採用済みのURLは除外する</li>
                 <li>候補リストを最大20件生成してSTEP3へ渡す</li>
               </ul>
+              <div class="alert alert-warning" style="margin-top:12px;">
+                ⚠️ <strong>【クライアント確認事項】関連記事の探索方法について</strong><br>
+                現状はKWの文字列マッチングを起点に候補を絞り込んでいますが、探索精度の向上のため以下2案を検討しています。どちらがご要望に近いかご確認ください。<br><br>
+                <strong>A案（軽量・推奨）</strong>：KW一致で最大20件に絞り込み → STEP3で各候補記事のtitle/h1/h2/h3を取得 → STEP4のAI判定で関連性を精査。処理が軽く安定している。<br><br>
+                <strong>B案（高精度）</strong>：全記事のtitle/h1/h2/h3を事前に一括取得してキャッシュ → KW＋コンテンツ内容を組み合わせて候補を選定。KWが一致しない記事も拾えるが、初回に全記事分のHTTPリクエストが発生し処理が重くなる。
+              </div>
             </div>
           </div>
 
@@ -689,6 +695,12 @@
                 <td>エラーログの保存先</td>
                 <td><span class="badge badge-gray">低</span></td>
                 <td>Cowork実行ログに出力する形でよい</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>関連記事の探索方法（A案 or B案）</td>
+                <td><span class="badge badge-orange">高</span></td>
+                <td>A案：KW一致で絞り込み後にSTEP3でコンテンツ取得（軽量・推奨） / B案：全記事のtitle/h1/h2/h3を事前一括取得して探索（高精度・処理重）。クライアントの優先事項（速度 or 精度）を確認して決定する</td>
               </tr>
             </table>
           </div>
