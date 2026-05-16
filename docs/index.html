@@ -1146,16 +1146,46 @@ flowchart TD
         <!-- 5.3 運用フロー -->
         <div class="card" id="flow-ops">
           <div class="card-title">5.3 クライアント運用フロー</div>
+          <div class="alert alert-info">
+            💬 <strong>実行UIについて：</strong>本システムは専用の操作画面を持ちません。Coworkのチャット画面がそのままUIとなります。ボタン等は存在せず、Claudeへの自然言語での話しかけが実行トリガーです。実行中はTODOリストと進捗ステータスがリアルタイムで表示されます。<br><br>
+            📂 <strong>CSVの読み込みについて：</strong>NYSEOから出力したCSVをCoworkのプロジェクトフォルダ内の所定の場所（<code>input/</code>フォルダ）に置くだけでOKです。Coworkがローカルのファイルシステムに直接アクセスするため、ファイルのアップロード操作は不要です。
+          </div>
           <div class="table-wrap">
             <table>
               <tr><th>手順</th><th>担当</th><th>操作内容</th></tr>
-              <tr><td>①</td><td>クライアント</td><td>Cowork画面上でNYSEOデータ（CSV）を読み込む</td></tr>
-              <tr><td>②</td><td>クライアント</td><td>Cowork上でエージェントを起動する</td></tr>
-              <tr><td>③</td><td>システム（自動）</td><td>STEP1〜5を自動実行し、出力CSV（H列以降にURL・見出しを追記）を生成する</td></tr>
-              <tr><td>④</td><td>クライアント</td><td>出力CSVのH列以降を確認し、提案内容をレビューする</td></tr>
-              <tr><td>⑤</td><td>クライアント</td><td>レビューOKの内容をもとに、H列の候補記事（WordPressの当該記事）を開き、I列の見出し箇所に対象記事へのリンクを手動で設置する</td></tr>
-              <tr><td>⑥</td><td>クライアント</td><td>再実行が必要な場合、出力CSVのH列以降のデータを削除した上で再取り込みし、エージェントを再起動する</td></tr>
+              <tr><td>①</td><td>クライアント</td><td>NYSEOから出力したCSVをプロジェクトフォルダ内の <code>input/</code> フォルダに置く</td></tr>
+              <tr><td>②</td><td>クライアント</td><td>Coworkのチャット欄に「内部リンクエージェントを実行してください」と入力して送信する</td></tr>
+              <tr><td>③</td><td>システム（自動）</td><td>STEP1〜5を自動実行。チャット画面にTODOリストと進捗ステータスがリアルタイム表示される</td></tr>
+              <tr><td>④</td><td>システム（自動）</td><td>出力CSV（H列以降にURL・見出しを追記）を <code>output/</code> フォルダに生成する</td></tr>
+              <tr><td>⑤</td><td>クライアント</td><td>出力CSVのH列以降を確認し、提案内容をレビューする</td></tr>
+              <tr><td>⑥</td><td>クライアント</td><td>レビューOKの内容をもとに、H列の候補記事（WordPressの当該記事）を開き、I列の見出し箇所に対象記事へのリンクを手動で設置する</td></tr>
+              <tr><td>⑦</td><td>クライアント</td><td>再実行が必要な場合、出力CSVのH列以降のデータを削除して <code>input/</code> に置き直し、再度チャットで「実行してください」と入力する</td></tr>
             </table>
+          </div>
+        </div>
+
+        <!-- 5.6 引き渡し手順 -->
+        <div class="card" id="flow-handoff">
+          <div class="card-title">5.6 引き渡し手順</div>
+          <div class="alert alert-info">
+            🤝 開発完了後、以下の手順でクライアント環境へ引き渡しを行います。
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>フェーズ</th><th>担当</th><th>内容</th></tr>
+              <tr><td><strong>① コード納品</strong></td><td>開発者</td><td>完成したコード一式をZIPファイルで納品する</td></tr>
+              <tr><td><strong>② 環境セットアップ</strong></td><td>クライアント</td><td>ZIPを解凍し、Coworkのプロジェクトフォルダとして開く</td></tr>
+              <tr><td><strong>③ 動作確認</strong></td><td>開発者 + クライアント</td><td>クライアントの実データCSVを使ってCowork上で動作確認・立ち会いデモを実施する</td></tr>
+              <tr><td><strong>④ マニュアル引き渡し</strong></td><td>開発者</td><td>操作マニュアルを渡し、運用開始</td></tr>
+            </table>
+          </div>
+          <h4>納品物一覧</h4>
+          <ul class="checklist">
+            <li>コード一式（ZIPファイル）— <code>input/</code>・<code>output/</code> フォルダ・<code>CLAUDE.md</code>（起動指示書）を含む</li>
+            <li>操作マニュアル — CSV配置手順・Coworkでの起動方法・出力CSVの確認方法</li>
+          </ul>
+          <div class="alert alert-info">
+            📌 <strong>前提：</strong>クライアント側でCowork（Claude Proプラン、約$20/月）をご契約いただく必要があります。Python等の追加インストールは不要です（Coworkに同梱されています）。
           </div>
         </div>
 
