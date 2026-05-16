@@ -7,6 +7,7 @@ NYSEO 内部リンク構築エージェント — ダッシュボード
 import csv
 import hashlib
 import io
+import re
 import sys
 import time
 from pathlib import Path
@@ -37,6 +38,19 @@ def _fetch_all_html_cached(csv_hash: str, rows: tuple) -> list[dict]:
                 parsed["kw"] = kw
                 results.append(parsed)
     return results
+
+
+def _shorten_kw(title: str) -> str:
+    """タイトルから検索に使える短いキーワードを抽出する。
+    例: '品川区の風俗街の特徴は？料金相場・歴史' → '品川区の風俗街'
+    """
+    # 区切り文字で分割し、2文字以上の最初のかたまりを返す
+    parts = re.split(r"[？！、。｜【】「」『』\s]", title)
+    for part in parts:
+        part = part.strip()
+        if len(part) >= 2:
+            return part[:20]
+    return title[:20]
 
 
 # ------------------------------------------------------------------ ページ設定
@@ -155,8 +169,8 @@ if page == "内部リンク提案":
         if target["kw_source"] == "auto_detect":
             article = fetch_article(target["url"])
             if article:
-                kw = (article.get("title") or article.get("h1") or "").strip()
-                target["kw"] = kw[:30]
+                raw = (article.get("title") or article.get("h1") or "").strip()
+                target["kw"] = _shorten_kw(raw)
             if not target["kw"]:
                 log("KW検出できず → スキップ", "WARNING")
                 continue

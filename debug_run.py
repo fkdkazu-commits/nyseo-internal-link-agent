@@ -8,6 +8,7 @@ Streamlit不要・UIなしで特定の行だけ全ステップをテスト実行
   py debug_run.py --ai-mock  # AI呼び出しをモック（高速テスト）
 """
 
+import re
 import sys
 from pathlib import Path
 
@@ -68,7 +69,10 @@ print("\n[STEP3] HTML取得中…")
 if target["kw_source"] == "auto_detect":
     article = fetch_article(target["url"])
     if article:
-        target["kw"] = (article.get("title") or article.get("h1") or "")[:30]
+        raw = (article.get("title") or article.get("h1") or "").strip()
+        parts = re.split(r"[？！、。｜【】「」『』\s]", raw)
+        kw = next((p.strip() for p in parts if len(p.strip()) >= 2), raw)
+        target["kw"] = kw[:20]
     print(f"  KW自動検出: {target['kw'] or '(検出失敗)'}")
 
 all_articles = []
