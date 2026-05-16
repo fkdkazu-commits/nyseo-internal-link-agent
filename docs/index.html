@@ -492,7 +492,7 @@
             <li>メインKW（C列）を起点とした関連記事探索（KW一致・部分一致・関連語・共起語・類義語）</li>
             <li>候補記事のHTML解析（title / h1 / h2 / h3 / 本文）</li>
             <li>Claude AIによる関連性スコアリング（100点満点・5観点）</li>
-            <li>内部リンク設置候補のGoogle Spreadsheet自動出力（H列以降）</li>
+            <li>内部リンク設置候補のCSV出力（H列以降）</li>
           </ul>
         </div>
 
@@ -531,7 +531,7 @@
             </div>
             <div class="step-body">
               <ul>
-                <li>Google SpreadsheetのE列（被リンク数）を全行読み取る</li>
+                <li>入力CSVのE列（被リンク数）を全行読み取る</li>
                 <li>E列 ≤ 1 かつ N列（処理済みフラグ）が空白の行を対象に選定する</li>
                 <li>対象行のB列（記事URL）・C列（メインKW）を取得する</li>
                 <li><strong>C列にKWが入っている場合</strong>：そのKWをSTEP2の起点として使用する</li>
@@ -549,10 +549,10 @@
             <div class="step-body">
               <ul>
                 <li>STEP1で取得したメインKW（C列またはtitle/h1/h2/h3から自動検出）を起点とする</li>
-                <li>スプレッドシート内の全記事のC列KWとKW完全一致・部分一致で比較する</li>
+                <li>CSV内の全記事（約231件）のtitle/h1/h2/h3を事前に一括取得する</li>
                 <li>Claude APIを用いてKWの関連語・共起語・類義語を生成し探索範囲を拡張する</li>
+                <li>KW一致・部分一致＋取得したコンテンツ内容を組み合わせて候補を絞り込む</li>
                 <li>対象記事自身のURL・すでに採用済みのURLは除外する</li>
-                <li>候補リストを最大20件生成してSTEP3へ渡す</li>
               </ul>
             </div>
           </div>
@@ -594,7 +594,7 @@
             </div>
             <div class="step-body">
               <ul>
-                <li>採用候補をスコア降順で並び替え、上位2〜3件をSpreadsheetに出力する</li>
+                <li>採用候補をスコア降順で並び替え、上位2〜3件を出力CSVに書き込む</li>
                 <li>H列: 候補記事URL①（この記事から対象記事へリンクを設置）/ I列: リンク設置箇所見出し①（候補記事内の見出し）</li>
                 <li>J列: 候補記事URL② / K列: リンク設置箇所見出し② / 3件目はL列・M列に出力する</li>
                 <li>処理完了後にN列へ「done」フラグを書き込む</li>
@@ -628,7 +628,7 @@
               <tr><td>対象デバイス</td><td>PC（Cowork実行環境）</td></tr>
               <tr><td>同時利用人数</td><td>1名（シングルエージェント実行）</td></tr>
               <tr><td>処理速度</td><td>1記事あたり最大30秒以内（API・HTTP取得込み）</td></tr>
-              <tr><td>認証方式</td><td>Google OAuthサービスアカウント（Sheets API）</td></tr>
+              <tr><td>認証方式</td><td>不要（CSV読み書き・Claude APIキーのみ）</td></tr>
               <tr><td>通信</td><td>HTTPS（外部URL取得・Claude API通信）</td></tr>
               <tr><td>エラー耐性</td><td>個別記事のHTTP失敗は警告ログを出してスキップ。全体処理は継続する</td></tr>
               <tr><td>デプロイ先</td><td>Cowork（クラウド実行環境）</td></tr>
@@ -646,7 +646,7 @@
               <tr><td>実行環境</td><td>Cowork上で完結させる</td></tr>
               <tr><td>言語</td><td>Python 3.10以上（BeautifulSoup / requests / gspread）</td></tr>
               <tr><td>AI</td><td>Claude API（Anthropic / claude-sonnet-4-6）</td></tr>
-              <tr><td>データ基盤</td><td>Google Spreadsheet（クライアント提供）</td></tr>
+              <tr><td>データ基盤</td><td>CSV（NYSEO出力・クライアント提供）</td></tr>
               <tr><td>WordPress自動投稿</td><td>本フェーズ対象外</td></tr>
               <tr><td>アンカーテキスト自動生成</td><td>本フェーズ対象外</td></tr>
               <tr><td>Embedding活用</td><td>本フェーズ対象外</td></tr>
@@ -709,18 +709,13 @@
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
               <tr>
-                <td>Google Spreadsheet共有</td>
-                <td>対象シートをシステム運用者のGoogleアカウントと共有（編集権限）</td>
+                <td>CSV提供</td>
+                <td>NYSEOの出力CSVを所定のフォルダに配置できること</td>
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
               <tr>
                 <td>記事のアクセス可否</td>
                 <td>B列の記事URLがHTTPSで公開済みであること（非公開・Basic認証不可）</td>
-                <td><span class="badge badge-orange">要確認</span></td>
-              </tr>
-              <tr>
-                <td>Googleアカウント</td>
-                <td>Sheets APIを利用するためのGoogleアカウント</td>
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
               <tr>
@@ -753,8 +748,7 @@
               <tr><td>スクリプト言語</td><td><strong>Python</strong></td><td>3.10以上</td><td>BeautifulSoup・Sheets API・requests全対応</td></tr>
               <tr><td>HTML解析</td><td><strong>BeautifulSoup4 + lxml</strong></td><td>4.12.x</td><td>軽量・安定した記事解析・日本語対応</td></tr>
               <tr><td>HTTPクライアント</td><td><strong>requests</strong></td><td>2.31.x</td><td>シンプルな外部URL取得・セッション管理</td></tr>
-              <tr><td>データ基盤</td><td><strong>Google Spreadsheet</strong></td><td>—</td><td>クライアントの既存環境を活用・操作が容易</td></tr>
-              <tr><td>Sheets API</td><td><strong>gspread + google-auth</strong></td><td>6.x</td><td>Python連携が最も容易・メンテナンス良好</td></tr>
+              <tr><td>入出力データ</td><td><strong>CSV</strong></td><td>—</td><td>NYSEOの出力形式・追加ライブラリ不要</td></tr>
             </table>
           </div>
         </div>
@@ -764,17 +758,17 @@
           <div class="card-title">2.2 システム構成</div>
           <pre>
 [クライアント]
-    ↓ NYSEOデータ投入（手動 or 自動）
-[Google Spreadsheet]
-    ↓ Sheets API経由で読み取り
+    ↓ NYSEOデータ（CSV）を配置
+[入力CSV]
+    ↓ Python標準csvモジュールで読み取り
 [Cowork + Pythonスクリプト]
     ├─ STEP1: 対象記事抽出
-    ├─ STEP2: 関連記事候補探索 ──→ [Claude API]（KW拡張）
-    ├─ STEP3: 記事HTML取得・解析（requests + BeautifulSoup）
+    ├─ STEP2: 全記事HTML一括取得・関連記事候補探索 ──→ [Claude API]（KW拡張）
+    ├─ STEP3: 候補記事コンテンツ解析（BeautifulSoup）
     ├─ STEP4: 関連性判定 ──→ [Claude API]（スコアリング）
     └─ STEP5: 結果出力
-         ↓ Sheets API経由で書き込み
-[Google Spreadsheet H列以降]
+         ↓ csvモジュールで書き込み
+[出力CSV（H列以降にURL・見出しを追記）]
     ↓ クライアントが確認・最終判断
 [担当者がWordPressに手動で内部リンクを設置]</pre>
         </div>
@@ -797,7 +791,7 @@ nyseo-internal-link-agent/
 │   └── step5_output.py        # STEP5: スプレッドシート出力
 │
 ├── utils/
-│   ├── sheets_client.py       # Google Sheets API ラッパー
+│   ├── csv_client.py          # CSV読み書きユーティリティ
 │   ├── claude_client.py       # Claude API ラッパー
 │   └── logger.py              # ログ出力ユーティリティ
 │
@@ -815,12 +809,6 @@ nyseo-internal-link-agent/
           <div class="table-wrap">
             <table>
               <tr><th>外部サービス</th><th>用途</th><th>認証</th><th>注意事項</th></tr>
-              <tr>
-                <td><strong>Google Sheets API</strong></td>
-                <td>Spreadsheet読み取り・書き込み</td>
-                <td>サービスアカウント（JSONキー）</td>
-                <td>スコープ: spreadsheets読み書き権限</td>
-              </tr>
               <tr>
                 <td><strong>Claude API</strong>（Anthropic）</td>
                 <td>STEP2 KW拡張・STEP4 関連性判定</td>
@@ -845,7 +833,7 @@ nyseo-internal-link-agent/
               <tr><th>エラー種別</th><th>対応</th><th>処理継続</th></tr>
               <tr><td>HTTP取得失敗（404・タイムアウト等）</td><td>該当記事をスキップ・警告ログ出力</td><td>✅ 継続</td></tr>
               <tr><td>Claude API エラー（5xx等）</td><td>最大2回リトライ後、スキップ・エラーログ</td><td>✅ 継続</td></tr>
-              <tr><td>Sheets API 書き込みエラー</td><td>エラーログ出力・実行停止・手動確認を求める</td><td>❌ 停止</td></tr>
+              <tr><td>CSV書き込みエラー</td><td>エラーログ出力・実行停止・手動確認を求める</td><td>❌ 停止</td></tr>
               <tr><td>候補記事が2件未満</td><td>閾値を60→40に下げて再判定。不足なら空欄出力</td><td>✅ 継続</td></tr>
               <tr><td>B列（記事URL）が空白</td><td>該当行をスキップ・警告ログ</td><td>✅ 継続</td></tr>
               <tr><td>N列が「done」</td><td>処理済みとして完全スキップ</td><td>✅ 継続</td></tr>
@@ -1028,9 +1016,9 @@ nyseo-internal-link-agent/
 
         <!-- 4.1 Spreadsheet列定義 -->
         <div class="card" id="data-sheet">
-          <div class="card-title">4.1 Google Spreadsheet 列定義</div>
+          <div class="card-title">4.1 CSV 列定義</div>
           <div class="alert alert-info">
-            📋 A〜G列はNYSEO出力データ（入力領域）、H列以降はシステムの出力領域です。H列以降を手動で編集しないでください。N列（処理済みフラグ）を削除すると再実行されます。<br>
+            📋 A〜G列はNYSEO出力データ（入力領域）、H列以降はシステムの出力領域です。入力CSVをそのまま読み込み、H〜N列を追記した出力CSVを生成します。N列（処理済みフラグ）を削除すると再実行されます。<br>
             🔗 <strong>リンク方向について</strong>：H列以降に出力される「候補記事URL」は、<em>その記事から</em>対象記事（E列≤1の記事）へ内部リンクを新たに設置する記事です。対象記事の被リンク数（E列）を増やすことが目的です。
           </div>
           <div class="table-wrap">
@@ -1171,12 +1159,12 @@ flowchart TD
           <div class="table-wrap">
             <table>
               <tr><th>手順</th><th>担当</th><th>操作内容</th></tr>
-              <tr><td>①</td><td>クライアント</td><td>NYSEOデータをGoogle Spreadsheetに投入する</td></tr>
+              <tr><td>①</td><td>クライアント</td><td>NYSEOデータ（CSV）を所定のフォルダに配置する</td></tr>
               <tr><td>②</td><td>システム運用者</td><td>Cowork上でエージェントを起動する</td></tr>
-              <tr><td>③</td><td>システム（自動）</td><td>STEP1〜5を自動実行し、H列以降に結果を出力する</td></tr>
-              <tr><td>④</td><td>クライアント</td><td>スプレッドシートのH列以降を確認し、提案内容をレビューする</td></tr>
+              <tr><td>③</td><td>システム（自動）</td><td>STEP1〜5を自動実行し、出力CSV（H列以降にURL・見出しを追記）を生成する</td></tr>
+              <tr><td>④</td><td>クライアント</td><td>出力CSVのH列以降を確認し、提案内容をレビューする</td></tr>
               <tr><td>⑤</td><td>クライアント</td><td>レビューOKの内容をもとに、H列の候補記事（WordPressの当該記事）を開き、I列の見出し箇所に対象記事へのリンクを手動で設置する</td></tr>
-              <tr><td>⑥</td><td>クライアント</td><td>再実行が必要な場合、N列の「done」フラグを削除してから再起動する</td></tr>
+              <tr><td>⑥</td><td>クライアント</td><td>再実行が必要な場合、出力CSVのN列の「done」フラグを削除してから再起動する</td></tr>
             </table>
           </div>
         </div>
