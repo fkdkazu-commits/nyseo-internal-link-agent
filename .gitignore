@@ -30,3 +30,9 @@ Thumbs.db
 
 # node (docs用ツールを使う場合)
 node_modules/
+
+# 入出力データ（クライアントデータ・機密情報を含む可能性があるため除外）
+input/*.csv
+output/*.csv
+*.xlsx
+*.XLSX
