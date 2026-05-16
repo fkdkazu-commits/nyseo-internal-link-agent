@@ -551,7 +551,7 @@
               <ul>
                 <li>STEP1で取得したメインKW（C列またはtitle/h1/h2/h3から自動検出）を起点とする</li>
                 <li>CSV内の全記事（約231件）のtitle/h1/h2/h3を事前に一括取得する</li>
-                <li>Claude APIを用いてKWの関連語・共起語・類義語を生成し探索範囲を拡張する</li>
+                <li>Cowork内蔵AIがKWの関連語・共起語・類義語を生成し探索範囲を拡張する</li>
                 <li>KW一致・部分一致＋取得したコンテンツ内容を組み合わせて候補を絞り込む</li>
                 <li>対象記事自身のURL・すでに採用済みのURLは除外する</li>
               </ul>
@@ -580,7 +580,7 @@
             </div>
             <div class="step-body">
               <ul>
-                <li>Claude APIを使用し、5観点で関連性を100点満点でスコアリングする</li>
+                <li>Cowork内蔵AIが5観点で関連性を100点満点でスコアリングする</li>
                 <li>スコア ≥ 60点の記事を採用候補とする</li>
                 <li>候補が2件未満の場合は閾値を40点に下げて再判定する</li>
                 <li>採用候補記事の中で、対象記事へのリンクを設置するのに最適な「見出し箇所」もAIが合わせて提案する</li>
@@ -629,8 +629,8 @@
               <tr><td>対象デバイス</td><td>PC（Cowork実行環境）</td></tr>
               <tr><td>同時利用人数</td><td>1名（シングルエージェント実行）</td></tr>
               <tr><td>処理速度</td><td>1記事あたり最大30秒以内（API・HTTP取得込み）</td></tr>
-              <tr><td>認証方式</td><td>不要（CSV読み書き・Claude APIキーのみ）</td></tr>
-              <tr><td>通信</td><td>HTTPS（外部URL取得・Claude API通信）</td></tr>
+              <tr><td>認証方式</td><td>不要（CSV読み書き・Cowork内蔵AIを使用）</td></tr>
+              <tr><td>通信</td><td>HTTPS（外部URL取得のみ）</td></tr>
               <tr><td>エラー耐性</td><td>個別記事のHTTP失敗は警告ログを出してスキップ。全体処理は継続する</td></tr>
               <tr><td>デプロイ先</td><td>Cowork（クラウド実行環境）</td></tr>
             </table>
@@ -863,7 +863,7 @@ nyseo-internal-link-agent/
               <ul class="phase-tasks">
                 <li>Pythonプロジェクト初期化（requirements.txt）</li>
                 <li>Google Sheets API認証・接続テスト</li>
-                <li>Claude API接続テスト</li>
+                <li>Cowork内蔵AI動作確認</li>
                 <li>CSV読み取り・書き込み動作確認</li>
               </ul>
             </div>
@@ -874,9 +874,9 @@ nyseo-internal-link-agent/
               <div class="phase-title">Phase 2 — コア機能実装</div>
               <ul class="phase-tasks">
                 <li>STEP1: 対象記事抽出ロジック実装</li>
-                <li>STEP2: KW探索・Claude APIによるKW拡張実装</li>
+                <li>STEP2: KW探索・Cowork内蔵AIによるKW拡張実装</li>
                 <li>STEP3: 記事HTML取得・BeautifulSoupパース実装</li>
-                <li>STEP4: Claude APIによる関連性スコアリング実装</li>
+                <li>STEP4: Cowork内蔵AIによる関連性スコアリング実装</li>
                 <li>STEP5: CSVへの書き込み実装</li>
               </ul>
             </div>
@@ -1116,7 +1116,7 @@ flowchart TD
     USE_KW --> STEP2
     AUTO_KW --> STEP2
     STEP2[STEP2: 関連記事候補探索\nKW完全一致・部分一致]
-    STEP2 --> CLAUDE1[Claude API\nKW拡張・関連語生成]
+    STEP2 --> CLAUDE1[Cowork内蔵AI\nKW拡張・関連語生成]
     CLAUDE1 --> CAND[候補記事リスト生成\n自己参照・重複除外]
     CAND --> CAND_CHECK{候補記事あり?}
     CAND_CHECK -- No --> EMPTY[出力なしで\n処理済みフラグ書き込み]
@@ -1126,7 +1126,7 @@ flowchart TD
     HTTP -- No --> SKIP_LOG[スキップ・警告ログ\n次の候補へ]
     SKIP_LOG --> CAND_CHECK
     HTTP -- Yes --> PARSE[BeautifulSoup解析\ntitle/h1/h2/h3/本文]
-    PARSE --> STEP4[STEP4: Claude API関連性判定\n100点・5観点スコアリング]
+    PARSE --> STEP4[STEP4: Cowork内蔵AI関連性判定\n100点・5観点スコアリング]
     STEP4 --> SCORE{スコア ≥ 60?}
     SCORE -- No --> CAND_CHECK
     SCORE -- Yes --> ADD[採用リストに追加]
@@ -1146,7 +1146,7 @@ flowchart TD
             <table>
               <tr><th>発生箇所</th><th>エラー内容</th><th>処理フロー</th></tr>
               <tr><td>STEP3</td><td>HTTP 404・タイムアウト</td><td>警告ログ出力 → 当該候補をスキップ → 次の候補へ進む</td></tr>
-              <tr><td>STEP4</td><td>Claude API 5xx / レート制限</td><td>0.5秒待機 → リトライ（最大2回）→ 失敗時はスキップ → 次の候補へ</td></tr>
+              <tr><td>STEP4</td><td>Cowork AI判定エラー</td><td>0.5秒待機 → リトライ（最大2回）→ 失敗時はスキップ → 次の候補へ</td></tr>
               <tr><td>STEP5</td><td>Sheets API 書き込み失敗</td><td>エラーログ出力 → 実行停止 → ユーザーに手動確認を要求</td></tr>
               <tr><td>全体</td><td>採用候補が2件未満</td><td>閾値を60→40に引き下げ → 再評価 → それでも不足なら空欄で出力</td></tr>
             </table>
