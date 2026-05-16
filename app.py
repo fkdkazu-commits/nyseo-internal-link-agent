@@ -5,6 +5,7 @@ NYSEO 内部リンク構築エージェント — ダッシュボード
 """
 
 import csv
+import hashlib
 import io
 import sys
 import time
@@ -21,6 +22,22 @@ from steps.step3_fetch import fetch_and_parse, fetch_article
 from steps.step4_judge import judge_candidates
 from steps.step5_output import write_output
 from utils.ai_client import expand_keywords, judge_relevance
+
+
+@st.cache_data(show_spinner=False)
+def _fetch_all_html_cached(csv_hash: str, rows: tuple) -> list[dict]:
+    """HTMLを一括取得してキャッシュする（同じCSVなら再取得しない）。"""
+    results = []
+    for row in rows:
+        url = row[COL_URL].strip() if len(row) > COL_URL else ""
+        kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
+        if url:
+            parsed = fetch_and_parse(url)
+            if parsed:
+                parsed["kw"] = kw
+                results.append(parsed)
+    return results
+
 
 # ------------------------------------------------------------------ ページ設定
 st.set_page_config(
@@ -110,24 +127,21 @@ if page == "内部リンク提案":
         st.warning("対象記事が0件です。CSVのE列を確認してください。")
         st.stop()
 
-    # STEP3（全記事HTML一括取得）
-    log(f"全記事 {len(data)} 件のHTML取得を開始します…")
-    all_articles: list[dict] = []
+    # STEP3（全記事HTML一括取得 — 同じCSVなら2回目以降はキャッシュから読む）
+    csv_hash = hashlib.md5(content.encode()).hexdigest()
+    cached = st.session_state.get("articles_hash") == csv_hash
 
-    for i, row in enumerate(data):
-        url = row[COL_URL].strip() if len(row) > COL_URL else ""
-        kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
-        if url:
-            parsed = fetch_and_parse(url)
-            if parsed:
-                parsed["kw"] = kw
-                all_articles.append(parsed)
-        progress_placeholder.progress(
-            (i + 1) / len(data),
-            text=f"記事を取得しています… {i + 1}/{len(data)} 件",
-        )
+    if cached:
+        log("HTML取得: キャッシュ済みのデータを使用します（再取得スキップ）")
+        all_articles = st.session_state["all_articles"]
+    else:
+        log(f"全記事 {len(data)} 件のHTML取得を開始します…")
+        progress_placeholder.progress(0, text="記事を取得しています…")
+        all_articles = _fetch_all_html_cached(csv_hash, tuple(tuple(r) for r in data))
+        st.session_state["all_articles"] = all_articles
+        st.session_state["articles_hash"] = csv_hash
+        progress_placeholder.empty()
 
-    progress_placeholder.empty()
     log(f"HTML取得完了: {len(all_articles)}/{len(data)} 件成功")
 
     # STEP2・4・5（対象記事ごと）
