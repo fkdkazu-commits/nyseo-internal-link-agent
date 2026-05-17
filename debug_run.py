@@ -8,7 +8,6 @@ Streamlit不要・UIなしで特定の行だけ全ステップをテスト実行
   py debug_run.py --ai-mock  # AI呼び出しをモック（高速テスト）
 """
 
-import re
 import sys
 from pathlib import Path
 
@@ -18,7 +17,7 @@ import csv
 from config import COL_URL, COL_KW, MIN_CANDIDATES
 from steps.step1_extract import extract_targets
 from steps.step2_search import search_candidates
-from steps.step3_fetch import fetch_and_parse, fetch_article
+from steps.step3_fetch import fetch_and_parse
 from steps.step4_judge import judge_candidates
 from steps.step5_output import write_output
 from utils.csv_client import find_input_csv
@@ -64,28 +63,36 @@ target = targets[row_idx] if row_idx is not None and row_idx < len(targets) else
 print(f"\nテスト対象: 行{target['row_idx'] + 2}  {target['url']}")
 print(f"  KW: {target['kw'] or '(空・自動検出)'}")
 
-# --- STEP3（対象記事のみ + 全記事HTML取得） ---
-print("\n[STEP3] HTML取得中…")
+# --- インデックス構築（HTTP不要）---
+# URL+KWのスタブで全記事インデックスを構築
 all_articles = []
-fetch_limit = 50  # デバッグ用（全件は時間がかかるため先頭N件）
-for i, row in enumerate(data[:fetch_limit]):
+for row in data:
     url = row[COL_URL].strip() if len(row) > COL_URL else ""
     kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
     if url:
-        parsed = fetch_and_parse(url)
-        if parsed:
-            parsed["kw"] = kw
-            all_articles.append(parsed)
-    print(f"  {i+1}/{fetch_limit} 完了", end="\r")
+        all_articles.append({
+            "url": url, "kw": kw,
+            "title": "", "h1": "", "h2_list": [], "h3_list": [], "body_text": "",
+        })
 
-print(f"\n  取得成功: {len(all_articles)} 件（先頭{fetch_limit}行から）")
+print(f"インデックス構築: {len(all_articles)} 件（HTTP不要）")
+
+# --- STEP3（対象記事のみ先にフェッチ）---
+print(f"\n[STEP3] 対象記事フェッチ中…")
+target_fetched = fetch_and_parse(target["url"])
+if target_fetched:
+    for a in all_articles:
+        if a["url"] == target["url"]:
+            a.update(target_fetched)
+            a["kw"] = target["kw"]
+            break
 
 # C列空の記事はh2/h3をKW代わりに使う
 search_kws: list[str] = []
 if target["kw_source"] == "auto_detect":
-    cached_article = next((a for a in all_articles if a["url"] == target["url"]), None)
-    if cached_article:
-        h2h3 = cached_article.get("h2_list", [])[:4] + cached_article.get("h3_list", [])[:3]
+    art = next((a for a in all_articles if a["url"] == target["url"]), None)
+    if art:
+        h2h3 = art.get("h2_list", [])[:4] + art.get("h3_list", [])[:3]
         search_kws = [h for h in h2h3 if len(h) >= 2]
         target["kw"] = search_kws[0] if search_kws else ""
     print(f"  KW(h2/h3): {search_kws[:3]}")
@@ -102,6 +109,17 @@ for ekw in expand_fn(target["kw"]):
     for c in search_candidates({**target, "kw": ekw}, all_articles):
         if not any(x["url"] == c["url"] for x in candidates):
             candidates.append(c)
+
+# 候補記事をオンデマンドフェッチ（内容が空のもののみ）
+fetch_count = 0
+for c in candidates:
+    if not c.get("title"):
+        fetched = fetch_and_parse(c["url"])
+        if fetched:
+            c.update(fetched)
+            fetch_count += 1
+if fetch_count:
+    print(f"  候補記事フェッチ: {fetch_count} 件")
 
 print(f"\n[STEP2] 候補記事: {len(candidates)} 件")
 for c in candidates[:5]:

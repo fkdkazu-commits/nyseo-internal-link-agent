@@ -8,8 +8,9 @@ Coworkのチャット欄でSpreadsheet URLを伝えると実行される。
 
 処理フロー:
   STEP1: 対象記事抽出（E列≤1 かつ H列が空白）
-  STEP2: 候補記事探索（h2/h3見出しをKW代わりに使用）
-  STEP3: 全記事HTML取得（Sheetsキャッシュを優先使用）
+  INDEX: キャッシュ済み記事＋KWスタブでインデックス構築（HTTP不要）
+  STEP2: 候補記事探索（インデックスと KW照合）
+  STEP3: 候補記事のみオンデマンドでHTML取得・キャッシュ保存
   STEP4: Cowork内蔵AIによる関連性スコアリング
   STEP5: 採用候補をSpreadsheetのH〜M列に書き込み
 """
@@ -57,36 +58,42 @@ def main(spreadsheet_url: str) -> None:
         logger.info("対象記事が0件です。処理を終了します。")
         return
 
-    # STEP3: 全記事HTML取得（キャッシュ優先）
-    logger.info(f"\n全記事 {len(data)} 件のHTML取得を開始します（キャッシュ優先）…")
+    # キャッシュ済み記事 + KWのみのスタブでインデックスを構築（HTTP不要）
+    # キャッシュ済みの記事はフル内容、未キャッシュはURL+KWのみのスタブ
     all_articles: list[dict] = []
-
-    for i, row in enumerate(data):
+    for row in data:
         url = row[COL_URL].strip() if len(row) > COL_URL else ""
         kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
         if not url:
             continue
-
         cached = client.get_cache(url)
         if cached:
-            cached["kw"] = kw
-            all_articles.append(cached)
+            all_articles.append({**cached, "kw": kw})
         else:
-            parsed = fetch_and_parse(url)
-            if parsed:
-                parsed["kw"] = kw
-                all_articles.append(parsed)
-                client.save_cache(parsed)
+            all_articles.append({
+                "url": url, "kw": kw,
+                "title": "", "h1": "", "h2_list": [], "h3_list": [], "body_text": "",
+            })
 
-        print(f"  HTML取得: {i + 1}/{len(data)} 件（キャッシュ {len(client._cache)} 件）", flush=True)
-
-    logger.info(f"HTML取得完了: {len(all_articles)}/{len(data)} 件\n")
+    cached_count = sum(1 for a in all_articles if a.get("title"))
+    logger.info(f"インデックス構築完了: {len(all_articles)} 件（キャッシュ済み {cached_count} 件）\n")
 
     # STEP2・4・5: 対象記事ごと
     for i, target in enumerate(targets, start=1):
         print(f"\n[{i}/{len(targets)}] {target['url']}", flush=True)
 
-        # C列空の場合はキャッシュ済みのh2/h3をKWとして使う
+        # 対象記事がキャッシュなければ今すぐ取得して保存
+        if not client.get_cache(target["url"]):
+            fetched = fetch_and_parse(target["url"])
+            if fetched:
+                fetched["kw"] = target["kw"]
+                client.save_cache(fetched)
+                for a in all_articles:
+                    if a["url"] == target["url"]:
+                        a.update(fetched)
+                        break
+
+        # C列空の場合はh2/h3をKWとして使う
         search_kws: list[str] = []
         if target["kw_source"] == "auto_detect":
             art = next((a for a in all_articles if a["url"] == target["url"]), None)
@@ -102,7 +109,7 @@ def main(spreadsheet_url: str) -> None:
         else:
             search_kws = [target["kw"]]
 
-        # STEP2: 候補探索
+        # STEP2: 候補探索（キャッシュ済み記事は高精度マッチ、スタブはKWのみマッチ）
         candidates: list[dict] = []
         for kw in search_kws or [target["kw"]]:
             for c in search_candidates({**target, "kw": kw}, all_articles):
@@ -118,6 +125,18 @@ def main(spreadsheet_url: str) -> None:
             continue
 
         logger.info(f"STEP2: 候補 {len(candidates)} 件")
+
+        # 候補記事のうちキャッシュなしのものをオンデマンド取得
+        fetch_count = 0
+        for c in candidates:
+            if not client.get_cache(c["url"]):
+                fetched = fetch_and_parse(c["url"])
+                if fetched:
+                    client.save_cache(fetched)
+                    c.update(fetched)
+                    fetch_count += 1
+        if fetch_count:
+            logger.info(f"候補記事のHTML取得: {fetch_count} 件")
 
         # STEP4: AI判定
         adopted = judge_candidates(target, candidates, judge_relevance)
