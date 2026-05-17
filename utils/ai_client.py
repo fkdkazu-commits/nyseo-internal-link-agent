@@ -116,6 +116,7 @@ def judge_relevance(target: dict, candidate: dict) -> "dict | None":
     raw = _extract_json(response, "{")
     if not raw:
         logger.warning(f"AI判定: JSONオブジェクトが見つかりません（URL: {candidate.get('url')}）")
+        logger.debug(f"AI判定レスポンス内容: {response[:300]}")
         return None
 
     try:
