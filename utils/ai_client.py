@@ -27,9 +27,11 @@ def _call_claude(prompt: str, retries: int = 2) -> "str | None":
                 encoding="utf-8",
                 timeout=CLI_TIMEOUT,
             )
-            if result.returncode == 0:
+            # stdoutに内容があればreturncode関係なく使用する
+            # （Windowsのsandbox警告でreturncode!=0になるが動作は正常な場合がある）
+            if result.stdout.strip():
                 return result.stdout.strip()
-            logger.warning(f"claude CLI エラー（試行{attempt}）: {result.stderr[:200]}")
+            logger.warning(f"claude CLI 失敗（試行{attempt}）stderr: {result.stderr[:400]}")
         except subprocess.TimeoutExpired:
             logger.warning(f"claude CLI タイムアウト（試行{attempt}）")
         except FileNotFoundError:
@@ -39,7 +41,7 @@ def _call_claude(prompt: str, retries: int = 2) -> "str | None":
             logger.warning(f"claude CLI 例外（試行{attempt}）: {e}")
 
         if attempt <= retries:
-            time.sleep(1)
+            time.sleep(2)
 
     return None
 
