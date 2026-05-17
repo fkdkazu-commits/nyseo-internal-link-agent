@@ -33,10 +33,8 @@
       background: var(--content-bg);
     }
 
-    /* ---- Layout ---- */
     .wrapper { display: flex; min-height: 100vh; }
 
-    /* ---- Sidebar ---- */
     .sidebar {
       width: var(--sidebar-width);
       background: var(--sidebar-bg);
@@ -109,13 +107,11 @@
     }
     .nav-sub:hover { color: #94a3b8; }
 
-    /* ---- Main ---- */
     .main {
       margin-left: var(--sidebar-width);
       flex: 1;
     }
 
-    /* ---- Page header ---- */
     .page-header {
       background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
       padding: 44px 52px;
@@ -161,13 +157,11 @@
       border-radius: 20px;
     }
 
-    /* ---- Content ---- */
     .content {
       padding: 36px 52px 80px;
       max-width: 980px;
     }
 
-    /* ---- Doc section ---- */
     .doc-section { margin-bottom: 56px; }
     .doc-header {
       display: flex;
@@ -192,7 +186,6 @@
       color: var(--text-primary);
     }
 
-    /* ---- Card ---- */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -234,7 +227,6 @@
     ul, ol { padding-left: 22px; margin-bottom: 12px; }
     li { margin-bottom: 5px; }
 
-    /* ---- Tables ---- */
     .table-wrap { overflow-x: auto; margin-bottom: 16px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th {
@@ -252,7 +244,6 @@
     td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; }
     tr:nth-child(even) td { background: #fafbfc; }
 
-    /* ---- Code ---- */
     code {
       font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
       font-size: 12px;
@@ -275,7 +266,6 @@
     }
     pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
 
-    /* ---- Step cards ---- */
     .step-card {
       border: 1px solid #bfdbfe;
       border-radius: 8px;
@@ -307,7 +297,6 @@
     .step-body ul { margin: 0; }
     .step-body li { font-size: 13px; }
 
-    /* ---- Alerts ---- */
     .alert {
       border-radius: 6px;
       padding: 12px 16px;
@@ -325,7 +314,6 @@
       color: #78350f;
     }
 
-    /* ---- Badges ---- */
     .badge {
       display: inline-block;
       font-size: 10px;
@@ -339,13 +327,11 @@
     .badge-gray { background: #f1f5f9; color: #475569; }
     .badge-red { background: #fee2e2; color: #991b1b; }
 
-    /* ---- Score rows ---- */
     .score-high td { background: #f0fdf4 !important; }
     .score-mid td { background: #fefce8 !important; }
     .score-low td { background: #fff7ed !important; }
     .score-none td { background: #fef2f2 !important; }
 
-    /* ---- Phase timeline ---- */
     .phase-item { display: flex; gap: 16px; margin-bottom: 16px; }
     .phase-dot {
       width: 32px; height: 32px;
@@ -361,6 +347,11 @@
       flex-shrink: 0;
       margin-top: 2px;
     }
+    .phase-done .phase-dot {
+      background: #dcfce7;
+      border-color: #16a34a;
+      color: #16a34a;
+    }
     .phase-content {
       flex: 1;
       padding-bottom: 16px;
@@ -370,8 +361,8 @@
     .phase-tasks { list-style: none; padding: 0; margin: 0; }
     .phase-tasks li { font-size: 12px; color: var(--text-secondary); padding: 2px 0; }
     .phase-tasks li::before { content: '→ '; color: var(--accent); }
+    .phase-done .phase-tasks li::before { content: '✓ '; color: #16a34a; }
 
-    /* ---- Mermaid ---- */
     .mermaid-wrap {
       background: white;
       border: 1px solid var(--border);
@@ -382,16 +373,13 @@
       overflow-x: auto;
     }
 
-    /* ---- Checklist ---- */
     .checklist { list-style: none; padding-left: 0; }
     .checklist li { padding: 4px 0 4px 26px; position: relative; }
     .checklist li::before { content: '☐'; position: absolute; left: 0; color: var(--accent); font-size: 15px; line-height: 1.4; }
 
-    /* ---- Table highlight ---- */
     .hl-output { background: #eff6ff; }
-    .hl-flag { background: #fffbeb; }
+    .hl-cache { background: #f0fdf4; }
 
-    /* ---- Footer ---- */
     .footer {
       border-top: 1px solid var(--border);
       padding: 24px 0;
@@ -402,7 +390,6 @@
     }
     .footer p { margin-bottom: 4px; }
 
-    /* ---- Responsive ---- */
     @media (max-width: 800px) {
       .sidebar { transform: translateX(-100%); }
       .main { margin-left: 0; }
@@ -425,7 +412,7 @@
     <div class="sidebar-header">
       <div class="sidebar-label">System Specification</div>
       <div class="sidebar-title">NYSEO<br>内部リンク構築AIエージェント</div>
-      <div class="sidebar-meta">Ver 1.0 &nbsp;|&nbsp; 2026-05-16</div>
+      <div class="sidebar-meta">Ver 2.0 &nbsp;|&nbsp; 2026-05-17</div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-group-label">目次</div>
@@ -438,17 +425,17 @@
       <a class="nav-item nav-sub" href="#design-stack">技術スタック</a>
       <a class="nav-item nav-sub" href="#design-arch">システム構成</a>
       <a class="nav-item nav-sub" href="#design-module">モジュール構成</a>
+      <a class="nav-item nav-sub" href="#design-sheets">Spreadsheetタブ構成</a>
       <a class="nav-item nav-sub" href="#design-error">エラー処理</a>
       <a class="nav-item nav-sub" href="#design-phase">開発フェーズ</a>
       <a class="nav-item" href="#ai">03. AI判定ロジック設計</a>
       <a class="nav-item nav-sub" href="#ai-score">スコアリング設計</a>
       <a class="nav-item nav-sub" href="#ai-prompt">プロンプト設計</a>
       <a class="nav-item" href="#data">04. データ設計</a>
-      <a class="nav-item nav-sub" href="#data-sheet">CSV列定義</a>
+      <a class="nav-item nav-sub" href="#data-sheet">列定義</a>
       <a class="nav-item nav-sub" href="#data-struct">中間データ構造</a>
       <a class="nav-item" href="#flow">05. 処理フロー設計</a>
       <a class="nav-item nav-sub" href="#flow-main">メイン処理フロー</a>
-      <a class="nav-item nav-sub" href="#flow-error">エラー時処理</a>
       <a class="nav-item nav-sub" href="#flow-ops">クライアント運用フロー</a>
       <a class="nav-item nav-sub" href="#flow-cost">費用について</a>
     </nav>
@@ -457,14 +444,13 @@
   <!-- ===== MAIN ===== -->
   <main class="main">
 
-    <!-- Page header -->
     <div class="page-header">
       <div class="page-header-label">System Specification Document</div>
       <div class="page-header-title">NYSEO 内部リンク構築AIエージェント<br>技術仕様書</div>
       <div class="page-header-badges">
-        <span class="ph-badge">📅 作成日: 2026-05-16</span>
-        <span class="ph-badge">🏷 Ver 1.0 (MVP)</span>
-        <span class="ph-badge">⚙️ ステータス: 設計中</span>
+        <span class="ph-badge">📅 更新日: 2026-05-17</span>
+        <span class="ph-badge">🏷 Ver 2.0 — Google Sheets方式</span>
+        <span class="ph-badge">⚙️ ステータス: 実装完了・テスト待ち</span>
       </div>
     </div>
 
@@ -479,25 +465,24 @@
           <span class="doc-title">要件定義書</span>
         </div>
 
-        <!-- 1.1 プロジェクト概要 -->
         <div class="card" id="req-overview">
           <div class="card-title">1.1 プロジェクト概要</div>
           <h4>目的</h4>
-          <p>NYSEO出力データをもとに、被リンク不足記事（被リンク数1件以下）に対して、関連性の高い他記事から内部リンクを設置する候補を自動提案し、SEO内部リンク構築業務を半自動化する。</p>
+          <p>NYSEOデータを格納したGoogle Spreadsheetを読み込み、被リンク不足記事（被リンク数E列≤1）に対して、関連性の高い他記事から内部リンクを設置する候補を自動提案し、SEO内部リンク構築業務を半自動化する。</p>
           <div class="alert alert-info">
             💡 最終的な内部リンク設置はクライアント担当者様が確認・判断することを想定しています。WordPressへの自動反映は本フェーズでは対象外となります。
           </div>
           <h4>主要機能</h4>
           <ul>
             <li>被リンク不足記事の自動抽出（E列 ≤ 1）</li>
-            <li>メインKW（C列）を起点とした関連記事探索（KW一致・部分一致・関連語・共起語・類義語）</li>
-            <li>候補記事のHTML解析（title / h1 / h2 / h3 / 本文）</li>
-            <li>Claude AIによる関連性スコアリング（100点満点・5観点）</li>
-            <li>内部リンク設置候補のCSV出力（H列以降）</li>
+            <li>メインKW（C列）を起点とした関連記事探索（KW一致・部分一致・上位概念KW展開）</li>
+            <li>C列空欄時はSTEP3取得済みのh2/h3見出しをKWとして自動使用</li>
+            <li>article_cacheタブによるHTML解析結果のセッション間・複数ユーザー間での共有・再利用</li>
+            <li>Cowork内蔵AIによる「上位概念→下位詳細」パターン特化スコアリング（100点満点）</li>
+            <li>内部リンク設置候補をSpreadsheetのH〜M列に書き込み</li>
           </ul>
         </div>
 
-        <!-- 1.2 ユーザー・権限 -->
         <div class="card">
           <div class="card-title">1.2 ユーザー・権限定義</div>
           <div class="table-wrap">
@@ -513,30 +498,31 @@
               </tr>
               <tr>
                 <td><strong>クライアント担当者</strong><br><span class="badge badge-green">レビュアー</span></td>
-                <td>提案結果を確認・レビューする</td>
-                <td>出力CSV閲覧・内部リンク実施の最終判断</td>
+                <td>Spreadsheetの提案結果を確認・レビューする</td>
+                <td>SpreadsheetのH列以降確認・内部リンク実施の最終判断</td>
                 <td>エージェントの直接操作</td>
               </tr>
             </table>
           </div>
+          <div class="alert alert-info">
+            👥 複数のユーザーが同一Spreadsheetを共有することで、実行結果を全員でリアルタイムに参照できます。
+          </div>
         </div>
 
-        <!-- 1.3 機能要件 -->
         <div class="card" id="req-func">
           <div class="card-title">1.3 機能要件（5ステップ処理）</div>
 
           <div class="step-card">
             <div class="step-header">
               <div class="step-num">1</div>
-              <div class="step-title">STEP1 — 対象記事抽出・KW取得</div>
+              <div class="step-title">STEP1 — 対象記事抽出</div>
             </div>
             <div class="step-body">
               <ul>
-                <li>入力CSVのE列（被リンク数）を全行読み取る</li>
+                <li>SpreadsheetのE列（被リンク数）を全行読み取る</li>
                 <li>E列 ≤ 1 かつ H列が空白の行を対象に選定する（H列にデータがある行はスキップ）</li>
                 <li>対象行のB列（記事URL）・C列（メインKW）を取得する</li>
-                <li><strong>C列にKWが入っている場合</strong>：そのKWをSTEP2の起点として使用する</li>
-                <li><strong>C列が空白の場合</strong>：B列のURLから記事を取得し、<code>&lt;title&gt;</code> / <code>&lt;h1&gt;</code> / <code>&lt;h2&gt;</code> / <code>&lt;h3&gt;</code>（本文見出し全体）を解析してメインKWを自動検出する（全記事を対象にするため）</li>
+                <li>C列が空白の場合は「auto_detect」フラグを立て、STEP3取得後にh2/h3見出しをKWとして使用する</li>
                 <li>B列が空の場合のみその行をスキップしてログに記録する</li>
               </ul>
             </div>
@@ -549,11 +535,10 @@
             </div>
             <div class="step-body">
               <ul>
-                <li>STEP1で取得したメインKW（C列またはtitle/h1/h2/h3から自動検出）を起点とする</li>
-                <li>CSV内の全記事（約231件）のtitle/h1/h2/h3を事前に一括取得する</li>
-                <li>Cowork内蔵AIがKWの関連語・共起語・類義語を生成し探索範囲を拡張する</li>
-                <li>KW一致・部分一致＋取得したコンテンツ内容を組み合わせて候補を絞り込む</li>
+                <li>メインKW（C列またはh2/h3から自動検出）とSpreadsheet内の全記事KWをKW完全一致・部分一致で比較する</li>
+                <li>Cowork内蔵AIを用いてKWの<strong>上位概念・まとめ記事KW</strong>を生成し探索範囲を拡張する</li>
                 <li>対象記事自身のURL・すでに採用済みのURLは除外する</li>
+                <li>最大20件の候補リストを生成してSTEP4へ渡す</li>
               </ul>
             </div>
           </div>
@@ -561,12 +546,14 @@
           <div class="step-card">
             <div class="step-header">
               <div class="step-num">3</div>
-              <div class="step-title">STEP3 — 候補記事取得・解析</div>
+              <div class="step-title">STEP3 — 候補記事取得・解析（article_cacheタブ優先）</div>
             </div>
             <div class="step-body">
               <ul>
-                <li>各候補記事URLへHTTPSリクエストを送信する（タイムアウト10秒）</li>
-                <li>BeautifulSoupで以下を抽出: <code>&lt;title&gt;</code>・<code>&lt;h1&gt;</code>・<code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code>一覧・本文テキスト（先頭800文字）</li>
+                <li><strong>まずarticle_cacheタブを確認し、キャッシュ済みURLはHTTP取得をスキップする</strong></li>
+                <li>キャッシュがない場合のみHTTPSリクエストを送信する（タイムアウト10秒）</li>
+                <li>BeautifulSoupで <code>&lt;title&gt;</code>・<code>&lt;h1&gt;</code>・<code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code>・本文テキスト（先頭1500文字）を抽出する</li>
+                <li>取得成功時はarticle_cacheタブに保存する（次回・他ユーザーの実行で再利用）</li>
                 <li>HTTP失敗（404・タイムアウト等）はスキップ・警告ログ出力・処理継続する</li>
                 <li>最大2回リトライ後に失敗した場合は候補から除外する</li>
               </ul>
@@ -576,14 +563,15 @@
           <div class="step-card">
             <div class="step-header">
               <div class="step-num">4</div>
-              <div class="step-title">STEP4 — AI関連性判定</div>
+              <div class="step-title">STEP4 — AI関連性判定（上位概念→下位詳細パターン特化）</div>
             </div>
             <div class="step-body">
               <ul>
-                <li>Cowork内蔵AIが5観点で関連性を100点満点でスコアリングする</li>
+                <li>Cowork内蔵AIが「候補記事が対象記事の上位概念・まとめ記事か」を軸に100点満点でスコアリングする</li>
+                <li>同じジャンルの横並び記事（例: 品川の風俗街↔鶯谷の風俗街）は低スコアとなる</li>
                 <li>スコア ≥ 60点の記事を採用候補とする</li>
                 <li>候補が2件未満の場合は閾値を40点に下げて再判定する</li>
-                <li>採用候補記事の中で、対象記事へのリンクを設置するのに最適な「見出し箇所」もAIが合わせて提案する</li>
+                <li>採用候補から「貼る箇所の見出し」もAIが合わせて提案する</li>
               </ul>
             </div>
           </div>
@@ -591,20 +579,19 @@
           <div class="step-card">
             <div class="step-header">
               <div class="step-num">5</div>
-              <div class="step-title">STEP5 — 内部リンク設置候補生成・出力</div>
+              <div class="step-title">STEP5 — Spreadsheetへ書き込み</div>
             </div>
             <div class="step-body">
               <ul>
-                <li>採用候補をスコア降順で並び替え、上位2〜3件を出力CSVに書き込む</li>
-                <li>H列: 候補記事URL①（この記事から対象記事へリンクを設置）/ I列: リンク設置箇所見出し①（候補記事内の見出し）</li>
-                <li>J列: 候補記事URL② / K列: リンク設置箇所見出し② / 3件目はL列・M列に出力する</li>
-                <li>出力CSVのH列以降にURL・見出しを書き込んで完了</li>
+                <li>採用候補をスコア降順で並び替え、上位2〜3件をSpreadsheetのH〜M列に書き込む</li>
+                <li>H列: 候補記事URL① / I列: リンク設置箇所見出し①</li>
+                <li>J列: 候補記事URL② / K列: リンク設置箇所見出し②</li>
+                <li>L列: 候補記事URL③（任意） / M列: リンク設置箇所見出し③（任意）</li>
               </ul>
             </div>
           </div>
         </div>
 
-        <!-- 1.4 ビジネスロジック -->
         <div class="card">
           <div class="card-title">1.4 ビジネスロジック・業務ルール</div>
           <div class="table-wrap">
@@ -614,29 +601,29 @@
               <tr><td>重複防止</td><td>同一URLへの重複提案は除外する</td></tr>
               <tr><td>自己参照除外</td><td>対象記事自身のURLは候補から除外する</td></tr>
               <tr><td>提案件数</td><td>最低2件・最大3件（MVPフェーズ）</td></tr>
-              <tr><td>再実行制御</td><td>H列にデータがある行はスキップする（再取り込み時も同様）</td></tr>
+              <tr><td>水平リンク排除</td><td>同テーマ・同階層の横並び記事（例: 別地域の同ジャンル記事）はスコアが低くなる</td></tr>
+              <tr><td>キャッシュ保護</td><td>article_cacheタブに記録済みのURLはHTTPリクエストをスキップする</td></tr>
+              <tr><td>再実行制御</td><td>H列にデータがある行はスキップする（再実行したい場合はH〜M列を削除してから実行）</td></tr>
             </table>
           </div>
         </div>
 
-        <!-- 1.5 非機能要件 -->
         <div class="card" id="req-nonfunc">
           <div class="card-title">1.5 非機能要件</div>
           <div class="table-wrap">
             <table>
               <tr><th>項目</th><th>内容</th></tr>
               <tr><td>対象デバイス</td><td>PC（Cowork実行環境）</td></tr>
-              <tr><td>同時利用人数</td><td>1名（シングルエージェント実行）</td></tr>
-              <tr><td>処理速度</td><td>1記事あたり最大30秒以内（API・HTTP取得込み）</td></tr>
-              <tr><td>認証方式</td><td>不要（CSV読み書き・Cowork内蔵AIを使用）</td></tr>
-              <tr><td>通信</td><td>HTTPS（外部URL取得のみ）</td></tr>
+              <tr><td>同時利用人数</td><td>複数名（Spreadsheet共有により全員がリアルタイムで結果を参照可能）</td></tr>
+              <tr><td>処理速度</td><td>1記事あたり最大30秒以内（AI・HTTP取得込み）/ キャッシュ命中時は大幅短縮</td></tr>
+              <tr><td>認証方式</td><td>Googleサービスアカウント（JSONファイル・プロジェクトフォルダ外に保管・環境変数で参照）</td></tr>
+              <tr><td>通信</td><td>HTTPS（Google Sheets API・外部URL取得）</td></tr>
               <tr><td>エラー耐性</td><td>個別記事のHTTP失敗は警告ログを出してスキップ。全体処理は継続する</td></tr>
               <tr><td>デプロイ先</td><td>Cowork（クラウド実行環境）</td></tr>
             </table>
           </div>
         </div>
 
-        <!-- 1.6 制約条件 -->
         <div class="card">
           <div class="card-title">1.6 制約条件</div>
           <div class="table-wrap">
@@ -644,9 +631,10 @@
               <tr><th>項目</th><th>内容</th></tr>
               <tr><td>インフラ</td><td>AWSなどの大規模インフラは使用しない</td></tr>
               <tr><td>実行環境</td><td>Cowork上で完結させる</td></tr>
-              <tr><td>言語</td><td>Python 3.10以上（BeautifulSoup / requests / gspread）</td></tr>
+              <tr><td>言語</td><td>Python 3.10以上（BeautifulSoup / requests / gspread / google-auth）</td></tr>
               <tr><td>AI</td><td>Cowork内蔵 Claude AI（APIキー不要）</td></tr>
-              <tr><td>データ基盤</td><td>CSV（NYSEO出力・クライアント提供）</td></tr>
+              <tr><td>データ基盤</td><td>Google Spreadsheet（NYSEOデータ＋article_cacheタブ）</td></tr>
+              <tr><td>認証情報管理</td><td>サービスアカウントJSONはプロジェクトフォルダ外の専用フォルダに保管。環境変数 <code>GOOGLE_SERVICE_ACCOUNT</code> で参照</td></tr>
               <tr><td>WordPress自動投稿</td><td>本フェーズ対象外</td></tr>
               <tr><td>アンカーテキスト自動生成</td><td>本フェーズ対象外</td></tr>
               <tr><td>Embedding活用</td><td>本フェーズ対象外</td></tr>
@@ -654,43 +642,8 @@
           </div>
         </div>
 
-        <!-- 1.7 未確定事項 -->
-        <div class="card">
-          <div class="card-title">1.7 未確定事項</div>
-          <div class="table-wrap">
-            <table>
-              <tr><th>#</th><th>項目</th><th>優先度</th><th>対応方針</th></tr>
-              <tr>
-                <td>1</td>
-                <td>対象記事がクロール可能かどうか</td>
-                <td><span class="badge badge-orange">高</span></td>
-                <td>クライアントに確認が必要。非公開・Basic認証記事は取得不可</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>入力CSVの列構成の最終確認</td>
-                <td><span class="badge badge-orange">高</span></td>
-                <td>クライアントからシートIDの提供が必要</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>候補記事の最大探索件数</td>
-                <td><span class="badge badge-blue">中</span></td>
-                <td>MVP段階では全記事を対象（上限は後から設定可能）</td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td>エラーログの保存先</td>
-                <td><span class="badge badge-gray">低</span></td>
-                <td>Cowork実行ログに出力する形でよい</td>
-              </tr>
-            </table>
-          </div>
-        </div>
-
-        <!-- 1.8 クライアント準備事項 -->
         <div class="card" id="req-client">
-          <div class="card-title">1.8 クライアント側の準備事項</div>
+          <div class="card-title">1.7 クライアント側の準備事項</div>
           <div class="alert alert-warning">
             ⚠️ 以下の項目はシステム稼働前にご準備いただく必要があります。事前にご確認ください。
           </div>
@@ -699,22 +652,27 @@
               <tr><th>項目</th><th>内容</th><th>確認状況</th></tr>
               <tr>
                 <td>Cowork環境</td>
-                <td>Coworkアカウントの用意・エージェント実行権限の確認</td>
+                <td>Coworkアカウント（Claude Pro）の用意・エージェント実行権限の確認</td>
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
               <tr>
-                <td>CSV提供</td>
-                <td>NYSEOの出力CSVを所定のフォルダに配置できること</td>
+                <td>Google Spreadsheet</td>
+                <td>NYSEOから出力したデータをSpreadsheetに貼り付け済みであること</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>サービスアカウント</td>
+                <td>Googleサービスアカウント作成・Sheets API有効化・JSONファイル取得</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>Spreadsheet共有</td>
+                <td>サービスアカウントのメールアドレスをSpreadsheetに編集者として共有</td>
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
               <tr>
                 <td>記事のアクセス可否</td>
                 <td>B列の記事URLがHTTPSで公開済みであること（非公開・Basic認証不可）</td>
-                <td><span class="badge badge-orange">要確認</span></td>
-              </tr>
-              <tr>
-                <td>Coworkプラン</td>
-                <td>Claude Proプラン以上（月額約$20〜）へのご加入</td>
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
             </table>
@@ -731,7 +689,6 @@
           <span class="doc-title">基本設計書</span>
         </div>
 
-        <!-- 2.1 技術スタック -->
         <div class="card" id="design-stack">
           <div class="card-title">2.1 技術スタック</div>
           <div class="table-wrap">
@@ -739,84 +696,106 @@
               <tr><th>カテゴリ</th><th>技術</th><th>バージョン</th><th>選定理由</th></tr>
               <tr><td>エージェント実行環境</td><td><strong>Cowork</strong></td><td>最新</td><td>クライアント要件・ノーインフラ運用</td></tr>
               <tr><td>AI / LLM</td><td><strong>Cowork内蔵 Claude AI</strong></td><td>Coworkプランに準拠</td><td>APIキー不要・Proプランの範囲内で動作・日本語SEO判定の高精度</td></tr>
-              <tr><td>スクリプト言語</td><td><strong>Python</strong></td><td>3.10以上</td><td>BeautifulSoup・requests・csv全対応</td></tr>
-              <tr><td>HTML解析</td><td><strong>BeautifulSoup4 + lxml</strong></td><td>4.12.x</td><td>軽量・安定した記事解析・日本語対応</td></tr>
-              <tr><td>HTTPクライアント</td><td><strong>requests</strong></td><td>2.31.x</td><td>シンプルな外部URL取得・セッション管理</td></tr>
-              <tr><td>入出力データ</td><td><strong>CSV</strong></td><td>—</td><td>NYSEOの出力形式・追加ライブラリ不要</td></tr>
+              <tr><td>スクリプト言語</td><td><strong>Python</strong></td><td>3.10以上</td><td>gspread・BeautifulSoup・requests全対応</td></tr>
+              <tr><td>HTML解析</td><td><strong>BeautifulSoup4</strong></td><td>4.12.x</td><td>軽量・安定した記事解析・日本語対応</td></tr>
+              <tr><td>HTTPクライアント</td><td><strong>requests</strong></td><td>2.31.x</td><td>シンプルな外部URL取得・タイムアウト制御</td></tr>
+              <tr><td>データ基盤</td><td><strong>Google Spreadsheet</strong></td><td>—</td><td>複数ユーザー共有・キャッシュを永続化できる</td></tr>
+              <tr><td>Sheetsクライアント</td><td><strong>gspread</strong></td><td>6.0.0以上</td><td>Python製Google Sheets APIラッパー</td></tr>
+              <tr><td>Google認証</td><td><strong>google-auth</strong></td><td>2.0.0以上</td><td>サービスアカウントJSONによる認証</td></tr>
             </table>
           </div>
         </div>
 
-        <!-- 2.2 システム構成 -->
         <div class="card" id="design-arch">
           <div class="card-title">2.2 システム構成</div>
           <pre>
 [クライアント]
-    ↓ NYSEOデータ（CSV）を配置
-[入力CSV]
-    ↓ Python標準csvモジュールで読み取り
-[Cowork エージェント（Claude AI内蔵）]
-    ├─ STEP1: 対象記事抽出
-    ├─ STEP2: 全記事HTML一括取得・関連記事候補探索（KW拡張はCowork内蔵AIが判断）
-    ├─ STEP3: 候補記事コンテンツ解析（BeautifulSoup）
-    ├─ STEP4: 関連性判定（Cowork内蔵AIがスコアリング・APIキー不要）
-    └─ STEP5: 結果出力
-         ↓ csvモジュールで書き込み
-[出力CSV（H列以降にURL・見出しを追記）]
-    ↓ クライアントが確認・最終判断
+    ↓ Coworkのチャット欄にSpreadsheet URLを伝える
+[Cowork + Pythonスクリプト（py main.py &lt;URL&gt;）]
+    ├─ SheetsClient: Spreadsheet接続・データ読み込み・キャッシュ参照
+    ├─ STEP1: 対象記事抽出（E列≤1 かつ H列空）
+    ├─ STEP3: 全記事HTML取得（article_cacheタブ優先 → HTTP取得）
+    ├─ STEP2: 関連記事候補探索 ──→ [Cowork内蔵AI]（上位概念KW生成）
+    ├─ STEP4: 関連性判定 ──→ [Cowork内蔵AI]（上位→下位パターン特化スコアリング）
+    └─ STEP5: Spreadsheetへ書き込み（H〜M列）
+         ↓
+[Google Spreadsheet（共有）]
+    ├─ Sheet1: NYSEOデータ + H〜M列に提案結果
+    └─ article_cache: URL・title・h1・h2_json・h3_json・body_text・fetched_at
+         ↓
+[クライアント担当者が全員でSpreadsheetを確認・最終判断]
 [担当者がWordPressに手動で内部リンクを設置]</pre>
         </div>
 
-        <!-- 2.3 モジュール構成 -->
         <div class="card" id="design-module">
           <div class="card-title">2.3 モジュール構成・ディレクトリ</div>
           <pre>
 nyseo-internal-link-agent/
-├── main.py                    # エントリーポイント・全STEPを順次実行
+├── main.py                    # エントリーポイント: py main.py &lt;SpreadsheetURL&gt;
 ├── config.py                  # 設定値（閾値・列番号定義）
-├── CLAUDE.md                  # Cowork起動指示書（エージェントへの実行手順）
-├── requirements.txt
+├── CLAUDE.md                  # Cowork起動指示書
+├── requirements.txt           # gspread・google-auth・requests・beautifulsoup4
 ├── .gitignore
 │
-├── input/                     # 【クライアント操作】NYSEOから出力したCSVをここに置く
-│   └── .gitkeep
-│
-├── output/                    # 【システム出力】処理済みCSV（H列以降追記済み）が生成される
-│   └── .gitkeep
-│
 ├── steps/
-│   ├── step1_extract.py       # STEP1: 対象記事抽出
-│   ├── step2_search.py        # STEP2: 関連記事候補探索
-│   ├── step3_fetch.py         # STEP3: 記事HTML取得・解析
-│   ├── step4_judge.py         # STEP4: AI関連性判定
-│   └── step5_output.py        # STEP5: CSV出力
+│   ├── step1_extract.py       # STEP1: 対象記事抽出（E列≤1・H列空）
+│   ├── step2_search.py        # STEP2: KW一致・上位概念展開での候補探索
+│   ├── step3_fetch.py         # STEP3: HTTP取得・BeautifulSoup解析
+│   ├── step4_judge.py         # STEP4: AI関連性判定（上位→下位特化）
+│   └── step5_output.py        # STEP5: Sheets書き込み用データ整形
 │
 ├── utils/
-│   ├── csv_client.py          # CSV読み書きユーティリティ
+│   ├── sheets_client.py       # Google Sheets読み書き・article_cacheタブ管理
+│   ├── ai_client.py           # Cowork内蔵AI（claude CLI）呼び出しラッパー
 │   └── logger.py              # ログ出力ユーティリティ
 │
-├── prompts/
-│   ├── kw_expansion.txt       # STEP2: KW拡張指示（Cowork内蔵AIへの指示文）
-│   └── relevance_judge.txt    # STEP4: 関連性判定指示（Cowork内蔵AIへの指示文）
-│
-└── docs/
-    └── index.html             # GitHub Pages（本仕様書）</pre>
+└── prompts/
+    ├── kw_expansion.txt       # STEP2: 上位概念KW生成プロンプト
+    └── relevance_judge.txt    # STEP4: 上位→下位パターン特化判定プロンプト</pre>
         </div>
 
-        <!-- 2.4 外部連携 -->
+        <div class="card" id="design-sheets">
+          <div class="card-title">2.4 Spreadsheetタブ構成</div>
+          <div class="alert alert-info">
+            📋 <strong>Sheet1（1枚目）</strong>にNYSEOデータを配置します。<strong>article_cacheタブ（2枚目）</strong>はシステムが初回実行時に自動作成します。手動での作成は不要です。
+          </div>
+          <h4>article_cacheタブの列構成</h4>
+          <div class="table-wrap">
+            <table>
+              <tr><th>列名</th><th>内容</th><th>備考</th></tr>
+              <tr class="hl-cache"><td><code>url</code></td><td>記事URL（主キー）</td><td>重複チェックに使用</td></tr>
+              <tr class="hl-cache"><td><code>title</code></td><td>titleタグのテキスト</td><td></td></tr>
+              <tr class="hl-cache"><td><code>h1</code></td><td>h1タグのテキスト</td><td></td></tr>
+              <tr class="hl-cache"><td><code>h2_json</code></td><td>h2見出し一覧（JSON配列文字列）</td><td><code>["見出しA", "見出しB"]</code></td></tr>
+              <tr class="hl-cache"><td><code>h3_json</code></td><td>h3見出し一覧（JSON配列文字列）</td><td><code>["見出しC", "見出しD"]</code></td></tr>
+              <tr class="hl-cache"><td><code>body_text</code></td><td>本文テキスト（先頭1500文字）</td><td></td></tr>
+              <tr class="hl-cache"><td><code>fetched_at</code></td><td>取得日時</td><td><code>YYYY-MM-DD HH:MM:SS</code></td></tr>
+            </table>
+          </div>
+          <div class="alert alert-info">
+            ♻️ 初回実行で全記事（約231件）のHTMLを取得・キャッシュします。2回目以降はキャッシュを使用するため、大幅に高速化されます。他のユーザーが実行した際のキャッシュも共有されます。
+          </div>
+        </div>
+
         <div class="card">
-          <div class="card-title">2.4 外部連携</div>
+          <div class="card-title">2.5 外部連携</div>
           <div class="table-wrap">
             <table>
               <tr><th>外部サービス</th><th>用途</th><th>認証</th><th>注意事項</th></tr>
               <tr>
+                <td><strong>Google Sheets API</strong></td>
+                <td>データ読み込み・結果書き込み・キャッシュ保存</td>
+                <td>サービスアカウントJSON<br>（プロジェクト外保管）</td>
+                <td>環境変数 <code>GOOGLE_SERVICE_ACCOUNT</code> でパス指定</td>
+              </tr>
+              <tr>
                 <td><strong>Cowork内蔵 Claude AI</strong></td>
                 <td>STEP2 KW拡張・STEP4 関連性判定</td>
                 <td>不要（Coworkプラン内で動作）</td>
-                <td>APIキー・従量課金なし。Cowork Proプラン以上が必要</td>
+                <td><code>claude -p &lt;prompt&gt;</code> でCLI呼び出し</td>
               </tr>
               <tr>
-                <td><strong>対象サイト</strong>（HTTP）</td>
+                <td><strong>対象サイト</strong>（HTTPS）</td>
                 <td>STEP3 記事HTML取得</td>
                 <td>なし（公開ページのみ）</td>
                 <td>タイムアウト10秒・リトライ2回・UA設定必須</td>
@@ -825,15 +804,15 @@ nyseo-internal-link-agent/
           </div>
         </div>
 
-        <!-- 2.5 エラー処理 -->
         <div class="card" id="design-error">
-          <div class="card-title">2.5 エラー処理</div>
+          <div class="card-title">2.6 エラー処理</div>
           <div class="table-wrap">
             <table>
               <tr><th>エラー種別</th><th>対応</th><th>処理継続</th></tr>
+              <tr><td>Google Sheets接続失敗</td><td>エラーログ出力・実行停止（環境変数・権限を確認）</td><td>❌ 停止</td></tr>
               <tr><td>HTTP取得失敗（404・タイムアウト等）</td><td>該当記事をスキップ・警告ログ出力</td><td>✅ 継続</td></tr>
-              <tr><td>Cowork AI判定エラー</td><td>最大2回リトライ後、スキップ・エラーログ</td><td>✅ 継続</td></tr>
-              <tr><td>CSV書き込みエラー</td><td>エラーログ出力・実行停止・手動確認を求める</td><td>❌ 停止</td></tr>
+              <tr><td>Cowork内蔵AI エラー</td><td>最大2回リトライ後、スキップ・エラーログ</td><td>✅ 継続</td></tr>
+              <tr><td>JSON解析失敗（AI出力不正）</td><td>デフォルト値（スコア0）で処理継続</td><td>✅ 継続</td></tr>
               <tr><td>候補記事が2件未満</td><td>閾値を60→40に下げて再判定。不足なら空欄出力</td><td>✅ 継続</td></tr>
               <tr><td>B列（記事URL）が空白</td><td>該当行をスキップ・警告ログ</td><td>✅ 継続</td></tr>
               <tr><td>H列にデータあり（処理済み）</td><td>処理済みとして完全スキップ</td><td>✅ 継続</td></tr>
@@ -841,54 +820,50 @@ nyseo-internal-link-agent/
           </div>
         </div>
 
-        <!-- 2.6 セキュリティ -->
         <div class="card">
-          <div class="card-title">2.6 セキュリティ考慮事項</div>
+          <div class="card-title">2.7 セキュリティ考慮事項</div>
           <ul class="checklist">
-            <li>APIキー・認証情報は一切不要（Cowork内蔵AIを使用するため）</li>
-            <li><code>.gitignore</code> で機密ファイル（<code>.env</code>等）をGit管理対象外に設定</li>
-            <li>CSVファイルはローカル環境またはCowork内のみで取り扱い、外部共有しない</li>
+            <li>サービスアカウントJSONはプロジェクトフォルダ外の専用フォルダに保管する</li>
+            <li>プロジェクトフォルダ内（<code>claude code/</code>以下）に認証情報を一切残さない</li>
+            <li>環境変数 <code>GOOGLE_SERVICE_ACCOUNT</code> でJSONパスを参照する（コードにパスをハードコードしない）</li>
+            <li><code>.gitignore</code> で <code>.env</code>・<code>venv/</code>・<code>__pycache__/</code> をGit管理対象外に設定</li>
             <li>外部サイトへのHTTPリクエストはGET取得のみ（書き込み・POST等は行わない）</li>
-            <li>User-Agentに識別可能な文字列を設定（<code>NYSEOInternalLinkAgent/1.0</code>）</li>
+            <li>Google Sheets APIのスコープは <code>spreadsheets</code>（読み書き）のみに限定する</li>
           </ul>
         </div>
 
-        <!-- 2.7 開発フェーズ -->
         <div class="card" id="design-phase">
-          <div class="card-title">2.7 開発フェーズ</div>
-          <div class="phase-item">
+          <div class="card-title">2.8 開発フェーズ</div>
+          <div class="phase-item phase-done">
             <div class="phase-dot">P1</div>
             <div class="phase-content">
-              <div class="phase-title">Phase 1 — 環境構築・基盤</div>
+              <div class="phase-title">Phase 1 — 環境構築・基盤 ✓完了</div>
               <ul class="phase-tasks">
-                <li>Pythonプロジェクト初期化（requirements.txt・ディレクトリ構成）</li>
-                <li>input/ ・output/ フォルダ作成・CSV読み書き動作確認</li>
-                <li>Cowork内蔵AI動作確認・CLAUDE.md 作成</li>
+                <li>Pythonプロジェクト初期化（requirements.txt）</li>
+                <li>Cowork内蔵AI（claude CLI）動作確認・encoding="utf-8"対応</li>
               </ul>
             </div>
           </div>
-          <div class="phase-item">
+          <div class="phase-item phase-done">
             <div class="phase-dot">P2</div>
             <div class="phase-content">
-              <div class="phase-title">Phase 2 — コア機能実装</div>
+              <div class="phase-title">Phase 2 — コア機能実装 ✓完了</div>
               <ul class="phase-tasks">
-                <li>STEP1: 対象記事抽出ロジック実装</li>
-                <li>STEP2: KW探索・Cowork内蔵AIによるKW拡張実装</li>
-                <li>STEP3: 記事HTML取得・BeautifulSoupパース実装</li>
-                <li>STEP4: Cowork内蔵AIによる関連性スコアリング実装</li>
-                <li>STEP5: CSVへの書き込み実装</li>
+                <li>STEP1〜5 コアロジック実装</li>
+                <li>sheets_client.py: Google Sheets読み書き・article_cache管理</li>
+                <li>ai_client.py: claude CLIラッパー</li>
+                <li>main.py: Spreadsheet URL引数対応・キャッシュ優先フロー</li>
               </ul>
             </div>
           </div>
-          <div class="phase-item">
+          <div class="phase-item phase-done">
             <div class="phase-dot">P3</div>
             <div class="phase-content">
-              <div class="phase-title">Phase 3 — エラー処理・安定化</div>
+              <div class="phase-title">Phase 3 — プロンプト精緻化 ✓完了</div>
               <ul class="phase-tasks">
-                <li>HTTPタイムアウト・エラー処理実装</li>
-                <li>APIリトライ・レート制限対応</li>
-                <li>H列チェックによる再処理スキップ実装</li>
-                <li>ログ出力整備</li>
+                <li>サイト実データ分析（analyze_links.py）</li>
+                <li>上位→下位リンクパターン特化プロンプトに変更</li>
+                <li>水平方向リンクの低スコア化</li>
               </ul>
             </div>
           </div>
@@ -897,12 +872,10 @@ nyseo-internal-link-agent/
             <div class="phase-content">
               <div class="phase-title">Phase 4 — テスト・引き渡し</div>
               <ul class="phase-tasks">
-                <li>テスト用CSVでのエンドツーエンドテスト（input/→output/ の一連確認）</li>
+                <li>Googleサービスアカウント設定・Sheets API有効化</li>
+                <li>実Spreadsheetでのエンドツーエンドテスト</li>
                 <li>実データでの精度確認・閾値調整</li>
-                <li>コード一式をZIPで納品</li>
-                <li>クライアント環境セットアップ立ち会い（ZIPを解凍・Coworkで開く）</li>
-                <li>実データでの動作確認デモ</li>
-                <li>操作マニュアル引き渡し・本番運用開始</li>
+                <li>クライアントへの説明・デモ・本番運用開始</li>
               </ul>
             </div>
           </div>
@@ -918,23 +891,25 @@ nyseo-internal-link-agent/
           <span class="doc-title">AI判定ロジック設計</span>
         </div>
 
-        <!-- 3.1 スコアリング -->
         <div class="card" id="ai-score">
-          <div class="card-title">3.1 関連性スコアリング設計</div>
+          <div class="card-title">3.1 関連性スコアリング設計（上位→下位パターン特化）</div>
+          <div class="alert alert-info">
+            🔗 <strong>リンク方向：</strong>候補記事（リンクを貼る側）→ 対象記事（リンク先・被リンクを増やしたい記事）<br>
+            <strong>想定パターン：</strong>「風俗の種類まとめ」（上位概念）→「デリヘルスタッフの仕事内容」（下位詳細）のような構造が高スコアになります。
+          </div>
           <div class="table-wrap">
             <table>
-              <tr><th>判定観点</th><th>重み</th><th>配点</th><th>判定内容</th></tr>
-              <tr><td><strong>検索意図一致度</strong></td><td>30%</td><td>0〜30点</td><td>対象記事を読むユーザーの検索意図と候補記事が一致するか</td></tr>
-              <tr><td><strong>トピック一致度</strong></td><td>25%</td><td>0〜25点</td><td>扱っているトピック・テーマが同一または密接に関連しているか</td></tr>
-              <tr><td><strong>文脈自然性</strong></td><td>20%</td><td>0〜20点</td><td>対象記事の文中で候補記事へのリンクが自然に機能するか</td></tr>
-              <tr><td><strong>SEO妥当性</strong></td><td>15%</td><td>0〜15点</td><td>SEO観点でリンク元→リンク先のテーマ関連性が適切か</td></tr>
-              <tr><td><strong>内部リンク自然性</strong></td><td>10%</td><td>0〜10点</td><td>具体的なアンカーテキストとしてリンクが機能するか</td></tr>
-              <tr style="background:#f8fafc"><td><strong>合計</strong></td><td><strong>100%</strong></td><td><strong>0〜100点</strong></td><td></td></tr>
+              <tr><th>判定観点</th><th>配点</th><th>判定内容</th></tr>
+              <tr><td><strong>上位概念・まとめ記事関係</strong></td><td>0〜40点</td><td>候補記事が「種類まとめ」「ガイド」「特集」で、対象記事がその1要素になっているか</td></tr>
+              <tr><td><strong>読者の誘導自然性</strong></td><td>0〜30点</td><td>候補記事を読んで「もっと詳しく知りたい」と思ったとき、対象記事が答えになるか</td></tr>
+              <tr><td><strong>文脈への含まれやすさ</strong></td><td>0〜30点</td><td>候補記事の文脈内に対象記事のトピックが自然に含まれるか</td></tr>
+              <tr style="background:#f8fafc"><td><strong>合計</strong></td><td><strong>0〜100点</strong></td><td></td></tr>
             </table>
           </div>
+          <h4>水平リンクは低スコアになります</h4>
+          <p>同じジャンルの別地域・別サービスの横並び記事（例: 品川の風俗街↔鶯谷の風俗街）は、上位概念関係がないためスコアが10点以下になります。</p>
         </div>
 
-        <!-- 3.2 判定基準 -->
         <div class="card">
           <div class="card-title">3.2 判定基準・閾値設定</div>
           <div class="table-wrap">
@@ -948,61 +923,50 @@ nyseo-internal-link-agent/
           </div>
         </div>
 
-        <!-- 3.3 除外条件 -->
-        <div class="card">
-          <div class="card-title">3.3 除外条件</div>
-          <ul>
-            <li>対象記事自身のURLと同一（自己リンク防止）</li>
-            <li>スコア &lt; 40点（最低閾値ライン）</li>
-            <li>HTTP取得に失敗した記事（404・タイムアウト等）</li>
-            <li>カテゴリページ・タグページ・アーカイブページ（<code>/category/</code>・<code>/tag/</code>・<code>/page/</code> 含むURL）</li>
-            <li>同一対象記事内でH列以降にすでに提案済みのURL</li>
-          </ul>
-        </div>
-
-        <!-- 3.4 プロンプト設計 -->
         <div class="card" id="ai-prompt">
-          <div class="card-title">3.4 プロンプト設計</div>
-          <h4>STEP2: KW拡張プロンプト</h4>
+          <div class="card-title">3.3 プロンプト設計</div>
+          <h4>STEP2: 上位概念KW生成プロンプト</h4>
           <pre>
-あなたはSEO専門家です。
-以下のメインキーワードに対して、内部リンク候補記事を探すために
-関連語・共起語・類義語を10個以内で生成してください。
+あなたはSEOの内部リンク構造を最適化する専門家です。
+以下のメインキーワードに対して、「このキーワードの記事が特集ページとして
+含まれるような上位概念・まとめ記事」で使われそうなキーワードを5〜10個生成してください。
 
 メインKW: {target_kw}
 
 出力形式（JSON配列）:
-["関連語1", "関連語2", "共起語1", ...]
+["上位概念KW1", "上位概念KW2", ...]
 
-注意: 日本語で、SEO実務で実際に使用されるキーワードのみ出力すること。</pre>
+注意:
+- 同階層・同テーマの記事（例: 別の地域の同ジャンル記事）はNGです
+- 対象記事の内容を「まとめる側」「紹介する側」になるKWを出力してください
+- 日本語で出力すること</pre>
 
-          <h4>STEP4: 関連性判定プロンプト</h4>
+          <h4>STEP4: 関連性判定プロンプト（上位→下位パターン特化）</h4>
           <pre>
-あなたはSEO専門家です。以下の2記事の関連性を評価してください。
+あなたはSEOの内部リンク構造を最適化する専門家です。
 
-## 対象記事（被リンクを増やしたい記事・E列≤1の記事）
-- メインKW: {target_kw}
+## 内部リンクの方向
+候補記事（リンクを貼る側）→ 対象記事（リンク先・被リンクを増やしたい記事）
+
+## 対象記事（被リンクを増やしたい記事）
+- KW: {target_kw}
 - URL: {target_url}
 
-## 候補記事（対象記事へのリンクを設置する側の記事）
+## 候補記事（リンクを設置する側）
 - タイトル: {candidate_title}
 - URL: {candidate_url}
 - 主要見出し: {candidate_headings}
-- 本文冒頭: {candidate_body[:800]}
+- 本文冒頭: {candidate_body}
 
-## 評価基準（100点満点）
-- 検索意図一致度 (0-30点)
-- トピック一致度 (0-25点)
-- 文脈自然性 (0-20点)
-- SEO妥当性 (0-15点)
-- 内部リンク自然性 (0-10点)
+## 採点基準（合計100点）
+1. 候補記事が対象記事の「上位概念・まとめ記事」になっているか（40点）
+   - 高得点: 候補記事が「種類まとめ」「ガイド」「特集」で、対象記事がその1要素
+   - 低得点: 同じジャンルの別地域・別サービスの横並び記事（0〜10点）
+2. 候補記事の読者が対象記事を読みたくなるか（30点）
+3. 候補記事の文脈に対象記事のトピックが自然に含まれるか（30点）
 
-## 出力形式（JSON）
-{
-  "score": 整数(0-100),
-  "reason": "判定理由（1-2文で簡潔に）",
-  "recommended_heading": "候補記事内で対象記事へのリンクを設置するのに最適な見出しテキスト"
-}</pre>
+## 出力形式（JSONのみ・余分なテキスト不要）
+{"score": 整数(0-100), "reason": "判定理由（1〜2文）", "recommended_heading": "候補記事内でリンクを設置するのに最適な見出し"}</pre>
         </div>
       </div>
 
@@ -1015,75 +979,54 @@ nyseo-internal-link-agent/
           <span class="doc-title">データ設計</span>
         </div>
 
-        <!-- 4.1 Spreadsheet列定義 -->
         <div class="card" id="data-sheet">
-          <div class="card-title">4.1 CSV 列定義</div>
+          <div class="card-title">4.1 Spreadsheet列定義（Sheet1）</div>
           <div class="alert alert-info">
-            📋 A〜G列はNYSEO出力データ（入力領域）、H列以降はシステムの出力領域です。入力CSVをそのまま読み込み、H〜M列を追記した出力CSVを生成します。H列にデータが入っている行は再取り込み時にスキップされます（再実行したい場合はH列以降を削除してください）。<br>
-            🔗 <strong>リンク方向について</strong>：H列以降に出力される「候補記事URL」は、<em>その記事から</em>対象記事（E列≤1の記事）へ内部リンクを新たに設置する記事です。対象記事の被リンク数（E列）を増やすことが目的です。
+            📋 A〜G列はNYSEOデータ（入力・読み取りのみ）、H〜M列はシステムの出力領域です。<br>
+            🔗 <strong>リンク方向：</strong>H列以降に出力される「候補記事URL」は、<em>その記事から</em>対象記事へ内部リンクを新たに設置する記事です。
           </div>
           <div class="table-wrap">
             <table>
               <tr><th>列</th><th>内容</th><th>型</th><th>役割</th><th>操作</th></tr>
               <tr><td><strong>A列</strong></td><td>NO（連番）</td><td>integer</td><td>記事の管理番号</td><td>読み取りのみ</td></tr>
               <tr><td><strong>B列</strong></td><td>記事URL</td><td>string（URL）</td><td>クロール対象URL・対象記事の識別子</td><td>読み取りのみ</td></tr>
-              <tr><td><strong>C列</strong></td><td>メインKW（GSCクリック最多）</td><td>string</td><td>STEP2の起点キーワード</td><td>読み取りのみ</td></tr>
+              <tr><td><strong>C列</strong></td><td>メインKW（GSCクリック最多）</td><td>string</td><td>STEP2の起点キーワード（空欄の場合はh2/h3を使用）</td><td>読み取りのみ</td></tr>
               <tr><td><strong>D列</strong></td><td>発リンク数</td><td>integer</td><td>この記事から他記事への内部リンク数（参考値）</td><td>読み取りのみ</td></tr>
               <tr><td><strong>E列</strong></td><td>被リンク数</td><td>integer</td><td>他記事からこの記事への内部リンク数。<strong>≤ 1 が対象抽出条件</strong></td><td>読み取りのみ</td></tr>
               <tr><td><strong>F列</strong></td><td>クリック数</td><td>integer</td><td>GSCクリック数（参考値）</td><td>読み取りのみ</td></tr>
               <tr><td><strong>G列</strong></td><td>表示回数</td><td>integer</td><td>GSC表示回数（参考値）</td><td>読み取りのみ</td></tr>
-              <tr class="hl-output"><td><strong>H列</strong></td><td>候補記事URL①</td><td>string（URL）</td><td>システム出力：対象記事へリンクを設置する候補記事のURL（1件目）</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>H列</strong></td><td>候補記事URL①</td><td>string（URL）</td><td>システム出力：この記事から対象記事へリンクを設置する候補（1件目）</td><td>書き込み</td></tr>
               <tr class="hl-output"><td><strong>I列</strong></td><td>リンク設置箇所見出し①</td><td>string</td><td>システム出力：候補記事①内でリンクを設置するのに最適な見出し箇所</td><td>書き込み</td></tr>
-              <tr class="hl-output"><td><strong>J列</strong></td><td>候補記事URL②</td><td>string（URL）</td><td>システム出力：対象記事へリンクを設置する候補記事のURL（2件目）</td><td>書き込み</td></tr>
-              <tr class="hl-output"><td><strong>K列</strong></td><td>リンク設置箇所見出し②</td><td>string</td><td>システム出力：候補記事②内でリンクを設置するのに最適な見出し箇所</td><td>書き込み</td></tr>
-              <tr class="hl-output"><td><strong>L列</strong></td><td>候補記事URL③（任意）</td><td>string（URL）</td><td>システム出力：対象記事へリンクを設置する候補記事のURL（3件目）</td><td>書き込み</td></tr>
-              <tr class="hl-output"><td><strong>M列</strong></td><td>リンク設置箇所見出し③（任意）</td><td>string</td><td>システム出力：候補記事③内でリンクを設置するのに最適な見出し箇所</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>J列</strong></td><td>候補記事URL②</td><td>string（URL）</td><td>システム出力：候補記事（2件目）</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>K列</strong></td><td>リンク設置箇所見出し②</td><td>string</td><td>システム出力：候補記事②内の見出し箇所</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>L列</strong></td><td>候補記事URL③（任意）</td><td>string（URL）</td><td>システム出力：候補記事（3件目）</td><td>書き込み</td></tr>
+              <tr class="hl-output"><td><strong>M列</strong></td><td>リンク設置箇所見出し③（任意）</td><td>string</td><td>システム出力：候補記事③内の見出し箇所</td><td>書き込み</td></tr>
             </table>
           </div>
         </div>
 
-        <!-- 4.2 中間データ構造 -->
         <div class="card" id="data-struct">
           <div class="card-title">4.2 中間データ構造（Pythonオブジェクト）</div>
-          <h4>対象記事リスト（STEP1出力）</h4>
+          <h4>SheetsClientキャッシュ（article_cacheタブから読み込み）</h4>
           <pre>
-target_articles = [
-    {
-        "row": 3,
-        "url": "https://mensheaven.jp/journal/archives/XXXX",  # B列: 記事URL
-        "kw": "風俗 キャンセル",   # C列にある場合はそのまま使用
-        "kw_source": "column_c", # "column_c" or "auto_detected"（C列空白時はtitle/h1から自動検出）
-        "inbound_links": 0,      # E列: 被リンク数（抽出条件 ≤ 1）
-    }, ...
-]</pre>
-          <h4>候補記事解析結果（STEP3出力）</h4>
-          <pre>
-parsed_article = {
-    "url": "https://example.com/article/",
-    "title": "記事タイトル",
-    "h1": "見出しH1",
-    "h2_list": ["見出しA", "見出しB"],
-    "h3_list": ["見出しC", "見出しD"],
-    "body_text": "本文テキスト（先頭800文字）"
+_cache: dict[str, dict] = {
+    "https://example.com/article/": {
+        "url": "https://example.com/article/",
+        "title": "記事タイトル",
+        "h1": "見出しH1",
+        "h2_list": ["見出しA", "見出しB"],
+        "h3_list": ["見出しD", "見出しE"],
+        "body_text": "本文テキスト...",
+        "kw": "C列のKW（処理時に付与）"
+    }
 }</pre>
           <h4>AI判定結果（STEP4出力）</h4>
           <pre>
 judgment_result = {
     "url": "https://example.com/article/",
     "score": 85,
-    "reason": "検索意図が一致し、トピックの親和性が高い。",
-    "recommended_heading": "内部リンクの重要性について"
-}</pre>
-          <h4>CSV書き込みデータ（STEP5→出力）</h4>
-          <pre>
-output_row = {
-    "row": 3,
-    "H": "https://example.com/related-1/",  # 候補記事URL①（この記事から対象記事へリンクを設置）
-    "I": "内部リンクの重要性について",        # 候補記事①内でリンクを設置する見出し箇所
-    "J": "https://example.com/related-2/",  # 候補記事URL②
-    "K": "SEOの基礎知識",                   # 候補記事②内でリンクを設置する見出し箇所
-    "L": "",                                 # 3件目なければ空
-    "M": "",
+    "reason": "候補記事は風俗の種類全般を解説した上位概念記事であり、対象記事（デリヘル特化）への誘導が自然。",
+    "recommended_heading": "デリヘルとは"
 }</pre>
         </div>
       </div>
@@ -1097,112 +1040,60 @@ output_row = {
           <span class="doc-title">処理フロー設計</span>
         </div>
 
-        <!-- 5.1 メイン処理フロー -->
         <div class="card" id="flow-main">
-          <div class="card-title">5.1 メイン処理フロー</div>
+          <div class="card-title">5.1 main.py処理順序</div>
           <div class="mermaid-wrap">
             <pre class="mermaid">
 flowchart TD
-    START([処理開始]) --> LOAD[入力CSV全データ読み込み]
-    LOAD --> LOOP{未処理行あり?}
-    LOOP -- No --> DONE([全処理完了])
-    LOOP -- Yes --> CHECK{E列 被リンク数 ≤ 1\nかつH列が空?}
-    CHECK -- No（H列あり/E列>1） --> LOOP
-    CHECK -- Yes（H列空・E列≤1） --> STEP1[STEP1: 対象記事抽出\nB列URL・C列KW取得]
-    STEP1 --> KW_CHECK{C列KWあり?}
-    KW_CHECK -- Yes --> USE_KW[C列KWをそのまま使用]
-    KW_CHECK -- No --> AUTO_KW[B列URLから記事を取得\ntitle/h1/h2/h3から\nKW自動検出]
+    START([py main.py SpreadsheetURL]) --> INIT[SheetsClient初期化\nSheets接続・article_cache読み込み]
+    INIT --> LOAD[Sheet1全データ読み込み]
+    LOAD --> STEP1[STEP1: E列≤1 かつ H列空の対象行を抽出]
+    STEP1 --> HTML_LOOP[全記事HTMLループ]
+    HTML_LOOP --> CACHE_CHECK{article_cache\nに存在?}
+    CACHE_CHECK -- Yes → キャッシュ使用 --> NEXT_HTML
+    CACHE_CHECK -- No --> HTTP[HTTP取得 + BeautifulSoup解析]
+    HTTP --> SAVE[article_cacheタブに保存]
+    SAVE --> NEXT_HTML[次の記事へ]
+    NEXT_HTML --> HTML_DONE{全記事完了?}
+    HTML_DONE -- No --> HTML_LOOP
+    HTML_DONE -- Yes --> TARGET_LOOP[対象記事ごとの処理ループ]
+    TARGET_LOOP --> KW_CHECK{C列KWあり?}
+    KW_CHECK -- Yes --> USE_KW[C列KWを使用]
+    KW_CHECK -- No（auto_detect） --> H2H3[キャッシュのh2/h3見出しをKWとして使用]
     USE_KW --> STEP2
-    AUTO_KW --> STEP2
-    STEP2[STEP2: 関連記事候補探索\nKW完全一致・部分一致]
-    STEP2 --> CLAUDE1[Cowork内蔵AI\nKW拡張・関連語生成]
-    CLAUDE1 --> CAND[候補記事リスト生成\n自己参照・重複除外]
-    CAND --> CAND_CHECK{候補記事あり?}
-    CAND_CHECK -- No --> EMPTY[候補なし：空欄のまま出力]
-    EMPTY --> LOOP
-    CAND_CHECK -- Yes --> FETCH[STEP3: 記事HTML取得\nrequests + タイムアウト10秒]
-    FETCH --> HTTP{取得成功?}
-    HTTP -- No --> SKIP_LOG[スキップ・警告ログ\n次の候補へ]
-    SKIP_LOG --> CAND_CHECK
-    HTTP -- Yes --> PARSE[BeautifulSoup解析\ntitle/h1/h2/h3/本文]
-    PARSE --> STEP4[STEP4: Cowork内蔵AI関連性判定\n100点・5観点スコアリング]
-    STEP4 --> SCORE{スコア ≥ 60?}
-    SCORE -- No --> CAND_CHECK
-    SCORE -- Yes --> ADD[採用リストに追加]
-    ADD --> COUNT{採用 ≥ 2件?}
-    COUNT -- No --> CAND_CHECK
-    COUNT -- Yes --> STEP5[STEP5: 出力CSV書き込み\nH列以降にURL・見出しを追記]
-    STEP5 --> LOOP
+    H2H3 --> STEP2
+    STEP2[STEP2: KW一致 + AI上位概念KW展開で候補探索]
+    STEP2 --> STEP4[STEP4: AI関連性スコアリング\n上位→下位パターン特化]
+    STEP4 --> STEP5[STEP5: SpreadsheetのH〜M列に書き込み]
+    STEP5 --> NEXT_TARGET{次の対象記事あり?}
+    NEXT_TARGET -- Yes --> TARGET_LOOP
+    NEXT_TARGET -- No --> DONE([全処理完了])
             </pre>
           </div>
         </div>
 
-        <!-- 5.2 エラー時処理 -->
-        <div class="card" id="flow-error">
-          <div class="card-title">5.2 エラー時処理フロー</div>
-          <div class="table-wrap">
-            <table>
-              <tr><th>発生箇所</th><th>エラー内容</th><th>処理フロー</th></tr>
-              <tr><td>STEP3</td><td>HTTP 404・タイムアウト</td><td>警告ログ出力 → 当該候補をスキップ → 次の候補へ進む</td></tr>
-              <tr><td>STEP4</td><td>Cowork AI判定エラー</td><td>0.5秒待機 → リトライ（最大2回）→ 失敗時はスキップ → 次の候補へ</td></tr>
-              <tr><td>STEP5</td><td>CSV書き込み失敗</td><td>エラーログ出力 → 実行停止 → ユーザーに手動確認を要求</td></tr>
-              <tr><td>全体</td><td>採用候補が2件未満</td><td>閾値を60→40に引き下げ → 再評価 → それでも不足なら空欄で出力</td></tr>
-            </table>
-          </div>
-        </div>
-
-        <!-- 5.3 運用フロー -->
         <div class="card" id="flow-ops">
-          <div class="card-title">5.3 クライアント運用フロー</div>
+          <div class="card-title">5.2 クライアント運用フロー</div>
           <div class="alert alert-info">
-            💬 <strong>実行UIについて：</strong>本システムは専用の操作画面を持ちません。Coworkのチャット画面がそのままUIとなります。ボタン等は存在せず、Claudeへの自然言語での話しかけが実行トリガーです。実行中はTODOリストと進捗ステータスがリアルタイムで表示されます。<br><br>
-            📂 <strong>CSVの読み込みについて：</strong>NYSEOから出力したCSVをCoworkのプロジェクトフォルダ内の所定の場所（<code>input/</code>フォルダ）に置くだけでOKです。Coworkがローカルのファイルシステムに直接アクセスするため、ファイルのアップロード操作は不要です。
+            💬 <strong>実行方法：</strong>Coworkのチャット欄にSpreadsheet URLを伝えると、<code>py main.py &lt;URL&gt;</code> が自動実行されます。<br>
+            👥 <strong>共有について：</strong>実行結果はSpreadsheetに直接書き込まれるため、共有メンバー全員がリアルタイムで確認できます。
           </div>
           <div class="table-wrap">
             <table>
               <tr><th>手順</th><th>担当</th><th>操作内容</th></tr>
-              <tr><td>①</td><td>クライアント</td><td>NYSEOから出力したCSVをプロジェクトフォルダ内の <code>input/</code> フォルダに置く</td></tr>
-              <tr><td>②</td><td>クライアント</td><td>Coworkのチャット欄に「内部リンクエージェントを実行してください」と入力して送信する</td></tr>
-              <tr><td>③</td><td>システム（自動）</td><td>STEP1〜5を自動実行。チャット画面にTODOリストと進捗ステータスがリアルタイム表示される</td></tr>
-              <tr><td>④</td><td>システム（自動）</td><td>出力CSV（H列以降にURL・見出しを追記）を <code>output/</code> フォルダに生成する</td></tr>
-              <tr><td>⑤</td><td>クライアント</td><td>出力CSVのH列以降を確認し、提案内容をレビューする</td></tr>
-              <tr><td>⑥</td><td>クライアント</td><td>レビューOKの内容をもとに、H列の候補記事（WordPressの当該記事）を開き、I列の見出し箇所に対象記事へのリンクを手動で設置する</td></tr>
-              <tr><td>⑦</td><td>クライアント</td><td>再実行が必要な場合、出力CSVのH列以降のデータを削除して <code>input/</code> に置き直し、再度チャットで「実行してください」と入力する</td></tr>
+              <tr><td>①</td><td>クライアント</td><td>NYSEOデータをSpreadsheetに貼り付け</td></tr>
+              <tr><td>②</td><td>クライアント</td><td>サービスアカウントのメールアドレスをSpreadsheetに編集者として共有</td></tr>
+              <tr><td>③</td><td>運用者</td><td>Coworkのチャット欄に「Spreadsheet URLを伝える」</td></tr>
+              <tr><td>④</td><td>システム（自動）</td><td>STEP1〜5を自動実行し、H〜M列に提案結果を書き込む。article_cacheタブにHTML解析結果を保存</td></tr>
+              <tr><td>⑤</td><td>全員</td><td>SpreadsheetのH列以降を確認・レビュー</td></tr>
+              <tr><td>⑥</td><td>クライアント</td><td>レビューOKの候補記事（H列）を開き、I列見出し箇所に手動で内部リンクを設置</td></tr>
+              <tr><td>⑦</td><td>運用者</td><td>再実行の場合はH〜M列のデータを削除して再実行（article_cacheはそのまま保持）</td></tr>
             </table>
           </div>
         </div>
 
-        <!-- 5.6 引き渡し手順 -->
-        <div class="card" id="flow-handoff">
-          <div class="card-title">5.6 引き渡し手順</div>
-          <div class="alert alert-info">
-            🤝 開発完了後、以下の手順でクライアント環境へ引き渡しを行います。
-          </div>
-          <div class="table-wrap">
-            <table>
-              <tr><th>フェーズ</th><th>担当</th><th>内容</th></tr>
-              <tr><td><strong>① コード納品</strong></td><td>開発者</td><td>完成したコード一式をZIPファイルで納品する</td></tr>
-              <tr><td><strong>② 環境セットアップ</strong></td><td>クライアント</td><td>ZIPを解凍し、Coworkのプロジェクトフォルダとして開く</td></tr>
-              <tr><td><strong>③ 動作確認</strong></td><td>開発者 + クライアント</td><td>クライアントの実データCSVを使ってCowork上で動作確認・立ち会いデモを実施する</td></tr>
-              <tr><td><strong>④ マニュアル引き渡し</strong></td><td>開発者</td><td>操作マニュアルを渡し、運用開始</td></tr>
-            </table>
-          </div>
-          <h4>納品物一覧</h4>
-          <ul class="checklist">
-            <li>コード一式（ZIPファイル）— <code>input/</code>・<code>output/</code> フォルダ・<code>CLAUDE.md</code>（起動指示書）を含む</li>
-            <li>操作マニュアル — CSV配置手順・Coworkでの起動方法・出力CSVの確認方法</li>
-          </ul>
-          <div class="alert alert-info">
-            📌 <strong>前提：</strong>クライアント側でCowork（Claude Proプラン、約$20/月）をご契約いただく必要があります。Python等の追加インストールは不要です（Coworkに同梱されています）。
-          </div>
-        </div>
-
-        <!-- 5.4 将来拡張 -->
         <div class="card">
-          <div class="card-title">5.4 将来拡張（本フェーズ対象外）</div>
-          <div class="alert alert-info">
-            以下の機能は本MVPフェーズでは対象外としています。拡張可能な設計となっているため、将来的に対応可能です。
-          </div>
+          <div class="card-title">5.3 将来拡張（本フェーズ対象外）</div>
           <div class="table-wrap">
             <table>
               <tr><th>機能</th><th>概要</th><th>追加コスト（目安）</th></tr>
@@ -1210,14 +1101,12 @@ flowchart TD
               <tr><td>アンカーテキスト自動生成</td><td>AIがリンクアンカーテキストまで自動提案する</td><td>＋1万円</td></tr>
               <tr><td>Embedding活用</td><td>テキストEmbeddingによる高精度な意味的関連性判定</td><td>＋3〜5万円</td></tr>
               <tr><td>Search Console連携</td><td>GSCデータと連携してリンク効果を計測・フィードバック</td><td>＋3〜5万円</td></tr>
-              <tr><td>内部リンク最適化スコアリング</td><td>サイト全体の内部リンク構造を最適化する高度ロジック</td><td>＋5〜8万円</td></tr>
             </table>
           </div>
         </div>
 
-        <!-- 5.5 費用について -->
         <div class="card" id="flow-cost">
-          <div class="card-title">5.5 費用について</div>
+          <div class="card-title">5.4 費用について</div>
           <h4>開発費用</h4>
           <p>開発期間中に発生するテスト実行分の費用は開発費用に含まれます。別途ご負担いただく費用はありません。</p>
           <h4>運用時の継続コスト</h4>
@@ -1231,20 +1120,26 @@ flowchart TD
                 <td>クライアント様</td>
               </tr>
               <tr>
+                <td><strong>Google Sheets API</strong></td>
+                <td>Spreadsheetの読み書き（無料枠内で十分）</td>
+                <td>無料</td>
+                <td>—</td>
+              </tr>
+              <tr>
                 <td><strong>その他</strong></td>
-                <td>記事HTMLの取得（HTTPリクエスト）・CSV読み書きなど</td>
+                <td>記事HTMLの取得（HTTPリクエスト）など</td>
                 <td>無料</td>
                 <td>—</td>
               </tr>
             </table>
           </div>
           <div class="alert alert-info">
-            💡 Cowork内蔵のClaude AIを使用するため、別途APIキーの発行・管理は不要です。Claude Proプラン（約$20/月）のご契約のみで運用いただけます。
+            💡 Cowork内蔵のClaude AIを使用するため、別途Claude APIキーの発行・管理は不要です。Claude Proプラン（約$20/月）のご契約のみで運用いただけます。
           </div>
         </div>
 
         <div class="footer">
-          <p>NYSEO 内部リンク構築AIエージェント 技術仕様書 v1.0 — 作成日: 2026-05-16</p>
+          <p>NYSEO 内部リンク構築AIエージェント 技術仕様書 v2.0 — 更新日: 2026-05-17</p>
           <p>本ドキュメントは GitHub Pages で公開されています。内容は開発進捗に応じて更新されます。</p>
         </div>
       </div>
@@ -1269,7 +1164,6 @@ flowchart TD
     flowchart: { curve: 'basis' }
   });
 
-  // Sidebar active link on scroll
   const navLinks = document.querySelectorAll('.nav-item[href^="#"]');
   const sections = [...document.querySelectorAll('[id]')];
 
