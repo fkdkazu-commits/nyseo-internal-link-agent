@@ -76,7 +76,25 @@ def main(spreadsheet_url: str) -> None:
             })
 
     cached_count = sum(1 for a in all_articles if a.get("title"))
-    logger.info(f"インデックス構築完了: {len(all_articles)} 件（キャッシュ済み {cached_count} 件）\n")
+    logger.info(f"インデックス構築完了: {len(all_articles)} 件（キャッシュ済み {cached_count} 件）")
+
+    # 初回実行など、キャッシュが少ない場合は先頭BOOTSTRAP件をフェッチしてキャッシュ構築
+    BOOTSTRAP_MIN = 20
+    BOOTSTRAP_LIMIT = 60
+    if cached_count < BOOTSTRAP_MIN:
+        fetch_n = min(len(all_articles), BOOTSTRAP_LIMIT)
+        logger.info(f"キャッシュ不足（{cached_count}件）→ 先頭{fetch_n}件をフェッチしてキャッシュ構築中…")
+        for i, a in enumerate(all_articles[:fetch_n]):
+            if not a.get("title"):
+                fetched = fetch_and_parse(a["url"])
+                if fetched:
+                    client.save_cache(fetched)
+                    a.update({**fetched, "kw": a["kw"]})
+            print(f"  ブートストラップ: {i + 1}/{fetch_n}", end="\r", flush=True)
+        print()
+        logger.info("ブートストラップ完了\n")
+    else:
+        print()
 
     # STEP2・4・5: 対象記事ごと
     for i, target in enumerate(targets, start=1):

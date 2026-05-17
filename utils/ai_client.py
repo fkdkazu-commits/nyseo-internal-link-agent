@@ -23,15 +23,15 @@ def _call_claude(prompt: str, retries: int = 2) -> "str | None":
             result = subprocess.run(
                 ["claude", "-p", prompt, "--output-format", "text"],
                 capture_output=True,
-                text=True,
-                encoding="utf-8",
                 timeout=CLI_TIMEOUT,
             )
+            # バイナリで受け取りUTF-8でデコード（Windows cp932問題を回避）
+            stdout = result.stdout.decode("utf-8", errors="replace") if result.stdout else ""
+            stderr = result.stderr.decode("utf-8", errors="replace") if result.stderr else ""
             # stdoutに内容があればreturncode関係なく使用する
-            # （Windowsのsandbox警告でreturncode!=0になるが動作は正常な場合がある）
-            if result.stdout.strip():
-                return result.stdout.strip()
-            logger.warning(f"claude CLI 失敗（試行{attempt}）stderr: {result.stderr[:400]}")
+            if stdout.strip():
+                return stdout.strip()
+            logger.warning(f"claude CLI 失敗（試行{attempt}）stderr: {stderr[:400]}")
         except subprocess.TimeoutExpired:
             logger.warning(f"claude CLI タイムアウト（試行{attempt}）")
         except FileNotFoundError:
