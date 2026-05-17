@@ -1,8 +1,13 @@
 from config import MAX_CANDIDATES
-from utils.csv_client import write_result_to_row
 from utils.logger import get_logger
 
 logger = get_logger()
+
+_COL_PAIRS = [
+    (7, 8),   # H・I列（1件目）
+    (9, 10),  # J・K列（2件目）
+    (11, 12), # L・M列（3件目）
+]
 
 
 def write_output(
@@ -12,12 +17,20 @@ def write_output(
 ) -> list[str]:
     """
     STEP5: 採用候補をスコア降順で上位MAX_CANDIDATES件に絞り、
-    CSV行のH列以降に書き込んで返す。
+    H〜M列（インデックス7〜12）に書き込んで返す。
     """
     top = adopted[:MAX_CANDIDATES]
 
-    results = [{"url": c["url"], "heading": c["heading"]} for c in top]
-    updated_row = write_result_to_row(row, results, max_cols)
+    while len(row) < max_cols:
+        row.append("")
+
+    for i, (col_url, col_heading) in enumerate(_COL_PAIRS):
+        if i < len(top):
+            row[col_url] = top[i].get("url", "")
+            row[col_heading] = top[i].get("heading", "")
+        else:
+            row[col_url] = ""
+            row[col_heading] = ""
 
     logger.info(f"STEP5完了: {len(top)} 件を出力")
-    return updated_row
+    return row

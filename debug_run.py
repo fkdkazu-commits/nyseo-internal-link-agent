@@ -61,7 +61,7 @@ if not targets:
 
 # テスト対象を1件に絞る
 target = targets[row_idx] if row_idx is not None and row_idx < len(targets) else targets[0]
-print(f"\nテスト対象: 行{target['row_num']}  {target['url']}")
+print(f"\nテスト対象: 行{target['row_idx'] + 2}  {target['url']}")
 print(f"  KW: {target['kw'] or '(空・自動検出)'}")
 
 # --- STEP3（対象記事のみ + 全記事HTML取得） ---

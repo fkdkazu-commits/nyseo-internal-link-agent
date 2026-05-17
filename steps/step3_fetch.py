@@ -75,7 +75,7 @@ def _parse_html(url: str, html: str) -> dict:
     # 本文テキスト（先頭800文字）
     for tag in soup(["script", "style", "nav", "header", "footer"]):
         tag.decompose()
-    body_text = soup.get_text(separator=" ", strip=True)[:800]
+    body_text = soup.get_text(separator=" ", strip=True)[:1500]
 
     return {
         "url": url,
