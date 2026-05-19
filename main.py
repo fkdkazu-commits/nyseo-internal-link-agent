@@ -18,6 +18,7 @@ Coworkのチャット欄でSpreadsheet URLを伝えると実行される。
 import re
 import sys
 import time
+from datetime import datetime, timedelta
 
 from config import COL_KW, COL_URL, MIN_CANDIDATES
 from steps.step1_extract import extract_targets
@@ -30,6 +31,23 @@ from utils.logger import get_logger
 from utils.sheets_client import SheetsClient
 
 logger = get_logger()
+
+TOKEN_RESET_WAIT = 5 * 3600 + 5 * 60  # 5時間5分（秒）
+
+
+def _wait_for_token_reset() -> None:
+    """トークンリセットまで待機する。1分ごとに残り時間を表示する。"""
+    resume_at = datetime.now() + timedelta(seconds=TOKEN_RESET_WAIT)
+    logger.info(f"⏳ {TOKEN_RESET_WAIT // 3600}時間{(TOKEN_RESET_WAIT % 3600) // 60}分後"
+                f"（{resume_at.strftime('%H:%M')}）に自動再開します…")
+    remaining = TOKEN_RESET_WAIT
+    while remaining > 0:
+        interval = min(60, remaining)
+        time.sleep(interval)
+        remaining -= interval
+        if remaining > 0:
+            print(f"  再開まで残り {remaining // 60} 分…", flush=True)
+    logger.info("✅ 待機完了。処理を再開します。\n")
 
 
 def _shorten_kw(title: str) -> str:
@@ -127,55 +145,54 @@ def main(spreadsheet_url: str) -> None:
         else:
             search_kws = [target["kw"]]
 
-        # STEP2: 候補探索（キャッシュ済み記事は高精度マッチ、スタブはKWのみマッチ）
-        candidates: list[dict] = []
-        try:
-            for kw in search_kws or [target["kw"]]:
-                for c in search_candidates({**target, "kw": kw}, all_articles):
-                    if not any(x["url"] == c["url"] for x in candidates):
-                        candidates.append(c)
-            for ekw in expand_keywords(target["kw"]):
-                for c in search_candidates({**target, "kw": ekw}, all_articles):
-                    if not any(x["url"] == c["url"] for x in candidates):
-                        candidates.append(c)
-        except TokenExhaustedError as e:
-            logger.error(f"\n⛔ Claudeトークン上限: {e}")
-            logger.error("処理を中断します。リセット後に再実行すると続きから処理されます。")
-            return
+        # トークン切れ時は待機して同じ記事を再試行するためretryループ
+        while True:
+            try:
+                # STEP2: 候補探索
+                candidates: list[dict] = []
+                for kw in search_kws or [target["kw"]]:
+                    for c in search_candidates({**target, "kw": kw}, all_articles):
+                        if not any(x["url"] == c["url"] for x in candidates):
+                            candidates.append(c)
+                for ekw in expand_keywords(target["kw"]):
+                    for c in search_candidates({**target, "kw": ekw}, all_articles):
+                        if not any(x["url"] == c["url"] for x in candidates):
+                            candidates.append(c)
 
-        if not candidates:
-            logger.warning("候補記事なし → スキップ")
-            continue
+                if not candidates:
+                    logger.warning("候補記事なし → スキップ")
+                    break
 
-        logger.info(f"STEP2: 候補 {len(candidates)} 件")
+                logger.info(f"STEP2: 候補 {len(candidates)} 件")
 
-        # 候補記事のうちキャッシュなしのものをオンデマンド取得
-        fetch_count = 0
-        for c in candidates:
-            if not client.get_cache(c["url"]):
-                fetched = fetch_and_parse(c["url"])
-                if fetched:
-                    client.save_cache(fetched)
-                    c.update(fetched)
-                    fetch_count += 1
-        if fetch_count:
-            logger.info(f"候補記事のHTML取得: {fetch_count} 件")
+                # 候補記事のうちキャッシュなしのものをオンデマンド取得
+                fetch_count = 0
+                for c in candidates:
+                    if not client.get_cache(c["url"]):
+                        fetched = fetch_and_parse(c["url"])
+                        if fetched:
+                            client.save_cache(fetched)
+                            c.update(fetched)
+                            fetch_count += 1
+                if fetch_count:
+                    logger.info(f"候補記事のHTML取得: {fetch_count} 件")
 
-        # STEP4: AI判定
-        try:
-            adopted = judge_candidates(target, candidates, judge_relevance)
-        except TokenExhaustedError as e:
-            logger.error(f"\n⛔ Claudeトークン上限: {e}")
-            logger.error("処理を中断します。リセット後に再実行すると続きから処理されます。")
-            return
+                # STEP4: AI判定
+                adopted = judge_candidates(target, candidates, judge_relevance)
 
-        if len(adopted) < MIN_CANDIDATES:
-            logger.warning(f"採用 {len(adopted)} 件（閾値未満）")
+                if len(adopted) < MIN_CANDIDATES:
+                    logger.warning(f"採用 {len(adopted)} 件（閾値未満）")
 
-        # STEP5: Sheetsに書き込み
-        result_row = write_output(data[target["row_idx"]], adopted, max_cols)
-        client.write_result(target["row_idx"], result_row)
-        logger.info(f"→ 採用 {len(adopted)} 件をSpreadsheetに書き込みました")
+                # STEP5: Sheetsに書き込み
+                result_row = write_output(data[target["row_idx"]], adopted, max_cols)
+                client.write_result(target["row_idx"], result_row)
+                logger.info(f"→ 採用 {len(adopted)} 件をSpreadsheetに書き込みました")
+                break  # 成功 → 次の記事へ
+
+            except TokenExhaustedError as e:
+                logger.warning(f"\n⛔ Claudeトークン上限: {e}")
+                _wait_for_token_reset()
+                # retryループ継続 → 同じ記事を再試行
 
         time.sleep(0.5)
 
