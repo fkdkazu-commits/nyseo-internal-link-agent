@@ -7,23 +7,27 @@ logger = get_logger()
 def judge_candidates(
     target: dict,
     candidates: list[dict],
-    ai_judge_func,
+    ai_judge_batch_func,
 ) -> list[dict]:
     """
-    STEP4: Cowork内蔵AIで各候補記事をスコアリングし、採用候補リストを返す。
-    全候補を一度だけスコアリングし、閾値適用のみで再判定する（再スコアリングなし）。
+    STEP4: Cowork内蔵AIで全候補を一括スコアリングし、採用候補リストを返す。
+    1回のAI呼び出しで全候補を判定（トークン節約）。
     """
-    # 全候補を一度だけスコアリング
+    results = ai_judge_batch_func(target, candidates)
+
+    # urlをキーにしてスコアを引けるようにする
+    score_map = {r["url"]: r for r in results}
+
     scored: list[dict] = []
     for candidate in candidates:
-        result = ai_judge_func(target, candidate)
-        if result is None:
+        r = score_map.get(candidate["url"])
+        if r is None:
             continue
         scored.append({
             "url": candidate["url"],
-            "score": int(result.get("score", 0)),
-            "reason": result.get("reason", ""),
-            "heading": result.get("recommended_heading", ""),
+            "score": r["score"],
+            "reason": r["reason"],
+            "heading": r["recommended_heading"],
         })
 
     scored.sort(key=lambda x: x["score"], reverse=True)

@@ -96,6 +96,72 @@ def expand_keywords(target_kw: str) -> list:
     return []
 
 
+def judge_relevance_batch(target: dict, candidates: list[dict]) -> list[dict]:
+    """
+    候補記事の関連性を一括スコアリングする（トークン節約版）。
+    1回のAI呼び出しで全候補を判定する。
+    戻り値: [{"url", "score", "reason", "recommended_heading"}, ...]
+            失敗時は空リスト
+    """
+    if not candidates:
+        return []
+
+    template = (PROMPTS_DIR / "relevance_judge_batch.txt").read_text(encoding="utf-8")
+
+    # 候補記事ブロックを組み立て（本文は300文字に絞る）
+    lines = []
+    for c in candidates:
+        h = (c.get("h2_list", [])[:3] + c.get("h3_list", [])[:2])
+        headings = " / ".join(h) if h else "（見出しなし）"
+        lines.append(
+            f"- URL: {c.get('url', '')}\n"
+            f"  タイトル: {c.get('title', '')}\n"
+            f"  見出し: {headings}\n"
+            f"  本文冒頭: {c.get('body_text', '')[:300]}"
+        )
+    candidates_block = "\n\n".join(lines)
+
+    prompt = template.format(
+        target_kw=target.get("kw", ""),
+        target_url=target.get("url", ""),
+        candidates_block=candidates_block,
+    )
+
+    response = _call_claude(prompt)
+    if not response:
+        logger.warning("AI一括判定: AIレスポンスなし")
+        return []
+
+    raw = _extract_json(response, "[")
+    if not raw:
+        logger.warning(f"AI一括判定: JSON配列が見つかりません")
+        logger.debug(f"レスポンス内容: {response[:300]}")
+        return []
+
+    try:
+        results = json.loads(raw)
+        if not isinstance(results, list):
+            logger.warning("AI一括判定: レスポンスがリスト形式ではありません")
+            return []
+        out = []
+        for r in results:
+            try:
+                out.append({
+                    "url": r.get("url", ""),
+                    "score": int(r.get("score", 0)),
+                    "reason": r.get("reason", ""),
+                    "recommended_heading": r.get("recommended_heading", ""),
+                })
+            except (ValueError, TypeError):
+                continue
+        logger.info(f"AI一括判定完了: {len(out)} 件")
+        return out
+    except json.JSONDecodeError as e:
+        logger.warning(f"AI一括判定: JSON解析失敗 — {e}")
+
+    return []
+
+
 def judge_relevance(target: dict, candidate: dict) -> "dict | None":
     """
     候補記事の関連性をCowork内蔵AIで100点満点でスコアリングする。

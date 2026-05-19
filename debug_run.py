@@ -34,12 +34,15 @@ def mock_judge(target, candidate):
 def mock_expand(kw):
     return []
 
+def mock_judge_batch(target, candidates):
+    return [{"url": c["url"], "score": 75, "reason": "[MOCK] テスト用ダミー", "recommended_heading": "[MOCK] 見出し"} for c in candidates]
+
 if use_mock:
-    judge_fn   = mock_judge
+    judge_fn   = mock_judge_batch
     expand_fn  = mock_expand
     print("[MOCK MODE] AI呼び出しをスキップします")
 else:
-    from utils.ai_client import expand_keywords as expand_fn, judge_relevance as judge_fn
+    from utils.ai_client import expand_keywords as expand_fn, judge_relevance_batch as judge_fn
 
 # --- CSV読み込み ---
 csv_path = find_input_csv()
@@ -97,10 +100,11 @@ for kw in search_kws or [target["kw"]]:
     for c in search_candidates({**target, "kw": kw}, all_articles):
         if not any(x["url"] == c["url"] for x in candidates):
             candidates.append(c)
-for ekw in expand_fn(target["kw"]):
-    for c in search_candidates({**target, "kw": ekw}, all_articles):
-        if not any(x["url"] == c["url"] for x in candidates):
-            candidates.append(c)
+if len(candidates) < MIN_CANDIDATES:
+    for ekw in expand_fn(target["kw"]):
+        for c in search_candidates({**target, "kw": ekw}, all_articles):
+            if not any(x["url"] == c["url"] for x in candidates):
+                candidates.append(c)
 
 print(f"\n[STEP2] 候補記事: {len(candidates)} 件")
 for c in candidates[:5]:

@@ -26,7 +26,7 @@ from steps.step2_search import search_candidates
 from steps.step3_fetch import fetch_and_parse
 from steps.step4_judge import judge_candidates
 from steps.step5_output import write_output
-from utils.ai_client import expand_keywords, judge_relevance, TokenExhaustedError
+from utils.ai_client import expand_keywords, judge_relevance_batch, TokenExhaustedError
 from utils.logger import get_logger
 from utils.sheets_client import SheetsClient
 
@@ -154,10 +154,12 @@ def main(spreadsheet_url: str) -> None:
                     for c in search_candidates({**target, "kw": kw}, all_articles):
                         if not any(x["url"] == c["url"] for x in candidates):
                             candidates.append(c)
-                for ekw in expand_keywords(target["kw"]):
-                    for c in search_candidates({**target, "kw": ekw}, all_articles):
-                        if not any(x["url"] == c["url"] for x in candidates):
-                            candidates.append(c)
+                # 候補が少ない場合のみKW拡張（トークン節約）
+                if len(candidates) < MIN_CANDIDATES:
+                    for ekw in expand_keywords(target["kw"]):
+                        for c in search_candidates({**target, "kw": ekw}, all_articles):
+                            if not any(x["url"] == c["url"] for x in candidates):
+                                candidates.append(c)
 
                 if not candidates:
                     logger.warning("候補記事なし → スキップ")
@@ -177,8 +179,8 @@ def main(spreadsheet_url: str) -> None:
                 if fetch_count:
                     logger.info(f"候補記事のHTML取得: {fetch_count} 件")
 
-                # STEP4: AI判定
-                adopted = judge_candidates(target, candidates, judge_relevance)
+                # STEP4: AI一括判定（全候補を1回の呼び出しで判定）
+                adopted = judge_candidates(target, candidates, judge_relevance_batch)
 
                 if len(adopted) < MIN_CANDIDATES:
                     logger.warning(f"採用 {len(adopted)} 件（閾値未満）")
