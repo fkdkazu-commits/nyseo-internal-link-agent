@@ -25,7 +25,7 @@ from steps.step2_search import search_candidates
 from steps.step3_fetch import fetch_and_parse
 from steps.step4_judge import judge_candidates
 from steps.step5_output import write_output
-from utils.ai_client import expand_keywords, judge_relevance
+from utils.ai_client import expand_keywords, judge_relevance, TokenExhaustedError
 from utils.logger import get_logger
 from utils.sheets_client import SheetsClient
 
@@ -129,14 +129,19 @@ def main(spreadsheet_url: str) -> None:
 
         # STEP2: 候補探索（キャッシュ済み記事は高精度マッチ、スタブはKWのみマッチ）
         candidates: list[dict] = []
-        for kw in search_kws or [target["kw"]]:
-            for c in search_candidates({**target, "kw": kw}, all_articles):
-                if not any(x["url"] == c["url"] for x in candidates):
-                    candidates.append(c)
-        for ekw in expand_keywords(target["kw"]):
-            for c in search_candidates({**target, "kw": ekw}, all_articles):
-                if not any(x["url"] == c["url"] for x in candidates):
-                    candidates.append(c)
+        try:
+            for kw in search_kws or [target["kw"]]:
+                for c in search_candidates({**target, "kw": kw}, all_articles):
+                    if not any(x["url"] == c["url"] for x in candidates):
+                        candidates.append(c)
+            for ekw in expand_keywords(target["kw"]):
+                for c in search_candidates({**target, "kw": ekw}, all_articles):
+                    if not any(x["url"] == c["url"] for x in candidates):
+                        candidates.append(c)
+        except TokenExhaustedError as e:
+            logger.error(f"\n⛔ Claudeトークン上限: {e}")
+            logger.error("処理を中断します。リセット後に再実行すると続きから処理されます。")
+            return
 
         if not candidates:
             logger.warning("候補記事なし → スキップ")
@@ -157,7 +162,13 @@ def main(spreadsheet_url: str) -> None:
             logger.info(f"候補記事のHTML取得: {fetch_count} 件")
 
         # STEP4: AI判定
-        adopted = judge_candidates(target, candidates, judge_relevance)
+        try:
+            adopted = judge_candidates(target, candidates, judge_relevance)
+        except TokenExhaustedError as e:
+            logger.error(f"\n⛔ Claudeトークン上限: {e}")
+            logger.error("処理を中断します。リセット後に再実行すると続きから処理されます。")
+            return
+
         if len(adopted) < MIN_CANDIDATES:
             logger.warning(f"採用 {len(adopted)} 件（閾値未満）")
 

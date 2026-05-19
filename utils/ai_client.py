@@ -16,6 +16,11 @@ PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 CLI_TIMEOUT = 60  # 秒
 
 
+class TokenExhaustedError(Exception):
+    """Claude CLIのトークン上限に達した場合に raise する。"""
+    pass
+
+
 def _call_claude(prompt: str, retries: int = 2) -> "str | None":
     """claude CLIをサブプロセスで呼び出し、レスポンステキストを返す。"""
     for attempt in range(1, retries + 2):
@@ -28,6 +33,9 @@ def _call_claude(prompt: str, retries: int = 2) -> "str | None":
             # バイナリで受け取りUTF-8でデコード（Windows cp932問題を回避）
             stdout = result.stdout.decode("utf-8", errors="replace") if result.stdout else ""
             stderr = result.stderr.decode("utf-8", errors="replace") if result.stderr else ""
+            # トークン切れ検出（リトライせず即 raise）
+            if "out of extra usage" in stdout or "out of extra usage" in stderr:
+                raise TokenExhaustedError(stdout.strip() or stderr.strip())
             # stdoutに内容があればreturncode関係なく使用する
             if stdout.strip():
                 return stdout.strip()
