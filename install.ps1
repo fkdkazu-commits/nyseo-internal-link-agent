@@ -7,7 +7,7 @@
 # ============================================================
 
 $PROJECT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$STEP_TOTAL  = 9
+$STEP_TOTAL  = 10
 
 function Show-Header {
     param([string]$Step, [string]$Title, [string]$Mode = "auto")
@@ -478,6 +478,95 @@ Wait-Enter "Cowork プロジェクトの作成・指示文の貼り付けが完�
 
 
 # ============================================================
+# STEP 10: Spreadsheet の準備（手動）
+# ============================================================
+Show-Header "[$([string]10)/$STEP_TOTAL]" "Google Spreadsheet の準備" "manual"
+
+# サービスアカウントのメールアドレスを JSON から取得
+$saEmail = ""
+$saJsonPath = [System.Environment]::GetEnvironmentVariable("GOOGLE_SERVICE_ACCOUNT", "User")
+if ($saJsonPath -and (Test-Path $saJsonPath)) {
+    try {
+        $saJson = Get-Content $saJsonPath -Raw | ConvertFrom-Json
+        $saEmail = $saJson.client_email
+    } catch {}
+}
+
+Write-Host ""
+Write-Host "  ツールが読み込む Google Spreadsheet を準備します。" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  【手順 1】Spreadsheet を新規作成する" -ForegroundColor Yellow
+Show-Step "1. ブラウザで Google ドライブ（drive.google.com）を開く"
+Show-Step "2. 「+ 新規」→「Google スプレッドシート」をクリック"
+Show-Step "3. シート名は任意でOK（例：内部リンク管理）"
+Write-Host ""
+
+Wait-Enter "Spreadsheet を作成したら Enter を押してください"
+
+Write-Host ""
+Write-Host "  【手順 2】CSV データをインポートする" -ForegroundColor Yellow
+Show-Step "1. メニューの「ファイル」→「インポート」をクリック"
+Show-Step "2. 「アップロード」タブで CSV ファイルを選択"
+Show-Step "3. インポート設定："
+Write-Host "     ・インポート場所  →「現在のシートを置換する」" -ForegroundColor White
+Write-Host "     ・区切り文字     →「カンマ」" -ForegroundColor White
+Write-Host "     ・テキストを数値・日付に変換する → オン" -ForegroundColor White
+Show-Step "4. 「データをインポート」をクリック"
+Write-Host ""
+Write-Host "  【列構成の確認】インポート後、以下の列順になっているか確認してください" -ForegroundColor Yellow
+Write-Host "  ┌────┬──────────────┬──────────────────────────────────┐" -ForegroundColor DarkGray
+Write-Host "  │ 列 │ 内容         │ 備考                             │" -ForegroundColor DarkGray
+Write-Host "  ├────┼──────────────┼──────────────────────────────────┤" -ForegroundColor DarkGray
+Write-Host "  │ A  │ NO           │ 記事番号                         │" -ForegroundColor White
+Write-Host "  │ B  │ 記事URL      │ 処理対象のURL                    │" -ForegroundColor White
+Write-Host "  │ C  │ メインKW     │ キーワード（空欄可）             │" -ForegroundColor White
+Write-Host "  │ D  │ 発リンク数   │                                  │" -ForegroundColor White
+Write-Host "  │ E  │ 被リンク数   │ ★ 1以下の記事が処理対象         │" -ForegroundColor White
+Write-Host "  │ F  │ クリック数   │                                  │" -ForegroundColor White
+Write-Host "  │ G  │ 表示回数     │                                  │" -ForegroundColor White
+Write-Host "  │H〜M│ 出力欄       │ ツールが自動入力（空欄のままでOK）│" -ForegroundColor White
+Write-Host "  └────┴──────────────┴──────────────────────────────────┘" -ForegroundColor DarkGray
+Write-Host ""
+Show-Warn "列の順番が違う場合は列を並び替えてから次へ進んでください"
+Write-Host ""
+
+Wait-Enter "CSV のインポートと列確認が完了したら Enter を押してください"
+
+Write-Host ""
+Write-Host "  【手順 3】サービスアカウントに編集権限を付与する" -ForegroundColor Yellow
+Show-Step "1. Spreadsheet 右上の「共有」ボタンをクリック"
+Show-Step "2. 以下のメールアドレスを入力して追加する"
+Write-Host ""
+if ($saEmail) {
+    Write-Host "  ┌─────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
+    Write-Host "  │  $saEmail" -ForegroundColor Cyan
+    Write-Host "  └─────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
+    try {
+        $saEmail | Set-Clipboard
+        Show-Ok "上記のメールアドレスをクリップボードにコピーしました（Ctrl+V で貼り付けできます）"
+    } catch {}
+} else {
+    Show-Warn "サービスアカウントのメールアドレスを取得できませんでした。"
+    Show-Warn "管理者から受け取った JSON ファイルを開き「client_email」の値を入力してください。"
+}
+Write-Host ""
+Show-Step "3. 権限を「閲覧者」→「編集者」に変更する"
+Show-Step "4. 「送信」をクリック（通知メールは送らなくてOK）"
+Write-Host ""
+
+Wait-Enter "共有設定が完了したら Enter を押してください"
+
+Write-Host ""
+Write-Host "  【手順 4】Spreadsheet の URL をコピーする" -ForegroundColor Yellow
+Show-Step "ブラウザのアドレスバーの URL をコピーしておいてください"
+Show-Info "（例：https://docs.google.com/spreadsheets/d/XXXXXXX/edit）"
+Show-Info "このURLをCoworkのチャットに貼り付けると処理が始まります"
+Write-Host ""
+
+Wait-Enter "URL のコピーが完了したら Enter を押してください"
+
+
+# ============================================================
 # 完了
 # ============================================================
 Write-Host ""
@@ -493,6 +582,7 @@ Write-Host "  ✔ 環境変数                  設定済み" -ForegroundColor G
 Write-Host "  ✔ 自動起動                  登録済み" -ForegroundColor Green
 Write-Host "  ✔ ランナーサーバー           $(if ($serverOk) { '起動済み' } else { '要確認' })" -ForegroundColor $(if ($serverOk) { 'Green' } else { 'Yellow' })
 Write-Host "  ✔ Cowork プロジェクト        作成済み" -ForegroundColor Green
+Write-Host "  ✔ Spreadsheet               準備済み" -ForegroundColor Green
 Write-Host ""
 Write-Host "  【次回からの使い方】" -ForegroundColor Cyan
 Write-Host "  1. Cowork を開いて「内部リンクエージェント」プロジェクトを選択" -ForegroundColor White
