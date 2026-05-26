@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NYSEO 内部リンクエージェント — 導入手順書</title>
+  <style>
+    :root {
+      --sidebar-width: 280px;
+      --sidebar-bg: #0f172a;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: #60a5fa;
+      --header-bg: #1e3a8a;
+      --content-bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --accent: #1d4ed8;
+      --accent-light: #dbeafe;
+      --border: #e2e8f0;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-border: #bbf7d0;
+      --yellow: #b45309;
+      --yellow-bg: #fffbeb;
+      --yellow-border: #fde68a;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --red-border: #fecaca;
+      --purple: #7c3aed;
+      --purple-bg: #f5f3ff;
+      --purple-border: #ddd6fe;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-primary);
+      background: var(--content-bg);
+    }
+    .wrapper { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      position: fixed; top: 0; left: 0;
+      height: 100vh; overflow-y: auto; z-index: 100;
+      scrollbar-width: thin; scrollbar-color: #334155 transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+    .sidebar-header { padding: 22px 20px 16px; border-bottom: 1px solid #1e293b; }
+    .sidebar-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #475569; margin-bottom: 6px; }
+    .sidebar-title { font-size: 13px; font-weight: 700; color: #e2e8f0; line-height: 1.5; }
+    .sidebar-meta { font-size: 11px; color: #475569; margin-top: 5px; }
+    .sidebar-nav { padding: 6px 0 24px; }
+    .nav-group { padding: 14px 20px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #475569; }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 20px; font-size: 12.5px; color: #94a3b8;
+      text-decoration: none; cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all .15s;
+    }
+    .nav-item:hover { background: var(--sidebar-hover); color: #e2e8f0; }
+    .nav-item.active { color: var(--sidebar-active); border-left-color: var(--sidebar-active); background: rgba(96,165,250,.08); }
+    .nav-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #1e293b; color: #60a5fa;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .nav-item.active .nav-badge { background: #1e3a8a; }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-width); flex: 1; min-width: 0; }
+    .page-header { background: var(--header-bg); padding: 40px 52px 36px; color: #fff; }
+    .page-header-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #93c5fd; margin-bottom: 10px; }
+    .page-header h1 { font-size: 26px; font-weight: 800; line-height: 1.3; margin-bottom: 10px; }
+    .page-header-desc { font-size: 14px; color: #bfdbfe; max-width: 620px; line-height: 1.7; }
+    .content { padding: 44px 52px 80px; max-width: 940px; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 52px; scroll-margin-top: 20px; }
+    .section-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 2px solid var(--border); }
+    .step-circle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: 15px; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+    }
+    .section-header h2 { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+    .section-header .sub { font-size: 12.5px; color: var(--text-secondary); }
+
+    /* ── Card ── */
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 24px 28px; margin-bottom: 16px; }
+    .card + .card { margin-top: -4px; }
+    .card h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary); }
+    .card p { margin-bottom: 10px; }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* ── Code ── */
+    .code-block { background: var(--code-bg); border-radius: 8px; overflow: hidden; margin: 12px 0; }
+    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 7px 16px; background: #1e293b; border-bottom: 1px solid #334155; }
+    .code-lang { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .07em; }
+    .copy-btn { font-size: 11px; color: #64748b; background: none; border: 1px solid #334155; cursor: pointer; padding: 2px 9px; border-radius: 4px; transition: all .15s; }
+    .copy-btn:hover { color: #94a3b8; background: #334155; }
+    .copy-btn.copied { color: #34d399; border-color: #34d399; }
+    pre { padding: 16px 20px; overflow-x: auto; font-size: 13px; line-height: 1.75; }
+    code { font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace; color: var(--code-text); }
+    .hi { color: #fbbf24; }
+    .ic { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 1px 6px; font-size: 12.5px; color: #1e40af; }
+
+    /* ── Terminal output ── */
+    .terminal { background: #0f172a; border-radius: 8px; padding: 16px 20px; margin: 10px 0; font-family: 'Cascadia Code','Fira Code',Consolas,monospace; font-size: 12.5px; line-height: 1.8; color: #94a3b8; }
+    .t-green { color: #34d399; }
+    .t-yellow { color: #fbbf24; }
+    .t-blue { color: #60a5fa; }
+    .t-red { color: #f87171; }
+    .t-dim { color: #475569; }
+    .t-white { color: #e2e8f0; }
+
+    /* ── Callout ── */
+    .callout { display: flex; gap: 12px; padding: 13px 17px; border-radius: 8px; margin: 12px 0; font-size: 13px; line-height: 1.75; }
+    .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+    .callout.ok   { background: var(--green-bg);   border: 1px solid var(--green-border);  color: #14532d; }
+    .callout.warn { background: var(--yellow-bg);  border: 1px solid var(--yellow-border); color: #78350f; }
+    .callout.info { background: var(--accent-light); border: 1px solid #bfdbfe;            color: #1e3a8a; }
+    .callout.note { background: var(--purple-bg);  border: 1px solid var(--purple-border); color: #4c1d95; }
+    .callout.danger { background: var(--red-bg);   border: 1px solid var(--red-border);    color: #7f1d1d; }
+
+    /* ── Table ── */
+    .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tbl th { background: #f8fafc; text-align: left; padding: 9px 14px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-secondary); border-bottom: 2px solid var(--border); }
+    .tbl td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .b-blue   { background: var(--accent-light); color: var(--accent); }
+    .b-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .b-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
+    .b-gray   { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+    /* ── Folder tree ── */
+    .tree { background: var(--code-bg); border-radius: 8px; padding: 16px 20px; font-family: 'Cascadia Code','Fira Code',Consolas,monospace; font-size: 13px; color: #94a3b8; line-height: 2; }
+    .tree-dir { color: #60a5fa; }
+    .tree-key { color: #fbbf24; }
+
+    /* ── Substep ── */
+    .substep { background: #f8fafc; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 14px 0; }
+    .substep-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-bottom: 8px; }
+
+    /* ── Flow diagram ── */
+    .flow { display: flex; align-items: stretch; gap: 0; margin: 16px 0; flex-wrap: wrap; }
+    .flow-box {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 16px; font-size: 12.5px; font-weight: 600; text-align: center;
+      min-width: 110px; flex: 1;
+    }
+    .flow-box .fb-icon { font-size: 18px; display: block; margin-bottom: 4px; }
+    .flow-box .fb-sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); margin-top: 3px; display: block; }
+    .flow-arrow { display: flex; align-items: center; padding: 0 6px; color: #94a3b8; font-size: 18px; }
+    .flow-box.blue { background: var(--accent-light); border-color: #bfdbfe; color: var(--accent); }
+    .flow-box.green { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+    .flow-box.purple { background: var(--purple-bg); border-color: var(--purple-border); color: var(--purple); }
+    .flow-box.yellow { background: var(--yellow-bg); border-color: var(--yellow-border); color: var(--yellow); }
+
+    /* ── Checklist ── */
+    .checklist { list-style: none; }
+    .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist .ck-icon { flex-shrink: 0; margin-top: 2px; color: var(--green); }
+    .checklist .ck-title { font-weight: 700; }
+    .checklist .ck-desc { color: var(--text-secondary); font-size: 12px; }
+
+    /* ── Trouble ── */
+    .trouble { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+    .trouble-q { display: flex; align-items: flex-start; gap: 10px; padding: 13px 18px; background: #f8fafc; font-weight: 700; font-size: 13.5px; }
+    .trouble-q .qi { color: #dc2626; font-weight: 800; flex-shrink: 0; }
+    .trouble-a { padding: 16px 18px; font-size: 13px; line-height: 1.8; border-top: 1px solid var(--border); }
+
+    /* ── Misc ── */
+    p { margin-bottom: 10px; }
+    p:last-child { margin-bottom: 0; }
+    ul, ol { padding-left: 22px; margin-bottom: 10px; }
+    li { margin-bottom: 5px; }
+    strong { font-weight: 700; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+    kbd { display: inline-block; padding: 1px 6px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-family: inherit; }
+
+    @media (max-width: 800px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .page-header, .content { padding: 24px 20px; }
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ═══════════════════════════════
+     Sidebar
+═══════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-label">NYSEO Agent</div>
+    <div class="sidebar-title">導入手順書</div>
+    <div class="sidebar-meta">クライアント向けセットアップガイド</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group">概要</div>
+    <a class="nav-item" href="#overview"><span class="nav-badge">0</span> 仕組みと概要</a>
+    <a class="nav-item" href="#prereq"><span class="nav-badge">★</span> 必要なもの一覧</a>
+
+    <div class="nav-group">インストール</div>
+    <a class="nav-item" href="#step1"><span class="nav-badge">1</span> Python の確認</a>
+    <a class="nav-item" href="#step2"><span class="nav-badge">2</span> Chrome + 拡張機能</a>
+    <a class="nav-item" href="#step3"><span class="nav-badge">3</span> Cowork の確認</a>
+    <a class="nav-item" href="#step4"><span class="nav-badge">4</span> フォルダの配置</a>
+    <a class="nav-item" href="#step5"><span class="nav-badge">5</span> 認証 JSON の配置</a>
+    <a class="nav-item" href="#step6"><span class="nav-badge">6</span> ライブラリのインストール</a>
+    <a class="nav-item" href="#step7"><span class="nav-badge">7</span> セットアップスクリプト</a>
+    <a class="nav-item" href="#step8"><span class="nav-badge">8</span> Cowork 再起動・プロジェクト作成</a>
+    <a class="nav-item" href="#step9"><span class="nav-badge">9</span> 動作確認</a>
+
+    <div class="nav-group">Spreadsheet</div>
+    <a class="nav-item" href="#sheet"><span class="nav-badge">📊</span> Spreadsheet の準備</a>
+
+    <div class="nav-group">使い方</div>
+    <a class="nav-item" href="#usage"><span class="nav-badge">▶</span> 日常の使い方</a>
+    <a class="nav-item" href="#stop-resume"><span class="nav-badge">⏹</span> 中断・再開</a>
+    <a class="nav-item" href="#modes"><span class="nav-badge">⚙</span> モード選択の目安</a>
+    <a class="nav-item" href="#output"><span class="nav-badge">📋</span> 出力結果・採点基準</a>
+
+    <div class="nav-group">サポート</div>
+    <a class="nav-item" href="#trouble"><span class="nav-badge">?</span> トラブル対応</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════
+     Main
+═══════════════════════════════ -->
+<main class="main">
+  <div class="page-header">
+    <div class="page-header-label">Installation Guide</div>
+    <h1>NYSEO 内部リンクエージェント<br>導入手順書</h1>
+    <div class="page-header-desc">
+      Windows 11 環境への完全セットアップガイドです。<br>
+      順番通りに進めると約 15〜20 分で完了します。
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ 仕組みと概要 ═══ -->
+    <section class="section" id="overview">
+      <div class="section-header">
+        <div class="step-circle" style="background:#475569; font-size:13px;">仕組</div>
+        <div>
+          <h2>このツールの仕組みと概要</h2>
+          <div class="sub">セットアップ前に全体像を把握してください</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>何をするツールか</h3>
+        <p>NYSEOから書き出した Google Spreadsheet を読み込み、<strong>被リンク数が少ない記事（E列 ≤ 1）</strong>に対して、サイト内の他記事から内部リンクを設置すべき候補を自動提案します。結果は Spreadsheet の H〜M 列に自動書き込みされます。</p>
+      </div>
+
+      <div class="card">
+        <h3>実行の流れ</h3>
+        <p>Cowork（Claude Desktop Pro）のチャット欄に Spreadsheet の URL を貼り付けると、以下の順序で処理が進みます。</p>
+        <div class="flow">
+          <div class="flow-box blue"><span class="fb-icon">💬</span>Cowork<span class="fb-sub">URL を貼り付け</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box purple"><span class="fb-icon">🌐</span>Chrome<span class="fb-sub">自動操作</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box yellow"><span class="fb-icon">🖥️</span>ランナーサーバー<span class="fb-sub">バックグラウンド常駐</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box green"><span class="fb-icon">⚡</span>PowerShell<span class="fb-sub">処理実行・ログ表示</span></div>
+        </div>
+        <ol style="margin-top:14px;">
+          <li>Cowork のエージェントが精度モード・AI モードを選択するよう案内します</li>
+          <li>Cowork が Chrome を自動操作して処理を開始します</li>
+          <li><strong>PowerShell ウィンドウが自動で開き</strong>、リアルタイムでログが表示されます</li>
+          <li>処理完了後、Spreadsheet の H〜M 列に結果が書き込まれます</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ═══ 必要なもの ═══ -->
+    <section class="section" id="prereq">
+      <div class="section-header">
+        <div class="step-circle" style="background:#475569; font-size:12px;">必要</div>
+        <div>
+          <h2>必要なもの一覧</h2>
+          <div class="sub">インストール開始前に確認してください</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>ソフトウェア</h3>
+        <table class="tbl">
+          <thead><tr><th>必要なもの</th><th>バージョン目安</th><th>状態確認</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Windows 11</strong></td>
+              <td>10.0 以降</td>
+              <td><span class="badge b-blue">OS 要件</span></td>
+            </tr>
+            <tr>
+              <td><strong>Python</strong>（<span class="ic">py</span> コマンド）</td>
+              <td>3.10 以上推奨</td>
+              <td><span class="badge b-yellow">ステップ 1 で確認</span></td>
+            </tr>
+            <tr>
+              <td><strong>Google Chrome</strong></td>
+              <td>最新版</td>
+              <td><span class="badge b-yellow">ステップ 2 で確認</span></td>
+            </tr>
+            <tr>
+              <td><strong>Claude Chrome 拡張機能</strong></td>
+              <td>Chrome ウェブストア版</td>
+              <td><span class="badge b-yellow">ステップ 2 で確認</span></td>
+            </tr>
+            <tr>
+              <td><strong>Claude Desktop Pro（Cowork）</strong></td>
+              <td>最新版</td>
+              <td><span class="badge b-yellow">ステップ 3 で確認</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>管理者から受け取るもの</h3>
+        <table class="tbl">
+          <thead><tr><th>必要なもの</th><th>説明</th><th>誰が用意するか</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>プロジェクトフォルダ一式</strong></td>
+              <td><span class="ic">nyseo-internal-link-agent</span> フォルダをそのまま受け取る</td>
+              <td><span class="badge b-blue">管理者が渡す</span></td>
+            </tr>
+            <tr>
+              <td><strong>Google サービスアカウント JSON</strong></td>
+              <td><span class="ic">nyseo-agent-xxxxxxxx.json</span> — Spreadsheet への読み書き権限</td>
+              <td><span class="badge b-blue">管理者が渡す</span></td>
+            </tr>
+            <tr>
+              <td><strong>NYSEO Spreadsheet</strong></td>
+              <td>内部リンクを設置したいサイトの記事一覧（NYSEO 出力済み）</td>
+              <td><span class="badge b-blue">管理者が渡す</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout warn" style="margin-top:14px;">
+          <span class="callout-icon">⚠️</span>
+          <div>Spreadsheet にはサービスアカウントのメールアドレス（<span class="ic">nyseo-agent-…@…iam.gserviceaccount.com</span>）の<strong>編集権限を事前に付与</strong>しておく必要があります。管理者が設定してください。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 1: Python ═══ -->
+    <section class="section" id="step1">
+      <div class="section-header">
+        <div class="step-circle">1</div>
+        <div>
+          <h2>Python のインストール確認</h2>
+          <div class="sub">すでにインストール済みの場合はスキップ可</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>スタートメニューから「PowerShell」を検索して開き、以下を実行してください。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>py --version</code></pre>
+        </div>
+        <div class="callout ok">
+          <span class="callout-icon">✅</span>
+          <div><strong>OK：</strong><span class="ic">Python 3.11.x</span> のようなバージョンが表示されます → ステップ 2 へ進んでください。</div>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>「py は認識されていません」と表示される場合：</strong><br>
+            <a href="https://www.python.org/downloads/" style="color:inherit; text-decoration:underline;">python.org</a> からインストーラーをダウンロードして実行してください。<br>
+            インストール画面で <strong>「Add Python to PATH」のチェックを必ず入れてください</strong>。<br>
+            インストール後は PowerShell を一度閉じて再度開いてから <span class="ic">py --version</span> を再確認してください。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 2: Chrome ═══ -->
+    <section class="section" id="step2">
+      <div class="section-header">
+        <div class="step-circle">2</div>
+        <div>
+          <h2>Google Chrome と Claude 拡張機能の確認</h2>
+          <div class="sub">Cowork が Chrome を操作して処理を起動するために必要です</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Chrome のインストール確認</h3>
+        <p>Google Chrome がインストールされているか確認してください。</p>
+        <ul>
+          <li>スタートメニューで「Chrome」を検索して起動できればインストール済みです</li>
+          <li>インストールされていない場合は <a href="https://www.google.com/chrome/" style="color:var(--accent);">google.com/chrome</a> からダウンロードしてください</li>
+        </ul>
+        <div class="callout info">
+          <span class="callout-icon">ℹ️</span>
+          <div>Chrome は <strong>通常起動できる状態（ログインなしでも可）</strong>であれば問題ありません。Cowork が自動操作するため、普段 Chrome をメインブラウザとして使っていなくても構いません。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Claude Chrome 拡張機能のインストール</h3>
+        <p>Cowork が Chrome を操作するために必要な公式拡張機能です。</p>
+        <ol>
+          <li>Chrome を開く</li>
+          <li>Chrome ウェブストアで「<strong>Claude</strong>」を検索する（または Cowork の設定画面からリンクをたどる）</li>
+          <li>「Claude for Chrome」（Anthropic 製）を「Chrome に追加」する</li>
+          <li>拡張機能が追加されると、ブラウザ右上にアイコンが表示されます</li>
+        </ol>
+        <div class="callout ok">
+          <span class="callout-icon">✅</span>
+          <div>拡張機能バーに Claude のアイコン（橙色）が表示されていればインストール済みです。すでにある場合は何もしなくて構いません。</div>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>Cowork の「Claude in Chrome」機能は <strong>この拡張機能がなければ動作しません</strong>。必ずインストールしてください。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 3: Cowork ═══ -->
+    <section class="section" id="step3">
+      <div class="section-header">
+        <div class="step-circle">3</div>
+        <div>
+          <h2>Claude Desktop Pro（Cowork）の確認</h2>
+          <div class="sub">チャットからエージェントを実行するためのアプリです</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>Cowork（Claude Desktop Pro）がインストールされており、起動できることを確認してください。</p>
+        <ul>
+          <li>スタートメニューで「Claude」を検索して起動できるか確認</li>
+          <li>Anthropic のアカウントでログインしてください</li>
+          <li>インストールされていない場合は管理者に確認してください</li>
+        </ul>
+        <div class="callout info">
+          <span class="callout-icon">ℹ️</span>
+          <div>Cowork には <strong>NYSEO プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成・設定は管理者が行います。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 4: フォルダ ═══ -->
+    <section class="section" id="step4">
+      <div class="section-header">
+        <div class="step-circle">4</div>
+        <div>
+          <h2>プロジェクトフォルダの配置</h2>
+          <div class="sub">管理者から受け取ったフォルダを PC に配置します</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>受け取った <span class="ic">nyseo-internal-link-agent</span> フォルダを PC 内の任意の場所に置いてください。</p>
+        <p><strong>推奨の配置場所（日本語・スペースを含まないパス）：</strong></p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">推奨パス例</span></div>
+          <pre><code>C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\</code></pre>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>フォルダパスに<strong>全角文字（日本語）や半角スペース</strong>が含まれると、コマンド実行時にエラーが発生することがあります。できるだけ英数字のパスに置いてください。</div>
+        </div>
+        <p style="margin-top:14px;">フォルダ内に以下のファイル・フォルダが含まれていることを確認してください。</p>
+        <div class="tree">
+          <span class="tree-dir">nyseo-internal-link-agent/</span><br>
+          ├── <span class="tree-key">main.py</span>　　　　　<span style="color:#475569;">← メイン処理</span><br>
+          ├── <span class="tree-key">local_runner.py</span>　<span style="color:#475569;">← ランナーサーバー（常駐）</span><br>
+          ├── <span class="tree-key">setup_once.ps1</span>　 <span style="color:#475569;">← 初回セットアップスクリプト</span><br>
+          ├── <span class="tree-key">requirements.txt</span>　<span style="color:#475569;">← 必要なライブラリ一覧</span><br>
+          ├── <span class="tree-key">config.py</span><br>
+          ├── <span class="tree-dir">steps/</span><br>
+          ├── <span class="tree-dir">utils/</span><br>
+          ├── <span class="tree-dir">prompts/</span><br>
+          └── <span class="tree-dir">docs/</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 5: JSON ═══ -->
+    <section class="section" id="step5">
+      <div class="section-header">
+        <div class="step-circle">5</div>
+        <div>
+          <h2>Google サービスアカウント JSON の配置</h2>
+          <div class="sub">認証ファイルをプロジェクト外の専用フォルダに保管します</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>管理者から受け取った JSON ファイルを以下の場所に配置します。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">保存先パス</span></div>
+          <pre><code>C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\.secrets\nyseo-agent-xxxxxxxx.json</code></pre>
+        </div>
+        <p>PowerShell を開き、<span class="ic">.secrets</span> フォルダを作成してください（すでにある場合はスキップ）。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>mkdir "$env:USERPROFILE\.secrets"</code></pre>
+        </div>
+        <p>作成したフォルダに JSON ファイルをコピーしてください（エクスプローラーでのコピー＆ペーストで OK です）。</p>
+        <div class="callout note">
+          <span class="callout-icon">🔒</span>
+          <div>
+            <strong>JSON ファイルはプロジェクトフォルダ内に置かないでください。</strong><br>
+            <span class="ic">.secrets</span> フォルダは git 管理外のため、誤ってファイルが共有・公開されるリスクがありません。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 6: pip ═══ -->
+    <section class="section" id="step6">
+      <div class="section-header">
+        <div class="step-circle">6</div>
+        <div>
+          <h2>必要なライブラリのインストール</h2>
+          <div class="sub">Python パッケージをインストールします（約 2〜5 分）</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>PowerShell でプロジェクトフォルダに移動し、以下を実行してください。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
+pip install -r requirements.txt</code></pre>
+        </div>
+        <p>インストール中は多数のログが流れます。最後に以下のような表示が出れば完了です。</p>
+        <div class="terminal">
+          Successfully installed anthropic-x.x.x beautifulsoup4-4.12.x gspread-6.x.x ...<br>
+          <span class="t-dim">（バージョン番号は異なる場合があります）</span>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>「pip は認識されていません」と表示される場合：</strong><br>
+            Python のインストール時に PATH が設定されていない可能性があります。<span class="ic">py -m pip install -r requirements.txt</span> で代替してください。それでも失敗する場合は Python を再インストールしてください（「Add Python to PATH」にチェック）。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 7: setup_once.ps1 ═══ -->
+    <section class="section" id="step7">
+      <div class="section-header">
+        <div class="step-circle">7</div>
+        <div>
+          <h2>初回セットアップスクリプトの実行</h2>
+          <div class="sub">環境変数・自動起動登録・サーバー起動を自動で行います</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>同じ PowerShell（プロジェクトフォルダにいる状態）で以下を実行してください。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>.\setup_once.ps1</code></pre>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>「このスクリプトはシステムで実行できません」と表示される場合は、PowerShell を<strong>管理者として実行</strong>し直してから以下を入力して再試してください。<br><span class="ic">Set-ExecutionPolicy RemoteSigned -Scope CurrentUser</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>スクリプトの進行（全 4 ステップ）</h3>
+
+        <div class="substep">
+          <div class="substep-label">[1/4] Google サービスアカウントのパス設定</div>
+          <p>デフォルトのパスが表示されます。ステップ 5 で配置したパスと同じであれば <kbd>Enter</kbd> を押すだけです。</p>
+          <div class="terminal">
+<span class="t-yellow">[1/4] Google Sheets Service Account</span>
+  Current: <span class="t-dim">（現在の設定、初回は空欄）</span>
+  Default: C:\Users\<span class="t-blue">&lt;ユーザー名&gt;</span>\.secrets\nyseo-agent-xxxxxxxx.json
+  Enter path (or press Enter to use default): <span class="t-dim">← Enter を押す</span>
+  <span class="t-green">OK: File found.</span>
+  <span class="t-green">GOOGLE_SERVICE_ACCOUNT set.</span>
+</div>
+          <p><strong>別のパスに保存した場合：</strong>フルパスを入力して <kbd>Enter</kbd> を押してください。「File not found」と出た場合はパスを再確認してください。</p>
+        </div>
+
+        <div class="substep">
+          <div class="substep-label">[2/4] Anthropic API キー（任意・APIモード使用時のみ）</div>
+          <p><strong>CLI モードのみ使用する場合は <kbd>Enter</kbd> でスキップしてください。</strong></p>
+          <p>API モード（5 並列・高速処理）を使う場合は <span class="ic">sk-ant-…</span> 形式のキーを入力してください。</p>
+          <div class="terminal">
+<span class="t-yellow">[2/4] Anthropic API Key</span>
+  Required only for API mode. Press Enter to skip for CLI mode only.
+  API Key (sk-ant-..., or Enter to skip): <span class="t-dim">← CLI のみなら Enter</span>
+  <span class="t-yellow">Skipped. CLI mode only.</span>
+</div>
+          <div class="callout info" style="margin-top:10px;">
+            <span class="callout-icon">ℹ️</span>
+            <div>API キーは後から変更できます。変更する場合は <span class="ic">setup_once.ps1</span> を再実行してください。<br>
+            API キーを設定しても <strong>CLI モードには影響しません</strong>。CLI モード実行時は API キーを使わない設計になっています。</div>
+          </div>
+        </div>
+
+        <div class="substep">
+          <div class="substep-label">[3/4] Windows 起動時の自動起動登録</div>
+          <p>PC を再起動するたびにランナーサーバーが自動で起動するよう、Windows のスタートアップに登録します。</p>
+          <div class="terminal">
+<span class="t-yellow">[3/4] Registering local runner server in Windows startup</span>
+  <span class="t-green">Registered: C:\Users\...\Start Menu\Programs\Startup\nyseo_runner.bat</span>
+</div>
+          <p>スタートアップフォルダ（<span class="ic">%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\</span>）に <span class="ic">nyseo_runner.bat</span> が作成されます。</p>
+        </div>
+
+        <div class="substep">
+          <div class="substep-label">[4/4] ランナーサーバーの即時起動と確認</div>
+          <p>セットアップ完了後すぐにサーバーを起動し、正常に動いているか自動確認します。</p>
+          <div class="terminal">
+<span class="t-yellow">[4/4] Starting local runner server now</span>
+  <span class="t-green">Server running: {"status": "idle"}</span>
+&nbsp;
+<span class="t-green">==================================================</span>
+<span class="t-green"> Setup complete!</span>
+<span class="t-green">==================================================</span>
+&nbsp;
+Next steps:
+  1. Restart Cowork (Claude Desktop Pro)
+  2. Open the NYSEO project in Cowork
+  3. Paste your Spreadsheet URL in the chat
+&nbsp;
+The runner server will start automatically on every Windows boot.
+To change settings later, run this script again.
+</div>
+          <div class="callout ok" style="margin-top:10px;">
+            <span class="callout-icon">✅</span>
+            <div><strong>「Server running: {"status": "idle"}」が表示されればセットアップ完了です。</strong></div>
+          </div>
+          <div class="callout warn" style="margin-top:8px;">
+            <span class="callout-icon">⚠️</span>
+            <div>
+              「Could not verify server start」と表示された場合：<br>
+              サーバーが起動中の可能性があります。30 秒ほど待ってからブラウザで <span class="ic">http://127.0.0.1:8765/status</span> を開いて確認してください。<br>
+              それでも接続できない場合は「トラブル対応」を参照してください。
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 8: Cowork 再起動・プロジェクト作成 ═══ -->
+    <section class="section" id="step8">
+      <div class="section-header">
+        <div class="step-circle">8</div>
+        <div>
+          <h2>Cowork の再起動とプロジェクト作成</h2>
+          <div class="sub">設定を反映し、エージェント用プロジェクトを作成します</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>① Cowork を再起動する</h3>
+        <ol style="line-height:2.3;">
+          <li>Cowork（Claude Desktop Pro）を<strong>完全に閉じる</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">タスクトレイ（画面右下の通知領域）にアイコンがある場合は右クリックして「終了」してください</span>
+          </li>
+          <li>Cowork を<strong>再起動</strong>する</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>② プロジェクトを新規作成する</h3>
+        <ol style="line-height:2.3;">
+          <li>左サイドバーの「<strong>Projects</strong>」を開き、「<strong>+ New project</strong>」をクリックする</li>
+          <li>プロジェクト名に <span class="ic">NYSEO</span> と入力して作成する</li>
+          <li>「<strong>Project instructions</strong>（プロジェクト指示）」の入力欄を開く</li>
+          <li>下の手順③でコピーした指示文を<strong>貼り付ける</strong>（Ctrl+V）</li>
+          <li>保存して完了</li>
+        </ol>
+        <div class="callout info" style="margin-top:12px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>プロジェクトを作成しておくと、次回以降は左サイドバーから「NYSEO」を選ぶだけで同じ指示でエージェントが動作します。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>③ プロジェクト指示文をコピーする</h3>
+        <div class="callout warn" style="margin-bottom:16px;">
+          <span class="callout-icon">⚠️</span>
+          <div>貼り付ける前に、指示文内の <span class="ic">PROJECT_DIR</span> のパスを<strong>自分のフォルダの実際の場所</strong>に書き換えてください。<br>
+          例：<span class="ic">C:\Users\<strong>yamada</strong>\Downloads\nyseo-internal-link-agent</span></div>
+        </div>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Cowork プロジェクト指示文（全文コピー → 貼り付け）</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre># NYSEO 内部リンク構築AIエージェント — Cowork実行手順
+
+## プロジェクト設定（パスを変更する場合はここを編集）
+
+```
+PROJECT_DIR : C:\Users\&lt;ユーザー名&gt;\Downloads\nyseo-internal-link-agent
+RUNNER_URL  : http://127.0.0.1:8765
+```
+
+## このエージェントの目的
+NYSEOから出力したSpreadsheetを読み込み、被リンク不足記事（E列≤1）に対して
+関連性の高い他記事から内部リンクを設置する候補を自動提案する。
+
+## Coworkからの実行方法
+
+ユーザーがSpreadsheetのURLを伝えたら、以下の手順を上から順番に実行する。
+
+---
+
+### STEP 1：精度モードの選択
+
+> 精度モードを選択してください。
+> - **高精度**（推奨）: KWをトークン単位で分割してスコアリング。候補記事を多く拾いやすい。
+> - **中精度**: KW全体の文字列一致のみ。高速だが複合KWで候補が少なくなる場合がある。
+
+---
+
+### STEP 2：AIモードの選択
+
+> AIモードを選択してください。
+> - **CLIモード**: Cowork内蔵AIを使用。追加コストなし。処理は逐次（1件ずつ）。
+> - **APIモード**: Anthropic API直接呼び出し。5並列処理で高速。ANTHROPIC_API_KEY が必要。
+
+---
+
+### STEP 3：ランナーサーバーの確認と実行
+
+**① サーバーの状態確認**
+
+Claude in Chrome を使って以下のURLを開く：
+```
+http://127.0.0.1:8765/status
+```
+
+- `{"status": "idle"}` → STEP 3② へ進む
+- `{"status": "running"}` → 「現在別の処理が実行中です。完了後に再度お試しください。」とユーザーに伝える
+- **接続できない場合** → 以下をユーザーに伝える：
+  > 「ランナーサーバーが起動していません。PowerShellで以下を実行してください：」
+  > ```powershell
+  > py "C:\Users\&lt;ユーザー名&gt;\Downloads\nyseo-internal-link-agent\local_runner.py"
+  > ```
+  > 「起動後にもう一度URLを送ってください。」
+
+**② 実行リクエストを送信**
+
+選択結果に応じて Claude in Chrome で以下のURLを開く：
+
+| 精度 | AIモード | URL |
+|------|----------|-----|
+| 高精度 | CLI | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=false&amp;api=false` |
+| 高精度 | API | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=false&amp;api=true` |
+| 中精度 | CLI | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=true&amp;api=false` |
+| 中精度 | API | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=true&amp;api=true` |
+
+`&lt;URL&gt;` はユーザーから受け取ったSpreadsheetのURLをそのまま入れる。
+
+`{"status": "started"}` が返ってきたら：
+> 「実行を開始しました。処理完了後にSpreadsheetをご確認ください。CLIモードは記事ごとに逐次処理、APIモードは5並列で一括処理します。」
+
+---
+
+### 処理の中断
+
+処理中にユーザーが「止めて」「中断して」などと伝えた場合：
+
+**① 中断リクエストを送信**
+
+Claude in Chrome で以下のURLを開く：
+```
+http://127.0.0.1:8765/stop
+```
+
+`{"status": "stop_requested"}` が返ってきたら：
+> 「中断シグナルを送信しました。現在処理中の記事が完了した後に停止します。Spreadsheetで処理済み記事（H列にデータあり）を確認できます。」
+
+**② 中断後の状態**
+- 処理済み記事のH〜M列はそのまま保持される
+- 未処理記事のH列は空白のまま（次回実行時の再開ポイント）
+
+---
+
+### 処理の再開
+
+中断後にユーザーが再開を希望した場合：
+- 通常通り STEP 1〜3 を実施してSpreadsheet URLを送信するだけでよい
+- H列が空白の記事だけが対象になるため、自動的に続きから処理される
+
+> 「再開します。前回の続きから処理します（H列にデータがある記事は自動スキップされます）。」
+
+---
+
+## Spreadsheet構成
+
+### データタブ（1枚目・既存）
+| 列 | 内容 |
+|---|---|
+| A | NO |
+| B | 記事URL |
+| C | メインKW |
+| D | 発リンク数 |
+| E | 被リンク数（≤1が処理対象） |
+| F | クリック数 |
+| G | 表示回数 |
+| H〜M | 出力（自動入力） |
+
+### article_cacheタブ（自動作成）
+初回実行時に自動作成される。取得済み記事のHTMLデータを保存し、
+2回目以降の実行時に再取得をスキップする。
+
+## 出力内容（H〜M列）
+| 列 | 内容 |
+|---|---|
+| H | 候補記事URL①（この記事から対象記事へリンクを設置する） |
+| I | リンク設置箇所の見出し① |
+| J | 候補記事URL② |
+| K | リンク設置箇所の見出し② |
+| L | 候補記事URL③（任意） |
+| M | リンク設置箇所の見出し③（任意） |
+
+## ルール
+- APIキー・認証情報はプロジェクトフォルダ外に保管すること
+- 外部サイトへのHTTPリクエストはGET取得のみ
+- エラーが発生した記事はスキップして処理を継続する
+- H列にすでにデータがある記事は処理済みとしてスキップする
+- ファイルやフォルダの作成・編集は絶対に行わない。コードの実行も行わない。ユーザーへの案内のみ行う
+- ランナーサーバーに接続できない場合は、ユーザーに手動起動を案内するだけでよい。自分でサーバーを構築しようとしてはならない
+- URLのパラメータ名は必ず mid と api を使うこと。mode や ai など別の名前に変えてはならない</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 9: 動作確認 ═══ -->
+    <section class="section" id="step9">
+      <div class="section-header">
+        <div class="step-circle">9</div>
+        <div>
+          <h2>動作確認</h2>
+          <div class="sub">インストールが正しく完了しているか確認します</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>ランナーサーバーの確認</h3>
+        <p>ブラウザ（Chrome）で以下の URL を開いてください。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">ブラウザのアドレスバーに入力</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>http://127.0.0.1:8765/status</code></pre>
+        </div>
+        <div class="callout ok">
+          <span class="callout-icon">✅</span>
+          <div>画面に <span class="ic">{"status": "idle"}</span> と表示されれば正常です。</div>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>「このサイトにアクセスできません」と表示される場合、ランナーサーバーが起動していません。「トラブル対応」を参照してください。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>セットアップ完了チェックリスト</h3>
+        <ul class="checklist">
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Python がインストールされている</div><div class="ck-desc"><span class="ic">py --version</span> でバージョンが表示される</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Chrome に Claude 拡張機能がインストールされている</div><div class="ck-desc">ブラウザ右上に Claude アイコンが表示されている</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Cowork が起動している</div><div class="ck-desc">NYSEO プロジェクトが開ける</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">JSON ファイルが正しい場所にある</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo-agent-…json</span> が存在する</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">pip install が完了している</div><div class="ck-desc">requirements.txt のライブラリがすべて入っている</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">ランナーサーバーが起動している</div><div class="ck-desc"><span class="ic">http://127.0.0.1:8765/status</span> で <span class="ic">{"status": "idle"}</span> が返る</div></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══ Spreadsheet ═══ -->
+    <section class="section" id="sheet">
+      <div class="section-header">
+        <div class="step-circle" style="background:#16a34a; font-size:13px;">📊</div>
+        <div>
+          <h2>Spreadsheet の準備</h2>
+          <div class="sub">処理対象の Spreadsheet に必要な設定</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>サービスアカウントへの編集権限付与（管理者が行う）</h3>
+        <ol>
+          <li>Spreadsheet を開く</li>
+          <li>右上の「共有」ボタンをクリック</li>
+          <li>サービスアカウントのメールアドレス（<span class="ic">nyseo-agent-…@…iam.gserviceaccount.com</span>）を入力</li>
+          <li>権限を「<strong>編集者</strong>」に設定して「送信」</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>データタブ（1 枚目）の列構成</h3>
+        <p>Spreadsheet の 1 枚目のタブが以下の列構成になっている必要があります。</p>
+        <table class="tbl">
+          <thead><tr><th>列</th><th>内容</th><th>備考</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A</strong></td><td>NO</td><td>記事の通し番号</td></tr>
+            <tr><td><strong>B</strong></td><td>記事 URL</td><td>処理対象のサイト記事 URL</td></tr>
+            <tr><td><strong>C</strong></td><td>メイン KW</td><td>空の場合は AI が自動で抽出します</td></tr>
+            <tr><td><strong>D</strong></td><td>発リンク数</td><td>その記事から出ているリンクの数</td></tr>
+            <tr><td><strong>E</strong></td><td>被リンク数</td><td><strong>1 以下の記事が処理対象</strong>（内部リンクが少ない記事）</td></tr>
+            <tr><td><strong>F</strong></td><td>クリック数</td><td>Search Console のデータ</td></tr>
+            <tr><td><strong>G</strong></td><td>表示回数</td><td>Search Console のデータ</td></tr>
+            <tr><td><strong>H〜M</strong></td><td>出力列（自動入力）</td><td>エージェントが候補 URL と見出しを書き込む</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>出力内容（H〜M 列）</h3>
+        <p>エージェントが処理した記事には以下の内容が書き込まれます。</p>
+        <table class="tbl">
+          <thead><tr><th>列</th><th>内容</th><th>説明</th></tr></thead>
+          <tbody>
+            <tr><td><strong>H</strong></td><td>候補記事 URL ①</td><td>この記事から対象記事へ内部リンクを設置する</td></tr>
+            <tr><td><strong>I</strong></td><td>リンク設置箇所の見出し ①</td><td>H の記事のどの見出し下に設置するか</td></tr>
+            <tr><td><strong>J</strong></td><td>候補記事 URL ②</td><td>2 件目の候補</td></tr>
+            <tr><td><strong>K</strong></td><td>リンク設置箇所の見出し ②</td><td></td></tr>
+            <tr><td><strong>L</strong></td><td>候補記事 URL ③（任意）</td><td>3 件目の候補（見つかった場合のみ）</td></tr>
+            <tr><td><strong>M</strong></td><td>リンク設置箇所の見出し ③（任意）</td><td></td></tr>
+          </tbody>
+        </table>
+        <div class="callout info" style="margin-top:12px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>
+            <strong>「該当なし」と表示される場合：</strong>スコア閾値（60 点）を超える候補が見つからなかった記事です。<br>
+            <strong>H 列が空白の場合：</strong>AI 判定に技術的なエラーが発生した記事です。再実行すると再処理されます。<br>
+            <strong>H 列にデータがある記事：</strong>処理済みとして次回実行時はスキップされます。
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>article_cache タブ（自動作成）</h3>
+        <p>初回実行時に <strong>article_cache</strong> という名前のタブが自動作成されます。取得済み記事の HTML データを保存するキャッシュです。</p>
+        <ul>
+          <li>2 回目以降の実行では、キャッシュ済みの記事は再取得をスキップするため処理が高速になります</li>
+          <li>このタブは手動で編集しないでください</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══ 日常の使い方 ═══ -->
+    <section class="section" id="usage">
+      <div class="section-header">
+        <div class="step-circle" style="background:#16a34a; font-size:16px;">▶</div>
+        <div>
+          <h2>日常の使い方（セットアップ完了後）</h2>
+          <div class="sub">毎回の実行手順</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>実行手順</h3>
+        <ol style="line-height:2.3; counter-reset: step;">
+
+          <li><strong>Cowork を開き、NYSEO プロジェクトを選択する</strong></li>
+
+          <li><strong>チャット欄に Spreadsheet の URL を貼り付けて送信する</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">例：<span class="ic">https://docs.google.com/spreadsheets/d/xxxxx/edit</span></span>
+          </li>
+
+          <li><strong>精度モードを選択する（エージェントが案内します）</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">「高精度」または「中精度」を返答してください（詳細は「モード選択の目安」参照）</span>
+          </li>
+
+          <li><strong>AI モードを選択する（エージェントが案内します）</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">「CLI モード」または「API モード」を返答してください（詳細は「モード選択の目安」参照）</span>
+          </li>
+
+          <li><strong>エージェントがサーバーの状態を自動確認する</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">Chrome が自動で <span class="ic">http://127.0.0.1:8765/status</span> を開き、サーバーの状態を確認します</span>
+          </li>
+
+          <li><strong>エージェントが処理を自動開始する</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">Chrome が自動で <span class="ic">http://127.0.0.1:8765/run?url=…</span> を開きます。<span class="ic">{"status": "started"}</span> が返ると処理開始です</span>
+          </li>
+
+          <li><strong>PowerShell ウィンドウが自動で開き、リアルタイムのログが表示される</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">処理の進捗が 1 件ずつ表示されます。ウィンドウは開いたままにしておいてください</span>
+          </li>
+
+          <li><strong>処理完了後、Spreadsheet を確認する</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">PowerShell ウィンドウに「完了しました。このウィンドウを閉じてください。」と表示されたら終了です</span>
+          </li>
+
+        </ol>
+        <div class="callout ok" style="margin-top:16px;">
+          <span class="callout-icon">✅</span>
+          <div>処理中に PowerShell ウィンドウを閉じると処理が強制終了されます。完了のメッセージが出るまで閉じないでください。途中で止めたい場合は下の「中断・再開」を使ってください。</div>
+        </div>
+      </div>
+
+      <div class="card" id="stop-resume">
+        <h3>処理の中断・再開</h3>
+        <p style="margin-bottom:14px;">処理中に止める必要が生じた場合、以下の手順で安全に中断できます。<strong>処理済みのデータは保持され、再開時は続きから自動で再処理されます。</strong></p>
+
+        <h4 style="margin-bottom:8px; color:var(--red);">⏹ 中断する</h4>
+        <ol style="line-height:2.3; margin-bottom:16px;">
+          <li><strong>Cowork で「止めて」または「中断して」と送信する</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">エージェントが自動で中断リクエストを送信します</span>
+          </li>
+          <li><strong>または、ブラウザで直接アクセスする</strong><br>
+            <div class="code-block" style="margin:6px 0;">
+              <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+              <pre>http://127.0.0.1:8765/stop</pre>
+            </div>
+            <span style="color:var(--text-secondary); font-size:12.5px;"><span class="ic">{"status": "stop_requested"}</span> が返れば中断シグナルが送信されました</span>
+          </li>
+          <li><strong>現在処理中の記事が完了した後に停止します</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">PowerShell ウィンドウに「⏹ 中断シグナルを受信しました。」と表示されたら停止完了です</span>
+          </li>
+        </ol>
+
+        <div class="callout info" style="margin-bottom:16px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>中断後も、処理済み記事（H 列にデータあり）のデータはそのまま Spreadsheet に残ります。未処理記事（H 列空白）だけが次回の処理対象になります。</div>
+        </div>
+
+        <h4 style="margin-bottom:8px; color:var(--green);">▶ 再開する</h4>
+        <ol style="line-height:2.3;">
+          <li><strong>Cowork で同じ Spreadsheet URL を送信するだけです</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">精度・AI モードの選択から通常どおり進めてください</span>
+          </li>
+          <li><strong>H 列が空白の記事だけが自動的に処理されます</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">処理済み記事は自動スキップされるため、続きから再開されます</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>処理ログの見方（PowerShell ウィンドウ）</h3>
+        <div class="terminal">
+<span class="t-blue">==================================================</span>
+<span class="t-blue">NYSEO 内部リンク構築AIエージェント 開始</span>
+<span class="t-blue">精度モード: 高精度（トークン分割スコアリング）</span>
+<span class="t-blue">==================================================</span>
+インデックス構築完了: 213 件（キャッシュ済み 213 件）
+未キャッシュ 0 件をフェッチ中…<span class="t-dim">　← 初回は時間がかかります</span>
+KW未抽出 12 件 → main_kw を抽出中…
+
+<span class="t-white">[1/45] https://example.com/article-1</span>
+STEP2: 候補 20 件
+AI一括判定完了: 20 件
+→ 採用 3 件をSpreadsheetに書き込みました
+
+<span class="t-white">[2/45] https://example.com/article-2</span>
+STEP2: 候補 8 件
+...
+<span class="t-green">==================================================</span>
+<span class="t-green">全処理完了。Spreadsheetをご確認ください。</span>
+<span class="t-green">==================================================</span>
+
+完了しました。このウィンドウを閉じてください。
+</div>
+      </div>
+    </section>
+
+    <!-- ═══ モード選択 ═══ -->
+    <section class="section" id="modes">
+      <div class="section-header">
+        <div class="step-circle" style="background:#7c3aed; font-size:13px;">⚙</div>
+        <div>
+          <h2>モード選択の目安</h2>
+          <div class="sub">精度モードと AI モードの選び方</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>精度モード</h3>
+        <table class="tbl">
+          <thead><tr><th>モード</th><th>仕組み</th><th>向いているケース</th><th>推奨</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>高精度</strong></td>
+              <td>KW をトークン（単語）に分割してスコアリング。部分一致でも候補を拾える</td>
+              <td>通常はこちらを使用。複合語 KW でも候補が多く見つかる</td>
+              <td><span class="badge b-green">推奨</span></td>
+            </tr>
+            <tr>
+              <td><strong>中精度</strong></td>
+              <td>KW 全体の文字列一致のみ。完全一致しないと候補に上がらない</td>
+              <td>処理を高速化したい場合・KW がシンプルな場合</td>
+              <td><span class="badge b-gray">状況次第</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>AI モード</h3>
+        <table class="tbl">
+          <thead><tr><th>モード</th><th>仕組み</th><th>コスト</th><th>速度</th><th>推奨</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>CLI モード</strong></td>
+              <td>Cowork の内蔵 AI（Claude）を使用。1 件ずつ逐次処理</td>
+              <td>追加コストなし（Claude Pro 契約内）</td>
+              <td>1 記事あたり 10〜20 秒程度</td>
+              <td><span class="badge b-green">推奨</span></td>
+            </tr>
+            <tr>
+              <td><strong>API モード</strong></td>
+              <td>Anthropic API を直接呼び出し。5 並列処理</td>
+              <td>API 使用料が発生（1 サイト約 $10〜15 程度）</td>
+              <td>CLI の約 3〜5 倍高速</td>
+              <td><span class="badge b-yellow">高速が必要な場合</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout info" style="margin-top:12px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>API モードを使うには <span class="ic">ANTHROPIC_API_KEY</span> の設定が必要です。<span class="ic">setup_once.ps1</span> の [2/4] で設定するか、再実行して追加してください。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 出力結果 ═══ -->
+    <section class="section" id="output">
+      <div class="section-header">
+        <div class="step-circle" style="background:#16a34a; font-size:13px;">📋</div>
+        <div>
+          <h2>出力結果の見方</h2>
+          <div class="sub">Spreadsheet に書き込まれた内容の解釈</div>
+        </div>
+      </div>
+      <div class="card">
+        <table class="tbl">
+          <thead><tr><th>H 列の内容</th><th>意味</th><th>対応</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>URL が入っている</td>
+              <td>内部リンク候補が見つかった</td>
+              <td>H〜M 列の URL・見出しを確認して内部リンクを設置する</td>
+            </tr>
+            <tr>
+              <td>「該当なし」</td>
+              <td>スコア閾値（60 点）を超える候補がなかった</td>
+              <td>内部リンクの設置は不要と判断できます</td>
+            </tr>
+            <tr>
+              <td>空白</td>
+              <td>AI 判定に技術的なエラーが発生した</td>
+              <td>再実行すると自動的に再処理されます</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout info" style="margin-top:14px;">
+          <span class="callout-icon">ℹ️</span>
+          <div><strong>内部リンクの設置方法（H〜M 列の読み方）：</strong><br>
+          H 列の URL の記事を開き、I 列に記載された見出しのセクション内に、対象記事（B 列）へのリンクを追加してください。J〜M 列も同様です。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>AI 採点基準（100点満点 / 60点以上を採用）</h3>
+        <p style="margin-bottom:14px;">以下の4項目を合計した点数が 60 点以上の候補記事のみ、内部リンク先として出力されます。</p>
+        <table class="tbl">
+          <thead><tr><th>採点項目</th><th>配点</th><th>判定内容</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>読者層の一致</strong></td>
+              <td style="text-align:center; white-space:nowrap;">25点</td>
+              <td>候補記事と対象記事の想定読者が同じかを判定。「使う側・提供する側・管理する側」など立場が異なれば不一致とみなし、以降の評価も低スコアになる</td>
+            </tr>
+            <tr>
+              <td><strong>地理的一致</strong></td>
+              <td style="text-align:center; white-space:nowrap;">15点</td>
+              <td>どちらかの記事に地名（都道府県・エリア・駅名など）が含まれる場合、両記事が同じ地域を扱っているかを確認。異なる地域の記事同士は低スコア。地名がない場合は満点扱い</td>
+            </tr>
+            <tr>
+              <td><strong>読者にとっての自然さ</strong></td>
+              <td style="text-align:center; white-space:nowrap;">35点</td>
+              <td>候補記事を読んでいる読者が、対象記事へのリンクを見て「読みたい」と感じる文脈があるかを評価。無理やり挿入すると読者の流れを妨げる場合は低スコア</td>
+            </tr>
+            <tr>
+              <td><strong>トピックの深さと関連性</strong></td>
+              <td style="text-align:center; white-space:nowrap;">25点</td>
+              <td>キーワードが表面的に一致しているだけでなく、内容レベルで接点があるかを評価。同じ大カテゴリでも具体的なトピックに重なりがない場合は低スコア</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout warn" style="margin-top:14px;">
+          <span class="callout-icon">⚠️</span>
+          <div>AI の判定はあくまで自動評価です。出力された候補が実際のサイトの文脈に合わない場合は、担当者が判断して設置を見送ってください。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ トラブル ═══ -->
+    <section class="section" id="trouble">
+      <div class="section-header">
+        <div class="step-circle" style="background:#dc2626; font-size:15px;">?</div>
+        <div>
+          <h2>トラブルシューティング</h2>
+          <div class="sub">よくある問題と対処法</div>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>「ランナーサーバーが起動していません」と Cowork に表示される</div>
+        <div class="trouble-a">
+          <p>PC 起動後にサーバーがまだ起動していないか、停止しています。PowerShell で手動起動してください。</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+            <pre><code>py "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\local_runner.py"</code></pre>
+          </div>
+          <p>「NYSEO Runner: http://127.0.0.1:8765」と表示されたらサーバーが起動しています。PowerShell は<strong>閉じずに</strong>、Cowork で再度 URL を送信してください。</p>
+          <div class="callout info">
+            <span class="callout-icon">ℹ️</span>
+            <div>このウィンドウを閉じるとサーバーも停止します。処理中は開いたままにしてください。次回からは PC 起動時に自動起動します（setup_once.ps1 で登録済み）。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>処理が途中で止まった / 手動で PowerShell ウィンドウを閉じた</div>
+        <div class="trouble-a">
+          <p><strong>そのまま再実行するだけで OK です。</strong></p>
+          <p>H 列にデータが書き込まれた記事は次回実行時に自動でスキップされ、続きから処理されます。Cowork に同じ Spreadsheet URL を送信し直してください。</p>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>⛔ Claude トークン上限のメッセージが表示された</div>
+        <div class="trouble-a">
+          <div class="terminal">
+<span class="t-red">⛔ Claudeトークン上限: You're out of extra usage · resets 6:40pm</span>
+<span class="t-yellow">⏳ 約5時間10分後（18:45）に自動再開します…</span>
+  再開まで残り 240 分…
+</div>
+          <p>Claude の利用上限に達した状態です。表示されたリセット時刻まで<strong>自動で待機</strong>し、同じ記事から処理が再開されます。</p>
+          <p>PowerShell ウィンドウをそのままにしておくか、閉じて後で手動で再実行してください（H 列が空白の記事だけ再処理されます）。</p>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>Spreadsheet に何も書き込まれない（エラーなし）</div>
+        <div class="trouble-a">
+          <p>以下を確認してください。</p>
+          <ul>
+            <li>Spreadsheet の B 列に記事 URL が入力されているか</li>
+            <li>E 列（被リンク数）が 1 以下の記事が存在するか（処理対象がない場合は何もしない）</li>
+            <li>H 列にすでにデータが入っている場合は処理済みとしてスキップされます</li>
+            <li>サービスアカウントに <strong>編集権限</strong>が付与されているか</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>「GOOGLE_SERVICE_ACCOUNT が設定されていません」と表示される</div>
+        <div class="trouble-a">
+          <p><span class="ic">setup_once.ps1</span> が未実行か、環境変数が正しく設定されていません。</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+            <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
+.\setup_once.ps1</code></pre>
+          </div>
+          <p>スクリプトを再実行して [1/4] でサービスアカウント JSON のパスを再設定してください。設定後は <strong>PC を再起動</strong>するか、PowerShell を新しく開いて再実行してください。</p>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>Chrome が自動で開かない / Cowork が Chrome を操作しない</div>
+        <div class="trouble-a">
+          <p>以下を確認してください。</p>
+          <ul>
+            <li><strong>Claude Chrome 拡張機能</strong>が Chrome にインストールされているか（ステップ 2 参照）</li>
+            <li>Chrome が <strong>デフォルトブラウザ</strong>に設定されているか<br>
+              <span style="color:var(--text-secondary);">設定 → アプリ → 既定のアプリ → ブラウザ → Google Chrome</span></li>
+            <li>Cowork（Claude Desktop Pro）が最新バージョンか</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>設定（JSON パス・API キーなど）を変更したい</div>
+        <div class="trouble-a">
+          <p><span class="ic">setup_once.ps1</span> を再実行すれば、現在の設定を確認しながら変更できます。</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+            <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
+.\setup_once.ps1</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>処理に非常に時間がかかっている</div>
+        <div class="trouble-a">
+          <ul>
+            <li><strong>CLI モード初回実行時：</strong>全記事の HTML 取得とキャッシュ作成に時間がかかります（200 記事で 30〜60 分程度）。2 回目以降はキャッシュを使うため大幅に短縮されます</li>
+            <li><strong>高速化したい場合：</strong>API モードを使うと約 3〜5 倍速くなります（API キーが必要）</li>
+            <li>処理は途中で止めても続きから再開できるため、必要に応じて分割して実行してください</li>
+          </ul>
+        </div>
+      </div>
+
+    </section>
+
+  </div><!-- /content -->
+</main>
+</div>
+
+<script>
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'コピー済！';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  const sections = document.querySelectorAll('section[id]');
+  const navItems = document.querySelectorAll('.nav-item[href]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) current = s.id; });
+    navItems.forEach(i => i.classList.toggle('active', i.getAttribute('href') === '#' + current));
+  }, { passive: true });
+  navItems.forEach(i => i.addEventListener('click', function() {
+    navItems.forEach(j => j.classList.remove('active'));
+    this.classList.add('active');
+  }));
+</script>
+</body>
+</html>

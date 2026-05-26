@@ -1,4 +1,6 @@
-from config import COL_URL, COL_KW, MAX_SEARCH_CANDIDATES, EXCLUDE_URL_PATTERNS
+import re
+
+from config import COL_URL, COL_KW, MAX_SEARCH_CANDIDATES, EXCLUDE_URL_PATTERNS, STRICT_MIN_MATCH_SCORE
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -7,6 +9,8 @@ logger = get_logger()
 def search_candidates(
     target: dict,
     all_articles: list[dict],
+    min_score: int = 1,
+    use_token_scoring: bool = True,
 ) -> list[dict]:
     """
     STEP2: 全記事のtitle/h1/h2/h3（STEP3で取得済み）とKWを照合し、
@@ -29,8 +33,8 @@ def search_candidates(
         if any(pat in url for pat in EXCLUDE_URL_PATTERNS):
             continue
 
-        score = _kw_match_score(target_kw, article)
-        if score > 0:
+        score = _kw_match_score(target_kw, article, use_token_scoring=use_token_scoring)
+        if score >= min_score:
             candidates.append({**article, "match_score": score})
 
     # マッチスコア降順でソートし上位N件に絞る
@@ -41,33 +45,48 @@ def search_candidates(
     return candidates
 
 
-def _kw_match_score(kw: str, article: dict) -> int:
+def _tokenize_kw(kw: str) -> list[str]:
+    """KWを助詞・記号で分割して意味のあるトークンリストを返す。"""
+    tokens = re.split(r'[とのでにをはがもやかなど・/　\s]+', kw)
+    return [t.strip() for t in tokens if len(t.strip()) >= 2]
+
+
+def _kw_match_score(kw: str, article: dict, use_token_scoring: bool = True) -> int:
     """KWと記事コンテンツの一致度を簡易スコアリングする。"""
     if not kw:
         return 0
 
-    score = 0
     title = article.get("title", "")
     h1 = article.get("h1", "")
     h2_list = article.get("h2_list", [])
     h3_list = article.get("h3_list", [])
     body = article.get("body_text", "")
     article_kw = article.get("kw", "")
+    searchable = title + h1 + body
 
-    # KW完全一致
+    score = 0
+
+    # KW全体での一致（高スコア）
     if kw in article_kw:
         score += 10
-    # タイトル・H1一致
     if kw in title or kw in h1:
         score += 8
-    # H2・H3一致
     if any(kw in h for h in h2_list + h3_list):
         score += 5
-    # 本文一致
     if kw in body:
         score += 3
-    # 部分一致（KWの先頭2文字）
-    if len(kw) >= 2 and kw[:2] in title + h1 + body:
-        score += 1
+
+    # トークン単位での一致（高精度モードのみ）
+    if use_token_scoring:
+        tokens = _tokenize_kw(kw)
+        for token in tokens:
+            if token in article_kw:
+                score += 5
+            if token in title or token in h1:
+                score += 4
+            if any(token in h for h in h2_list + h3_list):
+                score += 2
+            if token in body:
+                score += 1
 
     return score

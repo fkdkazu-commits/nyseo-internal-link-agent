@@ -1,4 +1,4 @@
-from config import SCORE_THRESHOLD, SCORE_THRESHOLD_LOW, MIN_CANDIDATES
+from config import SCORE_THRESHOLD, MIN_CANDIDATES
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -14,6 +14,11 @@ def judge_candidates(
     1回のAI呼び出しで全候補を判定（トークン節約）。
     """
     results = ai_judge_batch_func(target, candidates)
+
+    if not results:
+        # AI呼び出し失敗（トークン切れ・タイムアウト等）→ None で返してスキップ
+        logger.warning("STEP4: AI判定結果が空 → 書き込みをスキップします")
+        return None
 
     # urlをキーにしてスコアを引けるようにする
     score_map = {r["url"]: r for r in results}
@@ -32,16 +37,10 @@ def judge_candidates(
 
     scored.sort(key=lambda x: x["score"], reverse=True)
 
-    # 通常閾値で絞り込み
     adopted = [c for c in scored if c["score"] >= SCORE_THRESHOLD]
 
-    # 不足の場合は閾値を下げて再適用（AIは呼ばない）
-    if len(adopted) < MIN_CANDIDATES:
-        logger.info(
-            f"採用 {len(adopted)} 件 < {MIN_CANDIDATES} 件 "
-            f"→ 閾値を {SCORE_THRESHOLD_LOW} 点に下げて再適用"
-        )
-        adopted = [c for c in scored if c["score"] >= SCORE_THRESHOLD_LOW]
-
-    logger.info(f"STEP4完了: 採用 {len(adopted)} 件")
+    if not adopted:
+        logger.info(f"STEP4完了: 採用0件（閾値{SCORE_THRESHOLD}点未満）→ 「該当なし」を出力")
+    else:
+        logger.info(f"STEP4完了: 採用 {len(adopted)} 件")
     return adopted

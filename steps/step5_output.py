@@ -24,6 +24,14 @@ def write_output(
     while len(row) < max_cols:
         row.append("")
 
+    if not top:
+        row[7] = "該当なし"
+        for col_url, col_heading in _COL_PAIRS[1:]:
+            row[col_url] = ""
+            row[col_heading] = ""
+        logger.info("STEP5完了: 該当なし を出力")
+        return row
+
     for i, (col_url, col_heading) in enumerate(_COL_PAIRS):
         if i < len(top):
             row[col_url] = top[i].get("url", "")

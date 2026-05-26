@@ -415,12 +415,18 @@
       <div class="sidebar-meta">Ver 2.0 &nbsp;|&nbsp; 2026-05-17</div>
     </div>
     <nav class="sidebar-nav">
+      <div class="nav-group-label">関連ドキュメント</div>
+      <a class="nav-item" href="install.html" style="color:#34d399; border-left-color:#34d399; background:rgba(52,211,153,.07);">
+        📋 導入手順書（クライアント向け）
+      </a>
+
       <div class="nav-group-label">目次</div>
       <a class="nav-item" href="#req">01. 要件定義書</a>
       <a class="nav-item nav-sub" href="#req-overview">プロジェクト概要</a>
       <a class="nav-item nav-sub" href="#req-func">機能要件（5STEP）</a>
       <a class="nav-item nav-sub" href="#req-nonfunc">非機能要件・制約</a>
       <a class="nav-item nav-sub" href="#req-client">クライアント準備事項</a>
+      <a class="nav-item nav-sub" href="#req-install">他PCへの展開手順</a>
       <a class="nav-item" href="#design">02. 基本設計書</a>
       <a class="nav-item nav-sub" href="#design-stack">技術スタック</a>
       <a class="nav-item nav-sub" href="#design-arch">システム構成</a>
@@ -676,6 +682,56 @@
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
             </table>
+          </div>
+        </div>
+
+        <div class="card" id="req-install">
+          <div class="card-title">1.8 他PCへの展開手順</div>
+          <p style="margin-bottom:12px;">別のPCでエージェントを動かす場合は、以下の手順で環境を構築してください。</p>
+          <div class="table-wrap">
+            <table>
+              <tr><th>#</th><th>手順</th><th>内容</th></tr>
+              <tr>
+                <td>1</td>
+                <td>Python インストール</td>
+                <td><a href="https://www.python.org/downloads/" target="_blank">python.org</a> から Python 3.10 以上をインストール。インストール時に「Add Python to PATH」にチェックを入れること</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Claude Desktop Pro ログイン</td>
+                <td>Claude Desktop アプリをインストールし、Pro プランアカウントでログイン（Cowork内蔵AIとして使用）</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>プロジェクトフォルダを配置</td>
+                <td><code>nyseo-internal-link-agent</code> フォルダをそのままコピーして任意の場所に配置</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>パッケージインストール</td>
+                <td>PowerShell でプロジェクトフォルダに移動し、<code>pip install -r requirements.txt</code> を実行</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>サービスアカウント JSON 配置</td>
+                <td>Google サービスアカウント JSON ファイルをプロジェクトフォルダ<strong>外</strong>の任意フォルダに配置（例: <code>C:\secrets\nyseo-sa.json</code>）</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Spreadsheet 共有</td>
+                <td>サービスアカウントのメールアドレスを対象 Spreadsheet の共有設定に追加（編集者権限）</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>実行</td>
+                <td>以下のコマンドを1行で実行（セッション変数は永続しないため、毎回一緒に指定する）<br>
+                  <code>$env:GOOGLE_SERVICE_ACCOUNT="C:\secrets\nyseo-sa.json"; py main.py &lt;SpreadsheetURL&gt;</code>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="alert alert-warning" style="margin-top:12px;">
+            ⚠️ <code>$env:GOOGLE_SERVICE_ACCOUNT</code> はセッション変数です。PowerShell を閉じるとリセットされるため、実行のたびに上記コマンドをまとめて実行してください。永続化する場合はシステム環境変数に登録してください。
           </div>
         </div>
       </div>
@@ -1045,29 +1101,18 @@ judgment_result = {
           <div class="mermaid-wrap">
             <pre class="mermaid">
 flowchart TD
-    START([py main.py SpreadsheetURL]) --> INIT[SheetsClient初期化\nSheets接続・article_cache読み込み]
-    INIT --> LOAD[Sheet1全データ読み込み]
-    LOAD --> STEP1[STEP1: E列≤1 かつ H列空の対象行を抽出]
-    STEP1 --> HTML_LOOP[全記事HTMLループ]
-    HTML_LOOP --> CACHE_CHECK{article_cache\nに存在?}
-    CACHE_CHECK -- Yes → キャッシュ使用 --> NEXT_HTML
-    CACHE_CHECK -- No --> HTTP[HTTP取得 + BeautifulSoup解析]
-    HTTP --> SAVE[article_cacheタブに保存]
-    SAVE --> NEXT_HTML[次の記事へ]
-    NEXT_HTML --> HTML_DONE{全記事完了?}
-    HTML_DONE -- No --> HTML_LOOP
-    HTML_DONE -- Yes --> TARGET_LOOP[対象記事ごとの処理ループ]
-    TARGET_LOOP --> KW_CHECK{C列KWあり?}
-    KW_CHECK -- Yes --> USE_KW[C列KWを使用]
-    KW_CHECK -- No（auto_detect） --> H2H3[キャッシュのh2/h3見出しをKWとして使用]
-    USE_KW --> STEP2
-    H2H3 --> STEP2
-    STEP2[STEP2: KW一致 + AI上位概念KW展開で候補探索]
-    STEP2 --> STEP4[STEP4: AI関連性スコアリング\n上位→下位パターン特化]
-    STEP4 --> STEP5[STEP5: SpreadsheetのH〜M列に書き込み]
-    STEP5 --> NEXT_TARGET{次の対象記事あり?}
-    NEXT_TARGET -- Yes --> TARGET_LOOP
-    NEXT_TARGET -- No --> DONE([全処理完了])
+    START([py main.py URL\n--api フラグで APIモード]) --> INIT[SheetsClient初期化\nSheets接続・article_cache読み込み]
+    INIT --> LOAD[Sheet1全データ読み込み\n全記事のURLとKWをインデックス化]
+    LOAD --> STEP1[STEP1: E列≤1 かつ H列空の\n対象記事を抽出]
+    STEP1 --> FETCH[フェーズ1: 未キャッシュ記事を全件HTTP取得\narticle_cacheタブに保存]
+    FETCH --> KW_EXT[フェーズ2: KW未設定記事のメインKW抽出\nCLIモード: Haiku逐次\nAPIモード: Haiku並列]
+    KW_EXT --> TARGET_LOOP[対象記事ごとの処理ループ]
+    TARGET_LOOP --> STEP2[STEP2: KW一致スコアリング\n候補不足時はKW拡張で補完\n上位20件を選出]
+    STEP2 --> STEP4[STEP4: AI関連性スコアリング\n上位→下位パターン特化・60点以上を採用\nCLIモード: Sonnet逐次\nAPIモード: Sonnet 5並列]
+    STEP4 --> STEP5[STEP5: H〜M列に書き込み\n採用なし→「該当なし」\n技術的失敗→空欄のまま]
+    STEP5 --> NEXT{次の対象記事あり?}
+    NEXT -- Yes --> TARGET_LOOP
+    NEXT -- No --> DONE([全処理完了])
             </pre>
           </div>
         </div>
@@ -1109,14 +1154,72 @@ flowchart TD
           <div class="card-title">5.4 費用について</div>
           <h4>開発費用</h4>
           <p>開発期間中に発生するテスト実行分の費用は開発費用に含まれます。別途ご負担いただく費用はありません。</p>
+
+          <h4>実行モード比較（CLIモード vs APIモード）</h4>
+          <p style="margin-bottom:8px">本エージェントは2つの実行モードに対応しています。実績値（231記事・mensheaven.jp）に基づく比較です。</p>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>CLIモード（デフォルト）</th><th>APIモード（--api）</th></tr>
+              <tr>
+                <td><strong>実行コマンド</strong></td>
+                <td><code>py main.py &lt;URL&gt;</code></td>
+                <td><code>py main.py &lt;URL&gt; --api</code></td>
+              </tr>
+              <tr>
+                <td><strong>AI呼び出し方法</strong></td>
+                <td>Cowork内蔵Claude CLI（サブプロセス）</td>
+                <td>Anthropic API直接（非同期・5並列）</td>
+              </tr>
+              <tr>
+                <td><strong>231記事の所要時間</strong></td>
+                <td>約2日以上（25件/5時間でトークン切れ）</td>
+                <td><strong>約50分</strong>（全自動・放置可）</td>
+              </tr>
+              <tr>
+                <td><strong>PC起動時間</strong></td>
+                <td>2日以上（実処理：約7時間／待機：約45時間。トークン切れ時は自動待機・再開）</td>
+                <td><strong>約50分</strong></td>
+              </tr>
+              <tr>
+                <td><strong>初回全件スキャンコスト</strong></td>
+                <td>約¥3,000（Proプラン月額の大半を消費）</td>
+                <td>約$14（article_cache作成：約$1.5＋内部リンク生成：約$12）</td>
+              </tr>
+              <tr>
+                <td><strong>月次追加記事（10〜20件）</strong></td>
+                <td>Proプラン内（追加費用なし）</td>
+                <td>約$0.5〜1</td>
+              </tr>
+              <tr>
+                <td><strong>APIキー</strong></td>
+                <td>不要</td>
+                <td>ANTHROPIC_API_KEY 必要</td>
+              </tr>
+              <tr>
+                <td><strong>品質</strong></td>
+                <td>同等</td>
+                <td>同等（候補数がやや多い傾向）</td>
+              </tr>
+            </table>
+          </div>
+          <div class="alert alert-info">
+            💡 初回全件スキャンおよび大量処理にはAPIモードを推奨します。月次の追加記事数が少ない場合はどちらのモードも実用的です。APIモードを使用する場合は <code>ANTHROPIC_API_KEY</code> 環境変数の設定が必要です。
+          </div>
+
           <h4>運用時の継続コスト</h4>
           <div class="table-wrap">
             <table>
               <tr><th>項目</th><th>内容</th><th>目安</th><th>負担</th></tr>
               <tr>
                 <td><strong>Cowork（Claude Proプラン）</strong></td>
-                <td>エージェント実行環境・AI判定（KW拡張・関連性スコアリング）を含む。APIキー・従量課金は発生しない。</td>
+                <td>CLIモード使用時の実行環境。APIモードのみ使用する場合は任意。</td>
                 <td>約$20/月（¥3,000程度）</td>
+                <td>クライアント様</td>
+              </tr>
+              <tr>
+                <td><strong>Anthropic API</strong></td>
+                <td>APIモード使用時の従量課金。月次追加記事が少なければ微量。</td>
+                <td>初回全件スキャン：約$14（article_cache作成$1.5＋内部リンク生成$12）<br>月次追加（10〜20件）：約$0.5〜1</td>
                 <td>クライアント様</td>
               </tr>
               <tr>
@@ -1132,9 +1235,6 @@ flowchart TD
                 <td>—</td>
               </tr>
             </table>
-          </div>
-          <div class="alert alert-info">
-            💡 Cowork内蔵のClaude AIを使用するため、別途Claude APIキーの発行・管理は不要です。Claude Proプラン（約$20/月）のご契約のみで運用いただけます。
           </div>
         </div>
 
