@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NYSEO 内部リンク構築AIエージェント 技術仕様書</title>
+  <title>内部リンク構築AIエージェント 技術仕様書</title>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     :root {
@@ -411,7 +411,7 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-label">System Specification</div>
-      <div class="sidebar-title">NYSEO<br>内部リンク構築AIエージェント</div>
+      <div class="sidebar-title">内部リンク構築AIエージェント</div>
       <div class="sidebar-meta">Ver 2.0 &nbsp;|&nbsp; 2026-05-17</div>
     </div>
     <nav class="sidebar-nav">
@@ -452,7 +452,7 @@
 
     <div class="page-header">
       <div class="page-header-label">System Specification Document</div>
-      <div class="page-header-title">NYSEO 内部リンク構築AIエージェント<br>技術仕様書</div>
+      <div class="page-header-title">内部リンク構築AIエージェント<br>技術仕様書</div>
       <div class="page-header-badges">
         <span class="ph-badge">📅 更新日: 2026-05-17</span>
         <span class="ph-badge">🏷 Ver 2.0 — Google Sheets方式</span>
@@ -474,7 +474,7 @@
         <div class="card" id="req-overview">
           <div class="card-title">1.1 プロジェクト概要</div>
           <h4>目的</h4>
-          <p>NYSEOデータを格納したGoogle Spreadsheetを読み込み、被リンク不足記事（被リンク数E列≤1）に対して、関連性の高い他記事から内部リンクを設置する候補を自動提案し、SEO内部リンク構築業務を半自動化する。</p>
+          <p>SEOツールから出力したGoogle Spreadsheetを読み込み、被リンク不足記事（被リンク数E列≤1）に対して、関連性の高い他記事から内部リンクを設置する候補を自動提案し、SEO内部リンク構築業務を半自動化する。</p>
           <div class="alert alert-info">
             💡 最終的な内部リンク設置はクライアント担当者様が確認・判断することを想定しています。WordPressへの自動反映は本フェーズでは対象外となります。
           </div>
@@ -573,11 +573,10 @@
             </div>
             <div class="step-body">
               <ul>
-                <li>Cowork内蔵AIが「候補記事が対象記事の上位概念・まとめ記事か」を軸に100点満点でスコアリングする</li>
-                <li>同じジャンルの横並び記事（例: 品川の風俗街↔鶯谷の風俗街）は低スコアとなる</li>
-                <li>スコア ≥ 60点の記事を採用候補とする</li>
-                <li>候補が2件未満の場合は閾値を40点に下げて再判定する</li>
-                <li>採用候補から「貼る箇所の見出し」もAIが合わせて提案する</li>
+                <li>Claude Sonnetが読者層・地理的一致・自然さ・トピック深度の4項目・100点満点で全候補を一括採点する</li>
+                <li>スコア ≥ 60点の記事を採用候補とする（未満は「該当なし」）</li>
+                <li>採用候補から「リンクを貼る箇所の見出し」もAIが合わせて特定する</li>
+                <li>採用なしの場合はH列に「該当なし」と書き込み（空白のままにしない）</li>
               </ul>
             </div>
           </div>
@@ -639,7 +638,7 @@
               <tr><td>実行環境</td><td>Cowork上で完結させる</td></tr>
               <tr><td>言語</td><td>Python 3.10以上（BeautifulSoup / requests / gspread / google-auth）</td></tr>
               <tr><td>AI</td><td>Cowork内蔵 Claude AI（APIキー不要）</td></tr>
-              <tr><td>データ基盤</td><td>Google Spreadsheet（NYSEOデータ＋article_cacheタブ）</td></tr>
+              <tr><td>データ基盤</td><td>Google Spreadsheet（記事一覧データ＋article_cacheタブ）</td></tr>
               <tr><td>認証情報管理</td><td>サービスアカウントJSONはプロジェクトフォルダ外の専用フォルダに保管。環境変数 <code>GOOGLE_SERVICE_ACCOUNT</code> で参照</td></tr>
               <tr><td>WordPress自動投稿</td><td>本フェーズ対象外</td></tr>
               <tr><td>アンカーテキスト自動生成</td><td>本フェーズ対象外</td></tr>
@@ -663,7 +662,7 @@
               </tr>
               <tr>
                 <td>Google Spreadsheet</td>
-                <td>NYSEOから出力したデータをSpreadsheetに貼り付け済みであること</td>
+                <td>SEOツールから出力したデータをSpreadsheetに取り込み済みであること</td>
                 <td><span class="badge badge-orange">要確認</span></td>
               </tr>
               <tr>
@@ -776,7 +775,7 @@
     └─ STEP5: Spreadsheetへ書き込み（H〜M列）
          ↓
 [Google Spreadsheet（共有）]
-    ├─ Sheet1: NYSEOデータ + H〜M列に提案結果
+    ├─ Sheet1: 記事一覧データ + H〜M列に提案結果
     └─ article_cache: URL・title・h1・h2_json・h3_json・body_text・fetched_at
          ↓
 [クライアント担当者が全員でSpreadsheetを確認・最終判断]
@@ -813,7 +812,7 @@ nyseo-internal-link-agent/
         <div class="card" id="design-sheets">
           <div class="card-title">2.4 Spreadsheetタブ構成</div>
           <div class="alert alert-info">
-            📋 <strong>Sheet1（1枚目）</strong>にNYSEOデータを配置します。<strong>article_cacheタブ（2枚目）</strong>はシステムが初回実行時に自動作成します。手動での作成は不要です。
+            📋 <strong>Sheet1（1枚目）</strong>に記事一覧データを配置します。<strong>article_cacheタブ（2枚目）</strong>はシステムが初回実行時に自動作成します。手動での作成は不要です。
           </div>
           <h4>article_cacheタブの列構成</h4>
           <div class="table-wrap">
@@ -948,22 +947,21 @@ nyseo-internal-link-agent/
         </div>
 
         <div class="card" id="ai-score">
-          <div class="card-title">3.1 関連性スコアリング設計（上位→下位パターン特化）</div>
+          <div class="card-title">3.1 関連性スコアリング設計（4項目・100点満点）</div>
           <div class="alert alert-info">
             🔗 <strong>リンク方向：</strong>候補記事（リンクを貼る側）→ 対象記事（リンク先・被リンクを増やしたい記事）<br>
-            <strong>想定パターン：</strong>「風俗の種類まとめ」（上位概念）→「デリヘルスタッフの仕事内容」（下位詳細）のような構造が高スコアになります。
+            <strong>判定モデル：</strong>Claude Sonnet が全候補を1回の呼び出しで一括採点します。
           </div>
           <div class="table-wrap">
             <table>
               <tr><th>判定観点</th><th>配点</th><th>判定内容</th></tr>
-              <tr><td><strong>上位概念・まとめ記事関係</strong></td><td>0〜40点</td><td>候補記事が「種類まとめ」「ガイド」「特集」で、対象記事がその1要素になっているか</td></tr>
-              <tr><td><strong>読者の誘導自然性</strong></td><td>0〜30点</td><td>候補記事を読んで「もっと詳しく知りたい」と思ったとき、対象記事が答えになるか</td></tr>
-              <tr><td><strong>文脈への含まれやすさ</strong></td><td>0〜30点</td><td>候補記事の文脈内に対象記事のトピックが自然に含まれるか</td></tr>
-              <tr style="background:#f8fafc"><td><strong>合計</strong></td><td><strong>0〜100点</strong></td><td></td></tr>
+              <tr><td><strong>読者層の一致</strong></td><td>25点</td><td>利用者側・提供者側・管理者側を自律推定し、両記事の読者層が一致するか評価</td></tr>
+              <tr><td><strong>地理的一致</strong></td><td>15点</td><td>地名を含む記事同士は地域マッチを必須判定。地域外リンクを排除</td></tr>
+              <tr><td><strong>読者にとっての自然さ</strong></td><td>35点</td><td>リンクが読者の記事内での流れを妨げないか。文脈上の自然さを評価</td></tr>
+              <tr><td><strong>トピックの深さと関連性</strong></td><td>25点</td><td>表面的なキーワード一致でなく、内容レベルの接点があるか評価</td></tr>
+              <tr style="background:#f8fafc"><td><strong>合計</strong></td><td><strong>100点</strong></td><td>60点以上を採用</td></tr>
             </table>
           </div>
-          <h4>水平リンクは低スコアになります</h4>
-          <p>同じジャンルの別地域・別サービスの横並び記事（例: 品川の風俗街↔鶯谷の風俗街）は、上位概念関係がないためスコアが10点以下になります。</p>
         </div>
 
         <div class="card">
@@ -973,8 +971,7 @@ nyseo-internal-link-agent/
               <tr><th>スコア</th><th>評価</th><th>採用判定</th></tr>
               <tr class="score-high"><td>80〜100点</td><td>強く関連あり</td><td>✅ 優先採用（最上位で出力）</td></tr>
               <tr class="score-mid"><td>60〜79点</td><td>関連あり</td><td>✅ 通常採用</td></tr>
-              <tr class="score-low"><td>40〜59点</td><td>やや関連あり</td><td>⚠️ 候補が2件未満の場合のみ採用（閾値下げ時）</td></tr>
-              <tr class="score-none"><td>0〜39点</td><td>関連なし</td><td>❌ 除外</td></tr>
+              <tr class="score-none"><td>0〜59点</td><td>関連なし・不十分</td><td>❌ 除外（「該当なし」と出力）</td></tr>
             </table>
           </div>
         </div>
@@ -997,7 +994,7 @@ nyseo-internal-link-agent/
 - 対象記事の内容を「まとめる側」「紹介する側」になるKWを出力してください
 - 日本語で出力すること</pre>
 
-          <h4>STEP4: 関連性判定プロンプト（上位→下位パターン特化）</h4>
+          <h4>STEP4: 関連性判定プロンプト（4項目・100点満点）</h4>
           <pre>
 あなたはSEOの内部リンク構造を最適化する専門家です。
 
@@ -1008,21 +1005,21 @@ nyseo-internal-link-agent/
 - KW: {target_kw}
 - URL: {target_url}
 
-## 候補記事（リンクを設置する側）
-- タイトル: {candidate_title}
-- URL: {candidate_url}
-- 主要見出し: {candidate_headings}
-- 本文冒頭: {candidate_body}
+## 候補記事リスト（JSON）
+{candidates_json}
 
 ## 採点基準（合計100点）
-1. 候補記事が対象記事の「上位概念・まとめ記事」になっているか（40点）
-   - 高得点: 候補記事が「種類まとめ」「ガイド」「特集」で、対象記事がその1要素
-   - 低得点: 同じジャンルの別地域・別サービスの横並び記事（0〜10点）
-2. 候補記事の読者が対象記事を読みたくなるか（30点）
-3. 候補記事の文脈に対象記事のトピックが自然に含まれるか（30点）
+1. 読者層の一致（25点）
+   利用者側・提供者側・管理者側を自律推定し、両記事の読者層が一致するか
+2. 地理的一致（15点）
+   地名を含む記事同士は地域マッチ必須。地域外リンクは0点
+3. 読者にとっての自然さ（35点）
+   リンクが読者の記事内での流れを妨げないか
+4. トピックの深さと関連性（25点）
+   表面的なKW一致でなく、内容レベルの接点があるか
 
 ## 出力形式（JSONのみ・余分なテキスト不要）
-{"score": 整数(0-100), "reason": "判定理由（1〜2文）", "recommended_heading": "候補記事内でリンクを設置するのに最適な見出し"}</pre>
+[{"url": "候補URL", "score": 整数(0-100), "reason": "判定理由（1〜2文）", "recommended_heading": "リンクを設置する最適な見出し"}, ...]</pre>
         </div>
       </div>
 
@@ -1038,7 +1035,7 @@ nyseo-internal-link-agent/
         <div class="card" id="data-sheet">
           <div class="card-title">4.1 Spreadsheet列定義（Sheet1）</div>
           <div class="alert alert-info">
-            📋 A〜G列はNYSEOデータ（入力・読み取りのみ）、H〜M列はシステムの出力領域です。<br>
+            📋 A〜G列は記事一覧データ（入力・読み取りのみ）、H〜M列はシステムの出力領域です。<br>
             🔗 <strong>リンク方向：</strong>H列以降に出力される「候補記事URL」は、<em>その記事から</em>対象記事へ内部リンクを新たに設置する記事です。
           </div>
           <div class="table-wrap">
@@ -1126,7 +1123,7 @@ flowchart TD
           <div class="table-wrap">
             <table>
               <tr><th>手順</th><th>担当</th><th>操作内容</th></tr>
-              <tr><td>①</td><td>クライアント</td><td>NYSEOデータをSpreadsheetに貼り付け</td></tr>
+              <tr><td>①</td><td>クライアント</td><td>SEOツールのCSVデータをSpreadsheetに取り込み</td></tr>
               <tr><td>②</td><td>クライアント</td><td>サービスアカウントのメールアドレスをSpreadsheetに編集者として共有</td></tr>
               <tr><td>③</td><td>運用者</td><td>Coworkのチャット欄に「Spreadsheet URLを伝える」</td></tr>
               <tr><td>④</td><td>システム（自動）</td><td>STEP1〜5を自動実行し、H〜M列に提案結果を書き込む。article_cacheタブにHTML解析結果を保存</td></tr>
@@ -1239,7 +1236,7 @@ flowchart TD
         </div>
 
         <div class="footer">
-          <p>NYSEO 内部リンク構築AIエージェント 技術仕様書 v2.0 — 更新日: 2026-05-17</p>
+          <p>内部リンク構築AIエージェント 技術仕様書 v2.1 — 更新日: 2026-05-26</p>
           <p>本ドキュメントは GitHub Pages で公開されています。内容は開発進捗に応じて更新されます。</p>
         </div>
       </div>

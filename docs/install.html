@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NYSEO 内部リンクエージェント — 導入手順書</title>
+  <title>内部リンク構築エージェント — 導入手順書</title>
   <style>
     :root {
       --sidebar-width: 280px;
@@ -208,7 +208,7 @@
 ═══════════════════════════════ -->
 <nav class="sidebar">
   <div class="sidebar-header">
-    <div class="sidebar-label">NYSEO Agent</div>
+    <div class="sidebar-label">内部リンクエージェント</div>
     <div class="sidebar-title">導入手順書</div>
     <div class="sidebar-meta">クライアント向けセットアップガイド</div>
   </div>
@@ -248,7 +248,7 @@
 <main class="main">
   <div class="page-header">
     <div class="page-header-label">Installation Guide</div>
-    <h1>NYSEO 内部リンクエージェント<br>導入手順書</h1>
+    <h1>内部リンク構築エージェント<br>導入手順書</h1>
     <div class="page-header-desc">
       Windows 11 環境への完全セットアップガイドです。<br>
       順番通りに進めると約 15〜20 分で完了します。
@@ -269,7 +269,7 @@
 
       <div class="card">
         <h3>何をするツールか</h3>
-        <p>NYSEOから書き出した Google Spreadsheet を読み込み、<strong>被リンク数が少ない記事（E列 ≤ 1）</strong>に対して、サイト内の他記事から内部リンクを設置すべき候補を自動提案します。結果は Spreadsheet の H〜M 列に自動書き込みされます。</p>
+        <p>SEOツールから書き出した Google Spreadsheet を読み込み、<strong>被リンク数が少ない記事（E列 ≤ 1）</strong>に対して、サイト内の他記事から内部リンクを設置すべき候補を自動提案します。結果は Spreadsheet の H〜M 列に自動書き込みされます。</p>
       </div>
 
       <div class="card">
@@ -353,15 +353,15 @@
               <td><span class="badge b-blue">管理者が渡す</span></td>
             </tr>
             <tr>
-              <td><strong>NYSEO Spreadsheet</strong></td>
-              <td>内部リンクを設置したいサイトの記事一覧（NYSEO 出力済み）</td>
-              <td><span class="badge b-blue">管理者が渡す</span></td>
+              <td><strong>記事一覧 CSV</strong></td>
+              <td>SEOツールから書き出した記事一覧データ（CSV形式）。Google Spreadsheet へのインポート手順は STEP 10 で案内します</td>
+              <td><span class="badge b-green">自分で用意</span></td>
             </tr>
           </tbody>
         </table>
         <div class="callout warn" style="margin-top:14px;">
           <span class="callout-icon">⚠️</span>
-          <div>Spreadsheet にはサービスアカウントのメールアドレス（<span class="ic">nyseo-agent-…@…iam.gserviceaccount.com</span>）の<strong>編集権限を事前に付与</strong>しておく必要があります。管理者が設定してください。</div>
+          <div>Spreadsheet にはサービスアカウントのメールアドレスの<strong>編集権限を付与</strong>する必要があります。メールアドレスは install.ps1 の STEP 10 で自動表示されます。</div>
         </div>
       </div>
     </section>
@@ -458,7 +458,7 @@
         </ul>
         <div class="callout info">
           <span class="callout-icon">ℹ️</span>
-          <div>Cowork には <strong>NYSEO プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成・設定は管理者が行います。</div>
+          <div>Cowork には <strong>内部リンクエージェント プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成は install.ps1 の STEP 9 で案内します。</div>
         </div>
       </div>
     </section>
@@ -639,7 +639,7 @@ pip install -r requirements.txt</code></pre>
 &nbsp;
 Next steps:
   1. Restart Cowork (Claude Desktop Pro)
-  2. Open the NYSEO project in Cowork
+  2. Open the 内部リンクエージェント project in Cowork
   3. Paste your Spreadsheet URL in the chat
 &nbsp;
 The runner server will start automatically on every Windows boot.
@@ -685,14 +685,14 @@ To change settings later, run this script again.
         <h3>② プロジェクトを新規作成する</h3>
         <ol style="line-height:2.3;">
           <li>左サイドバーの「<strong>Projects</strong>」を開き、「<strong>+ New project</strong>」をクリックする</li>
-          <li>プロジェクト名に <span class="ic">NYSEO</span> と入力して作成する</li>
+          <li>プロジェクト名に <span class="ic">内部リンクエージェント</span> と入力して作成する</li>
           <li>「<strong>Project instructions</strong>（プロジェクト指示）」の入力欄を開く</li>
           <li>下の手順③でコピーした指示文を<strong>貼り付ける</strong>（Ctrl+V）</li>
           <li>保存して完了</li>
         </ol>
         <div class="callout info" style="margin-top:12px;">
           <span class="callout-icon">ℹ️</span>
-          <div>プロジェクトを作成しておくと、次回以降は左サイドバーから「NYSEO」を選ぶだけで同じ指示でエージェントが動作します。</div>
+          <div>プロジェクトを作成しておくと、次回以降は左サイドバーから「内部リンクエージェント」を選ぶだけで同じ指示でエージェントが動作します。</div>
         </div>
       </div>
 
@@ -705,7 +705,7 @@ To change settings later, run this script again.
         </div>
         <div class="code-block">
           <div class="code-header"><span class="code-lang">Cowork プロジェクト指示文（全文コピー → 貼り付け）</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-          <pre># NYSEO 内部リンク構築AIエージェント — Cowork実行手順
+          <pre># 内部リンク構築AIエージェント — Cowork実行手順
 
 ## プロジェクト設定（パスを変更する場合はここを編集）
 
@@ -715,7 +715,7 @@ RUNNER_URL  : http://127.0.0.1:8765
 ```
 
 ## このエージェントの目的
-NYSEOから出力したSpreadsheetを読み込み、被リンク不足記事（E列≤1）に対して
+SEOツールから出力したSpreadsheetを読み込み、被リンク不足記事（E列≤1）に対して
 関連性の高い他記事から内部リンクを設置する候補を自動提案する。
 
 ## Coworkからの実行方法
@@ -877,7 +877,7 @@ http://127.0.0.1:8765/stop
         <ul class="checklist">
           <li><span class="ck-icon">✅</span><div><div class="ck-title">Python がインストールされている</div><div class="ck-desc"><span class="ic">py --version</span> でバージョンが表示される</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">Chrome に Claude 拡張機能がインストールされている</div><div class="ck-desc">ブラウザ右上に Claude アイコンが表示されている</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">Cowork が起動している</div><div class="ck-desc">NYSEO プロジェクトが開ける</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Cowork が起動している</div><div class="ck-desc">内部リンクエージェント プロジェクトが開ける</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">JSON ファイルが正しい場所にある</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo-agent-…json</span> が存在する</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">pip install が完了している</div><div class="ck-desc">requirements.txt のライブラリがすべて入っている</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">ランナーサーバーが起動している</div><div class="ck-desc"><span class="ic">http://127.0.0.1:8765/status</span> で <span class="ic">{"status": "idle"}</span> が返る</div></div></li>
@@ -896,13 +896,43 @@ http://127.0.0.1:8765/stop
       </div>
 
       <div class="card">
-        <h3>サービスアカウントへの編集権限付与（管理者が行う）</h3>
+        <h3>① Google Spreadsheet を新規作成する</h3>
         <ol>
-          <li>Spreadsheet を開く</li>
-          <li>右上の「共有」ボタンをクリック</li>
-          <li>サービスアカウントのメールアドレス（<span class="ic">nyseo-agent-…@…iam.gserviceaccount.com</span>）を入力</li>
+          <li>ブラウザで <span class="ic">drive.google.com</span> を開く</li>
+          <li>「＋ 新規」→「Google スプレッドシート」をクリック</li>
+          <li>シート名は任意でOK（例：内部リンク管理）</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>② CSV データをインポートする</h3>
+        <ol>
+          <li>メニューの「ファイル」→「インポート」をクリック</li>
+          <li>「アップロード」タブで SEO ツールから書き出した CSV ファイルを選択</li>
+          <li>インポート設定を以下の通りに設定する</li>
+        </ol>
+        <div class="callout info" style="margin-top:8px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>
+            インポート場所：<strong>現在のシートを置換する</strong><br>
+            区切り文字：<strong>カンマ</strong><br>
+            テキストを数値・日付に変換する：<strong>オン</strong>
+          </div>
+        </div>
+        <p style="margin-top:12px;">インポート後、列構成が以下になっているか確認してください。</p>
+      </div>
+
+      <div class="card">
+        <h3>サービスアカウントへの編集権限付与</h3>
+        <ol>
+          <li>Spreadsheet 右上の「共有」ボタンをクリック</li>
+          <li>install.ps1 の STEP 10 で表示されたサービスアカウントのメールアドレスを入力</li>
           <li>権限を「<strong>編集者</strong>」に設定して「送信」</li>
         </ol>
+        <div class="callout warn" style="margin-top:8px;">
+          <span class="callout-icon">⚠️</span>
+          <div>この設定をしないとツールが Spreadsheet を読み書きできません。必ず実施してください。</div>
+        </div>
       </div>
 
       <div class="card">
@@ -971,7 +1001,7 @@ http://127.0.0.1:8765/stop
         <h3>実行手順</h3>
         <ol style="line-height:2.3; counter-reset: step;">
 
-          <li><strong>Cowork を開き、NYSEO プロジェクトを選択する</strong></li>
+          <li><strong>Cowork を開き、内部リンクエージェント プロジェクトを選択する</strong></li>
 
           <li><strong>チャット欄に Spreadsheet の URL を貼り付けて送信する</strong><br>
             <span style="color:var(--text-secondary); font-size:12.5px;">例：<span class="ic">https://docs.google.com/spreadsheets/d/xxxxx/edit</span></span>
@@ -1049,7 +1079,7 @@ http://127.0.0.1:8765/stop
         <h3>処理ログの見方（PowerShell ウィンドウ）</h3>
         <div class="terminal">
 <span class="t-blue">==================================================</span>
-<span class="t-blue">NYSEO 内部リンク構築AIエージェント 開始</span>
+<span class="t-blue">内部リンク構築AIエージェント 開始</span>
 <span class="t-blue">精度モード: 高精度（トークン分割スコアリング）</span>
 <span class="t-blue">==================================================</span>
 インデックス構築完了: 213 件（キャッシュ済み 213 件）
@@ -1222,7 +1252,7 @@ STEP2: 候補 8 件
             <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
             <pre><code>py "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\local_runner.py"</code></pre>
           </div>
-          <p>「NYSEO Runner: http://127.0.0.1:8765」と表示されたらサーバーが起動しています。PowerShell は<strong>閉じずに</strong>、Cowork で再度 URL を送信してください。</p>
+          <p>「内部リンクエージェント Runner: http://127.0.0.1:8765」と表示されたらサーバーが起動しています。PowerShell は<strong>閉じずに</strong>、Cowork で再度 URL を送信してください。</p>
           <div class="callout info">
             <span class="callout-icon">ℹ️</span>
             <div>このウィンドウを閉じるとサーバーも停止します。処理中は開いたままにしてください。次回からは PC 起動時に自動起動します（setup_once.ps1 で登録済み）。</div>
