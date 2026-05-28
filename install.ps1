@@ -21,6 +21,7 @@ function Show-Header {
 
 function Wait-Enter {
     param([string]$Prompt = "完了したら Enter を押して次へ進みます...")
+    $Host.UI.RawUI.FlushInputBuffer()
     Write-Host ""
     Write-Host "  >>> $Prompt" -ForegroundColor Magenta
     Read-Host | Out-Null
