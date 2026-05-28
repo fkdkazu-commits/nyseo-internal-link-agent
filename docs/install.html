@@ -488,7 +488,7 @@
           <span class="tree-dir">nyseo-internal-link-agent/</span><br>
           ├── <span class="tree-key">main.py</span>　　　　　<span style="color:#475569;">← メイン処理</span><br>
           ├── <span class="tree-key">local_runner.py</span>　<span style="color:#475569;">← ランナーサーバー（常駐）</span><br>
-          ├── <span class="tree-key">setup_once.ps1</span>　 <span style="color:#475569;">← 初回セットアップスクリプト</span><br>
+          ├── <span class="tree-key">install.ps1</span>　　　<span style="color:#475569;">← 完全インストーラー（最初に実行）</span><br>
           ├── <span class="tree-key">requirements.txt</span>　<span style="color:#475569;">← 必要なライブラリ一覧</span><br>
           ├── <span class="tree-key">config.py</span><br>
           ├── <span class="tree-dir">steps/</span><br>
@@ -561,89 +561,98 @@ pip install -r requirements.txt</code></pre>
       </div>
     </section>
 
-    <!-- ═══ STEP 7: setup_once.ps1 ═══ -->
+    <!-- ═══ STEP 7: install.ps1 ═══ -->
     <section class="section" id="step7">
       <div class="section-header">
         <div class="step-circle">7</div>
         <div>
-          <h2>初回セットアップスクリプトの実行</h2>
-          <div class="sub">環境変数・自動起動登録・サーバー起動を自動で行います</div>
+          <h2>インストーラーの実行</h2>
+          <div class="sub">全10ステップを PowerShell 上で案内します</div>
         </div>
       </div>
       <div class="card">
-        <p>同じ PowerShell（プロジェクトフォルダにいる状態）で以下を実行してください。</p>
+        <p>PowerShell でプロジェクトフォルダに移動し、以下を実行してください。</p>
         <div class="code-block">
           <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-          <pre><code>.\setup_once.ps1</code></pre>
+          <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
+PowerShell -ExecutionPolicy Bypass -File ".\install.ps1"</code></pre>
         </div>
         <div class="callout warn">
           <span class="callout-icon">⚠️</span>
-          <div>「このスクリプトはシステムで実行できません」と表示される場合は、PowerShell を<strong>管理者として実行</strong>し直してから以下を入力して再試してください。<br><span class="ic">Set-ExecutionPolicy RemoteSigned -Scope CurrentUser</span></div>
+          <div>
+            <strong>「デジタル署名されていません」または「スクリプトの実行が無効」と表示される場合：</strong><br>
+            まず以下でブロックを解除してから、再度上のコマンドを実行してください。<br>
+            <span class="ic">Unblock-File -Path ".\install.ps1"</span>
+          </div>
         </div>
       </div>
 
       <div class="card">
-        <h3>スクリプトの進行（全 4 ステップ）</h3>
+        <h3>スクリプトの進行（全 10 ステップ）</h3>
+        <p style="margin-bottom:12px;">主な対話が発生するステップのみ抜粋しています。自動処理のステップは画面を見ながら待つだけです。</p>
 
         <div class="substep">
-          <div class="substep-label">[1/4] Google サービスアカウントのパス設定</div>
+          <div class="substep-label">[STEP 6-1] Google サービスアカウントのパス設定</div>
           <p>デフォルトのパスが表示されます。ステップ 5 で配置したパスと同じであれば <kbd>Enter</kbd> を押すだけです。</p>
           <div class="terminal">
-<span class="t-yellow">[1/4] Google Sheets Service Account</span>
-  Current: <span class="t-dim">（現在の設定、初回は空欄）</span>
-  Default: C:\Users\<span class="t-blue">&lt;ユーザー名&gt;</span>\.secrets\nyseo-agent-xxxxxxxx.json
-  Enter path (or press Enter to use default): <span class="t-dim">← Enter を押す</span>
-  <span class="t-green">OK: File found.</span>
-  <span class="t-green">GOOGLE_SERVICE_ACCOUNT set.</span>
+<span class="t-yellow">━━━━━━ [6/10] 環境変数の設定 ━━━━━━</span>
+&nbsp;
+  [6-1] Google サービスアカウント JSON のパス設定
+  デフォルト: C:\Users\<span class="t-blue">&lt;ユーザー名&gt;</span>\.secrets\agent-xxxxxxxx.json
+  パスを入力（デフォルトのままなら Enter）: <span class="t-dim">← Enter を押す</span>
+  <span class="t-green">✔ ファイルを確認しました</span>
+  <span class="t-green">✔ GOOGLE_SERVICE_ACCOUNT を設定しました</span>
 </div>
-          <p><strong>別のパスに保存した場合：</strong>フルパスを入力して <kbd>Enter</kbd> を押してください。「File not found」と出た場合はパスを再確認してください。</p>
+          <p><strong>別のパスに保存した場合：</strong>フルパスを入力して <kbd>Enter</kbd> を押してください。「ファイルが見つかりません」と出た場合はパスを再確認してください。</p>
         </div>
 
         <div class="substep">
-          <div class="substep-label">[2/4] Anthropic API キー（任意・APIモード使用時のみ）</div>
+          <div class="substep-label">[STEP 6-2] Anthropic API キー（任意・APIモード使用時のみ）</div>
           <p><strong>CLI モードのみ使用する場合は <kbd>Enter</kbd> でスキップしてください。</strong></p>
           <p>API モード（5 並列・高速処理）を使う場合は <span class="ic">sk-ant-…</span> 形式のキーを入力してください。</p>
           <div class="terminal">
-<span class="t-yellow">[2/4] Anthropic API Key</span>
-  Required only for API mode. Press Enter to skip for CLI mode only.
-  API Key (sk-ant-..., or Enter to skip): <span class="t-dim">← CLI のみなら Enter</span>
-  <span class="t-yellow">Skipped. CLI mode only.</span>
+  [6-2] Anthropic API キーの設定（APIモード使用時のみ）
+  CLIモードのみ使用する場合は Enter でスキップしてください。
+  API キー（sk-ant-... / CLIモードのみなら Enter でスキップ）: <span class="t-dim">← CLI のみなら Enter</span>
+  <span class="t-yellow">ℹ スキップしました（CLIモードのみで動作します）</span>
 </div>
           <div class="callout info" style="margin-top:10px;">
             <span class="callout-icon">ℹ️</span>
-            <div>API キーは後から変更できます。変更する場合は <span class="ic">setup_once.ps1</span> を再実行してください。<br>
+            <div>API キーは後から変更できます。変更する場合は <span class="ic">install.ps1</span> を再実行してください。<br>
             API キーを設定しても <strong>CLI モードには影響しません</strong>。CLI モード実行時は API キーを使わない設計になっています。</div>
           </div>
         </div>
 
         <div class="substep">
-          <div class="substep-label">[3/4] Windows 起動時の自動起動登録</div>
-          <p>PC を再起動するたびにランナーサーバーが自動で起動するよう、Windows のスタートアップに登録します。</p>
+          <div class="substep-label">[STEP 8] スタートアップ登録 + ランナーサーバー起動</div>
+          <p>PC を再起動するたびにランナーサーバーが自動で起動するよう、Windows のスタートアップに登録してからサーバーを即時起動します。</p>
           <div class="terminal">
-<span class="t-yellow">[3/4] Registering local runner server in Windows startup</span>
-  <span class="t-green">Registered: C:\Users\...\Start Menu\Programs\Startup\nyseo_runner.bat</span>
+<span class="t-yellow">━━━━━━ [8/10] スタートアップ登録 + ランナーサーバー起動 ━━━━━━</span>
+&nbsp;
+  <span class="t-green">✔ スタートアップに登録しました</span>
+  <span class="t-green">✔ ランナーサーバーを起動しました</span>
+  <span class="t-green">✔ 起動確認: {"status": "idle"}</span>
 </div>
-          <p>スタートアップフォルダ（<span class="ic">%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\</span>）に <span class="ic">nyseo_runner.bat</span> が作成されます。</p>
+          <p>スタートアップフォルダ（<span class="ic">%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\</span>）に起動スクリプトが作成されます。</p>
         </div>
 
         <div class="substep">
-          <div class="substep-label">[4/4] ランナーサーバーの即時起動と確認</div>
-          <p>セットアップ完了後すぐにサーバーを起動し、正常に動いているか自動確認します。</p>
+          <div class="substep-label">[STEP 10] Spreadsheet の準備（手動）</div>
+          <p>最後のステップで Spreadsheet の作成・CSV インポート・共有設定を案内します。手順に従って操作してください。</p>
           <div class="terminal">
-<span class="t-yellow">[4/4] Starting local runner server now</span>
-  <span class="t-green">Server running: {"status": "idle"}</span>
+<span class="t-yellow">━━━━━━ [10/10] Spreadsheet の準備 ━━━━━━</span>
 &nbsp;
-<span class="t-green">==================================================</span>
-<span class="t-green"> Setup complete!</span>
-<span class="t-green">==================================================</span>
+  Google スプレッドシートを新規作成し、CSVデータをインポートしてください。
+  （画面の案内に従って操作してください）
 &nbsp;
-Next steps:
-  1. Restart Cowork (Claude Desktop Pro)
-  2. Open the 内部リンクエージェント project in Cowork
-  3. Paste your Spreadsheet URL in the chat
+<span class="t-green">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="t-green"> セットアップ完了！</span>
+<span class="t-green">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 &nbsp;
-The runner server will start automatically on every Windows boot.
-To change settings later, run this script again.
+  次のステップ:
+  1. Cowork（Claude Desktop Pro）を再起動
+  2. 内部リンクエージェント プロジェクトを開く
+  3. Spreadsheet の URL をチャットに貼り付ける
 </div>
           <div class="callout ok" style="margin-top:10px;">
             <span class="callout-icon">✅</span>
@@ -1157,7 +1166,7 @@ STEP2: 候補 8 件
         </table>
         <div class="callout info" style="margin-top:12px;">
           <span class="callout-icon">ℹ️</span>
-          <div>API モードを使うには <span class="ic">ANTHROPIC_API_KEY</span> の設定が必要です。<span class="ic">setup_once.ps1</span> の [2/4] で設定するか、再実行して追加してください。</div>
+          <div>API モードを使うには <span class="ic">ANTHROPIC_API_KEY</span> の設定が必要です。<span class="ic">install.ps1</span> を再実行して STEP 6-2 で追加してください。</div>
         </div>
       </div>
     </section>
@@ -1255,7 +1264,7 @@ STEP2: 候補 8 件
           <p>「内部リンクエージェント Runner: http://127.0.0.1:8765」と表示されたらサーバーが起動しています。PowerShell は<strong>閉じずに</strong>、Cowork で再度 URL を送信してください。</p>
           <div class="callout info">
             <span class="callout-icon">ℹ️</span>
-            <div>このウィンドウを閉じるとサーバーも停止します。処理中は開いたままにしてください。次回からは PC 起動時に自動起動します（setup_once.ps1 で登録済み）。</div>
+            <div>このウィンドウを閉じるとサーバーも停止します。処理中は開いたままにしてください。次回からは PC 起動時に自動起動します（install.ps1 で登録済み）。</div>
           </div>
         </div>
       </div>
@@ -1297,13 +1306,13 @@ STEP2: 候補 8 件
       <div class="trouble">
         <div class="trouble-q"><span class="qi">Q</span>「GOOGLE_SERVICE_ACCOUNT が設定されていません」と表示される</div>
         <div class="trouble-a">
-          <p><span class="ic">setup_once.ps1</span> が未実行か、環境変数が正しく設定されていません。</p>
+          <p><span class="ic">install.ps1</span> が未実行か、環境変数が正しく設定されていません。</p>
           <div class="code-block">
             <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
             <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
-.\setup_once.ps1</code></pre>
+PowerShell -ExecutionPolicy Bypass -File ".\install.ps1"</code></pre>
           </div>
-          <p>スクリプトを再実行して [1/4] でサービスアカウント JSON のパスを再設定してください。設定後は <strong>PC を再起動</strong>するか、PowerShell を新しく開いて再実行してください。</p>
+          <p>スクリプトを再実行して STEP 6-1 でサービスアカウント JSON のパスを再設定してください。設定後は <strong>PC を再起動</strong>するか、PowerShell を新しく開いて再実行してください。</p>
         </div>
       </div>
 
@@ -1323,11 +1332,11 @@ STEP2: 候補 8 件
       <div class="trouble">
         <div class="trouble-q"><span class="qi">Q</span>設定（JSON パス・API キーなど）を変更したい</div>
         <div class="trouble-a">
-          <p><span class="ic">setup_once.ps1</span> を再実行すれば、現在の設定を確認しながら変更できます。</p>
+          <p><span class="ic">install.ps1</span> を再実行すれば、現在の設定を確認しながら変更できます。</p>
           <div class="code-block">
             <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
             <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
-.\setup_once.ps1</code></pre>
+PowerShell -ExecutionPolicy Bypass -File ".\install.ps1"</code></pre>
           </div>
         </div>
       </div>

@@ -154,7 +154,7 @@ Wait-Enter "Cowork のインストールとログインが完了したら Enter 
 # ============================================================
 Show-Header "[$([string]4)/$STEP_TOTAL]" "プロジェクトフォルダの確認"
 
-$requiredFiles = @("main.py", "local_runner.py", "setup_once.ps1", "requirements.txt", "config.py")
+$requiredFiles = @("main.py", "local_runner.py", "install.ps1", "requirements.txt", "config.py")
 $missing = @()
 foreach ($f in $requiredFiles) {
     if (-not (Test-Path (Join-Path $PROJECT_DIR $f))) {
@@ -227,7 +227,7 @@ if (Test-Path $saPath) {
     Show-Ok "ファイルを確認しました: $saPath"
 } else {
     Show-Warn "ファイルが見つかりません: $saPath"
-    Show-Warn "パスを後で修正する場合は setup_once.ps1 を再実行してください"
+    Show-Warn "パスを後で修正する場合は install.ps1 を再実行してください"
 }
 [System.Environment]::SetEnvironmentVariable("GOOGLE_SERVICE_ACCOUNT", $saPath, "User")
 Show-Ok "GOOGLE_SERVICE_ACCOUNT を設定しました"
@@ -590,6 +590,6 @@ Write-Host "  2. チャット欄に Spreadsheet の URL を貼り付けて送信
 Write-Host "  3. 精度モード・AIモードを選択すると処理が自動で始まります" -ForegroundColor White
 Write-Host ""
 Write-Host "  ランナーサーバーは PC 起動時に自動で立ち上がります。" -ForegroundColor Gray
-Write-Host "  設定変更は setup_once.ps1 を再実行してください。" -ForegroundColor Gray
+Write-Host "  設定変更は install.ps1 を再実行してください。" -ForegroundColor Gray
 Write-Host ""
 Read-Host "  Enter を押して終了"
