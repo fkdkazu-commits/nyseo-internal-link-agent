@@ -6,7 +6,7 @@
 #   .\install.ps1
 # ============================================================
 
-$PROJECT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$PROJECT_DIR = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
 $STEP_TOTAL  = 10
 
 function Show-Header {
