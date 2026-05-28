@@ -97,24 +97,37 @@ if (-not $pyCmd) {
 
 
 # ============================================================
-# STEP 2: Google Chrome のインストール（手動）
+# STEP 2: Chrome + Claude 拡張機能（手動）
 # ============================================================
-Show-Header "[$([string]2)/$STEP_TOTAL]" "Google Chrome のインストール" "manual"
+Show-Header "[$([string]2)/$STEP_TOTAL]" "Google Chrome + Claude 拡張機能" "manual"
 
 Write-Host ""
 Write-Host "  【確認事項】" -ForegroundColor Yellow
 Show-Step "Google Chrome がインストールされていますか？"
-Write-Host "  → このツールは Chrome 上で動作する Claude Desktop（次のステップ）を使います。" -ForegroundColor Gray
-Write-Host "  → Chrome がすでに入っている場合は Enter を押してスキップしてください。" -ForegroundColor Gray
+Write-Host "  → インストールされていない場合は以下の手順でインストールしてください。" -ForegroundColor Gray
 Write-Host ""
 Write-Host "  【Chrome がない場合の手順】" -ForegroundColor Yellow
 Show-Step "1. ブラウザ（Edge など）で https://www.google.com/chrome/ を開く"
 Show-Step "2. 「Chrome をダウンロード」をクリック"
 Show-Step "3. ダウンロードしたファイルを実行してインストール"
-Show-Step "4. Chrome を起動する"
+Show-Step "4. Chrome を起動して、Chrome をデフォルトブラウザに設定する"
+Show-Step "   設定 → アプリ → 既定のアプリ → ブラウザ → Google Chrome"
 Write-Host ""
 
-Wait-Enter "Chrome の準備ができたら Enter を押してください（すでに入っている場合もそのまま Enter）"
+Wait-Enter "Chrome の準備ができたら Enter を押してください"
+
+Write-Host ""
+Write-Host "  【Claude Chrome 拡張機能のインストール】" -ForegroundColor Yellow
+Write-Host "  Cowork が動作するために必要な公式拡張機能です。" -ForegroundColor Gray
+Write-Host ""
+Show-Step "1. 今からブラウザで Chrome ウェブストアの検索ページを開きます"
+Show-Step "2. 「Claude」（Anthropic 製）を探して「Chrome に追加」をクリック"
+Show-Step "3. 確認ダイアログで「拡張機能を追加」をクリック"
+Show-Step "4. Chrome の右上に Claude のアイコン（橙色）が表示されれば完了です"
+Write-Host ""
+Start-Process "https://chromewebstore.google.com/search/Claude"
+
+Wait-Enter "Claude 拡張機能のインストールが完了したら Enter を押してください"
 
 
 # ============================================================
@@ -563,7 +576,7 @@ Write-Host "║           セットアップ完了！                     ║" -
 Write-Host "╚══════════════════════════════════════════════════╝" -ForegroundColor Green
 Write-Host ""
 Write-Host "  ✔ Python                    インストール済み" -ForegroundColor Green
-Write-Host "  ✔ Chrome                    インストール済み" -ForegroundColor Green
+Write-Host "  ✔ Chrome + Claude拡張機能   インストール済み" -ForegroundColor Green
 Write-Host "  ✔ Cowork                    インストール済み" -ForegroundColor Green
 Write-Host "  ✔ Python ライブラリ          インストール済み" -ForegroundColor Green
 Write-Host "  ✔ 環境変数                  設定済み" -ForegroundColor Green

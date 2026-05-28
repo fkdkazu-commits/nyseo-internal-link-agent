@@ -219,7 +219,7 @@
 
     <div class="nav-group">インストール</div>
     <a class="nav-item" href="#step1"><span class="nav-badge">1</span> Python の確認</a>
-    <a class="nav-item" href="#step2"><span class="nav-badge">2</span> Chrome の確認</a>
+    <a class="nav-item" href="#step2"><span class="nav-badge">2</span> Chrome + 拡張機能</a>
     <a class="nav-item" href="#step3"><span class="nav-badge">3</span> Cowork の確認</a>
     <a class="nav-item" href="#step4"><span class="nav-badge">4</span> フォルダの配置</a>
     <a class="nav-item" href="#step5"><span class="nav-badge">5</span> 認証 JSON の配置</a>
@@ -324,6 +324,11 @@
               <td><span class="badge b-yellow">ステップ 2 で確認</span></td>
             </tr>
             <tr>
+              <td><strong>Claude Chrome 拡張機能</strong></td>
+              <td>Chrome ウェブストア版（Anthropic 製）</td>
+              <td><span class="badge b-yellow">ステップ 2 で確認</span></td>
+            </tr>
+            <tr>
               <td><strong>Claude Desktop Pro（Cowork）</strong></td>
               <td>最新版</td>
               <td><span class="badge b-yellow">ステップ 3 で確認</span></td>
@@ -397,8 +402,8 @@
       <div class="section-header">
         <div class="step-circle">2</div>
         <div>
-          <h2>Google Chrome の確認</h2>
-          <div class="sub">Cowork（Claude Desktop Pro）が動作するために必要です</div>
+          <h2>Google Chrome と Claude 拡張機能の確認</h2>
+          <div class="sub">Cowork が Chrome を操作して処理を起動するために必要です</div>
         </div>
       </div>
 
@@ -416,17 +421,26 @@
       </div>
 
       <div class="card">
-        <h3>Chrome がない場合のインストール手順</h3>
-        <p>すでに Chrome がインストールされている場合はこのカードをスキップしてください。</p>
+        <h3>Claude Chrome 拡張機能のインストール</h3>
+        <p>Cowork が Chrome を操作するために必要な公式拡張機能です。</p>
         <ol>
-          <li>Edge などで <strong>https://www.google.com/chrome/</strong> を開く</li>
-          <li>「Chrome をダウンロード」をクリック</li>
-          <li>ダウンロードしたファイルを実行してインストール</li>
-          <li>Chrome を起動して動作確認</li>
+          <li>Chrome を開く</li>
+          <li>Chrome ウェブストアで「<strong>Claude</strong>」を検索する（下のリンクから開けます）</li>
+          <li>「<strong>Claude</strong>」（Anthropic 製）を選んで「Chrome に追加」をクリック</li>
+          <li>確認ダイアログで「拡張機能を追加」をクリック</li>
+          <li>Chrome の右上に Claude のアイコン（橙色）が表示されれば完了</li>
         </ol>
-        <div class="callout ok">
+        <div class="code-block" style="margin-top:10px;">
+          <div class="code-header"><span class="code-lang">Chrome ウェブストア検索 URL</span></div>
+          <pre><code>https://chromewebstore.google.com/search/Claude</code></pre>
+        </div>
+        <div class="callout ok" style="margin-top:10px;">
           <span class="callout-icon">✅</span>
-          <div>Chrome が起動できていれば完了です。次のステップに進んでください。</div>
+          <div>拡張機能バーに Claude のアイコン（橙色）が表示されていればインストール済みです。すでにある場合は何もしなくて構いません。</div>
+        </div>
+        <div class="callout warn" style="margin-top:8px;">
+          <span class="callout-icon">⚠️</span>
+          <div>Cowork の「Claude in Chrome」機能は <strong>この拡張機能がなければ動作しません</strong>。必ずインストールしてください。</div>
         </div>
       </div>
     </section>
@@ -876,7 +890,7 @@ http://127.0.0.1:8765/stop
         <h3>セットアップ完了チェックリスト</h3>
         <ul class="checklist">
           <li><span class="ck-icon">✅</span><div><div class="ck-title">Python がインストールされている</div><div class="ck-desc"><span class="ic">py --version</span> でバージョンが表示される</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">Google Chrome がインストールされている</div><div class="ck-desc">Chrome が起動できる状態になっている</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Chrome に Claude 拡張機能がインストールされている</div><div class="ck-desc">ブラウザ右上に Claude アイコン（橙色）が表示されている</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">Cowork が起動している</div><div class="ck-desc">内部リンクエージェント プロジェクトが開ける</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">JSON ファイルが正しい場所にある</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo-agent-…json</span> が存在する</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">pip install が完了している</div><div class="ck-desc">requirements.txt のライブラリがすべて入っている</div></div></li>
@@ -1312,8 +1326,10 @@ PowerShell -ExecutionPolicy Bypass -File ".\install.ps1"</code></pre>
         <div class="trouble-a">
           <p>以下を確認してください。</p>
           <ul>
-            <li>Google Chrome がインストールされているか（ステップ 2 参照）</li>
-            <li>Cowork（Claude Desktop Pro）が起動しているか</li>
+            <li><strong>Claude Chrome 拡張機能</strong>が Chrome にインストールされているか（ステップ 2 参照）</li>
+            <li>Chrome が <strong>デフォルトブラウザ</strong>に設定されているか<br>
+              <span style="color:var(--text-secondary);">設定 → アプリ → 既定のアプリ → ブラウザ → Google Chrome</span></li>
+            <li>Cowork（Claude Desktop Pro）が最新バージョンか</li>
             <li>Cowork（Claude Desktop Pro）が最新バージョンか</li>
           </ul>
         </div>
