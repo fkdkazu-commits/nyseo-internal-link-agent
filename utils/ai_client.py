@@ -5,6 +5,7 @@ Cowork内蔵AI（Claude CLI）呼び出しラッパー。
 
 import json
 import os
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -16,6 +17,28 @@ logger = get_logger()
 
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 CLI_TIMEOUT = 120  # 秒
+
+# Windows の Claude Desktop 既知インストールパス（PATHに入っていない場合のフォールバック）
+_CLAUDE_FALLBACK_PATHS = [
+    Path(os.environ.get("LOCALAPPDATA", "")) / "AnthropicClaude" / "claude.exe",
+    Path(os.environ.get("APPDATA", ""))     / "AnthropicClaude" / "claude.exe",
+    Path(os.environ.get("USERPROFILE", "")) / "AppData" / "Local" / "AnthropicClaude" / "claude.exe",
+]
+
+
+def _find_claude() -> str:
+    """claude 実行ファイルのパスを返す。見つからなければ 'claude' を返す。"""
+    found = shutil.which("claude")
+    if found:
+        return found
+    for p in _CLAUDE_FALLBACK_PATHS:
+        if p.exists():
+            logger.info(f"claude をフォールバックパスで発見: {p}")
+            return str(p)
+    return "claude"
+
+
+_CLAUDE_CMD = _find_claude()
 
 
 class TokenExhaustedError(Exception):
@@ -29,7 +52,7 @@ def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "st
         try:
             cli_env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
             result = subprocess.run(
-                ["claude", "-p", prompt, "--model", model, "--output-format", "text"],
+                [_CLAUDE_CMD, "-p", prompt, "--model", model, "--output-format", "text"],
                 capture_output=True,
                 timeout=CLI_TIMEOUT,
                 env=cli_env,
@@ -67,7 +90,7 @@ def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "st
         except subprocess.TimeoutExpired:
             logger.warning(f"claude CLI タイムアウト（試行{attempt}）")
         except FileNotFoundError:
-            logger.error("claude コマンドが見つかりません。Cowork環境で実行してください。")
+            logger.error(f"claude コマンドが見つかりません（試行パス: {_CLAUDE_CMD}）。Claude Desktop がインストールされているか確認してください。")
             return None
         except Exception as e:
             err_msg = str(e)
