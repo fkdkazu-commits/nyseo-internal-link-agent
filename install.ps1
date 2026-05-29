@@ -175,27 +175,12 @@ if ($missing.Count -eq 0) {
 
 
 # ============================================================
-# STEP 5: Google サービスアカウント JSON の配置確認（手動）
+# STEP 5: Google サービスアカウント JSON の配置（自動）
 # ============================================================
-Show-Header "[$([string]5)/$STEP_TOTAL]" "Google サービスアカウント JSON の配置" "manual"
+Show-Header "[$([string]5)/$STEP_TOTAL]" "Google サービスアカウント JSON の配置"
 
-$defaultJsonName = "nyseo-agent-3a445eba0003.json"
 $defaultSecretsDir = "$env:USERPROFILE\.secrets"
-$defaultJsonPath = Join-Path $defaultSecretsDir $defaultJsonName
-
-Write-Host ""
-Write-Host "  管理者から受け取った JSON ファイルを配置してください。" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "  【推奨の配置場所】" -ForegroundColor Yellow
-Write-Host "  $defaultJsonPath" -ForegroundColor White
-Write-Host ""
-Write-Host "  【手順】" -ForegroundColor Yellow
-Show-Step "1. エクスプローラーで以下のフォルダを開く（なければ新規作成）"
-Write-Host "     $defaultSecretsDir" -ForegroundColor White
-Show-Step "2. 管理者から受け取った JSON ファイルをそのフォルダにコピー"
-Show-Step "3. ファイル名が「$defaultJsonName」であることを確認"
-Write-Host ""
-Show-Info "別の場所に置く場合は、次のステップで正しいパスを入力してください"
+$secretsSrcDir = Join-Path $PROJECT_DIR "secrets"
 
 # .secrets フォルダを自動作成
 if (-not (Test-Path $defaultSecretsDir)) {
@@ -203,10 +188,22 @@ if (-not (Test-Path $defaultSecretsDir)) {
     Show-Ok ".secrets フォルダを作成しました: $defaultSecretsDir"
 }
 
-# エクスプローラーで .secrets を開く
-Start-Process "explorer.exe" $defaultSecretsDir
+# パッケージ内 secrets/ フォルダから JSON を自動コピー
+$bundledJson = Get-ChildItem -Path $secretsSrcDir -Filter "*.json" -ErrorAction SilentlyContinue | Select-Object -First 1
 
-Wait-Enter "JSON ファイルの配置が完了したら Enter を押してください"
+if ($bundledJson) {
+    $destPath = Join-Path $defaultSecretsDir $bundledJson.Name
+    Copy-Item -Path $bundledJson.FullName -Destination $destPath -Force
+    Show-Ok "JSON ファイルをコピーしました: $destPath"
+    $defaultJsonPath = $destPath
+} else {
+    Show-Warn "secrets フォルダに JSON ファイルが見つかりません。"
+    Show-Warn "手動で配置してください: $defaultSecretsDir"
+    Start-Process "explorer.exe" $defaultSecretsDir
+    Wait-Enter "JSON ファイルの配置が完了したら Enter を押してください"
+    $foundJson = Get-ChildItem -Path $defaultSecretsDir -Filter "*.json" | Select-Object -First 1
+    $defaultJsonPath = if ($foundJson) { $foundJson.FullName } else { Join-Path $defaultSecretsDir "agent.json" }
+}
 
 
 # ============================================================

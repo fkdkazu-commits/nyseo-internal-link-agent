@@ -9,7 +9,7 @@ __pycache__/
 # 環境変数・シークレット（プロジェクト外で管理すること）
 .env
 *.env
-secrets/
+secrets/*.json
 credentials/
 service_account*.json
 *_service_account.json
