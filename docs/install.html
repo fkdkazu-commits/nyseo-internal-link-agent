@@ -393,30 +393,22 @@
         <p>受け取った <span class="ic">nyseo-internal-link-agent.zip</span> を右クリック →「すべて展開」で展開してください。</p>
 
         <h4 style="margin-top:14px; margin-bottom:6px; font-size:13px;">配置場所について</h4>
-        <p>このツールは内部でコマンドを実行するため、<strong>フォルダのパスに日本語や半角スペースが含まれるとエラーが発生します。</strong></p>
-        <p>Windows の「ダウンロード」フォルダは見た目は日本語表示ですが、<strong>実際の内部パスは英語（<span class="ic">Downloads</span>）</strong>のため安全です。ただし <strong>Windowsのアカウント名（ユーザー名）が日本語の場合</strong>はパスに日本語が含まれるため、下の代替パスを使ってください。</p>
+        <p>このツールは内部でコマンドを実行するため、<strong>フォルダのパスに日本語や半角スペースが含まれるとエラーが発生します。</strong>以下の場所への配置を推奨します。</p>
 
-        <div class="substep">
-          <div class="substep-label">アカウント名が英数字の場合（通常）</div>
-          <div class="code-block" style="margin-top:6px;">
-            <div class="code-header"><span class="code-lang">推奨パス例</span></div>
-            <pre><code>C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\</code></pre>
-          </div>
-          <p style="margin-top:6px; margin-bottom:0; font-size:12.5px; color:var(--text-secondary);">確認方法：コマンドプロンプトで <span class="ic">echo %USERNAME%</span> を実行。英数字のみなら OK です。</p>
+        <div class="code-block" style="margin-top:8px;">
+          <div class="code-header"><span class="code-lang">推奨パス</span></div>
+          <pre><code>C:\tools\nyseo-internal-link-agent\</code></pre>
         </div>
-
-        <div class="substep" style="margin-top:10px;">
-          <div class="substep-label">アカウント名に日本語が含まれる場合</div>
-          <div class="code-block" style="margin-top:6px;">
-            <div class="code-header"><span class="code-lang">代替パス例</span></div>
-            <pre><code>C:\tools\nyseo-internal-link-agent\</code></pre>
-          </div>
-          <p style="margin-top:6px; margin-bottom:0; font-size:12.5px; color:var(--text-secondary);"><span class="ic">C:\tools\</span> フォルダが存在しない場合はエクスプローラーで新規作成してください。</p>
-        </div>
+        <p style="margin-top:8px; font-size:12.5px; color:var(--text-secondary);"><span class="ic">C:\tools\</span> フォルダが存在しない場合は、エクスプローラーで <span class="ic">C:\</span> を開いて新規フォルダを作成してください。</p>
 
         <div class="callout warn" style="margin-top:10px;">
           <span class="callout-icon">⚠️</span>
-          <div>OneDrive や デスクトップ（デスクトップ フォルダはパスに日本語が入ることがあります）への配置は避けてください。また、ネットワークドライブや USB メモリへの配置も推奨しません。</div>
+          <div>
+            以下の場所への配置は<strong>避けてください</strong>：<br>
+            ・<strong>デスクトップ・ドキュメント・ダウンロード</strong>（Windowsアカウント名が日本語の場合、パスに日本語が混入する）<br>
+            ・<strong>OneDrive 管理下のフォルダ</strong>（クラウド同期との競合が起きる場合がある）<br>
+            ・<strong>ネットワークドライブ・USB メモリ</strong>
+          </div>
         </div>
       </div>
       <div class="card">
