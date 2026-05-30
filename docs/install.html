@@ -219,6 +219,7 @@
 
     <div class="nav-group">インストール（install.bat の 11 ステップ）</div>
     <a class="nav-item" href="#start"><span class="nav-badge">▶</span> 起動方法</a>
+    <a class="nav-item" href="#flow-overview"><span class="nav-badge">≡</span> 11 ステップ概要</a>
     <a class="nav-item" href="#step1"><span class="nav-badge">1</span> Python の確認</a>
     <a class="nav-item" href="#step2"><span class="nav-badge">2</span> Chrome + 拡張機能</a>
     <a class="nav-item" href="#step3"><span class="nav-badge">3</span> Cowork の確認</a>
@@ -367,6 +368,87 @@
       </div>
     </section>
 
+    <!-- ═══ START: 起動方法 ═══ -->
+    <section class="section" id="start">
+      <div class="section-header">
+        <div class="step-circle" style="background:#16a34a; font-size:16px;">▶</div>
+        <div>
+          <h2>起動方法</h2>
+          <div class="sub">zip 展開 → install.bat ダブルクリックで開始</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>① zip を展開してフォルダを配置する</h3>
+        <p>受け取った <span class="ic">nyseo-internal-link-agent.zip</span> を右クリック →「すべて展開」で展開してください。</p>
+        <p><strong>推奨の配置場所（日本語・スペースを含まないパス）：</strong></p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">推奨パス例</span></div>
+          <pre><code>C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\</code></pre>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>フォルダパスに<strong>全角文字（日本語）や半角スペース</strong>が含まれると、コマンド実行時にエラーが発生することがあります。できるだけ英数字のパスに置いてください。</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>② install.bat をダブルクリックして起動する</h3>
+        <p>展開した <strong>nyseo-internal-link-agent</strong> フォルダを開き、<strong>install.bat</strong> をダブルクリックしてください。PowerShell が自動で起動してインストールが始まります。</p>
+        <div class="callout ok" style="margin-top:10px;">
+          <span class="callout-icon">✅</span>
+          <div>黒いウィンドウ（PowerShell）が開き、インストーラーのメッセージが表示されれば正常に起動しています。</div>
+        </div>
+        <div class="callout warn" style="margin-top:8px;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>「このアプリがデバイスに変更を加えることを許可しますか？」と表示される場合：</strong><br>
+            「はい」をクリックしてください。<br><br>
+            <strong>「Windows によって PC が保護されました」と表示される場合：</strong><br>
+            「詳細情報」→「実行」をクリックしてください。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 流れ概要 ═══ -->
+    <section class="section" id="flow-overview">
+      <div class="section-header">
+        <div class="step-circle" style="background:#475569; font-size:12px;">流れ</div>
+        <div>
+          <h2>install.bat の 11 ステップ概要</h2>
+          <div class="sub">install.bat を起動すると、以下の順番で自動的に進みます</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>操作が必要なのは <strong>STEP 7 の 2 箇所（Enter を押すだけ）</strong>と、<strong>STEP 10・11 の手動作業</strong>のみです。それ以外はすべて自動で完了します。</p>
+        <table class="tbl" style="margin-top:12px;">
+          <thead>
+            <tr>
+              <th style="width:60px;">STEP</th>
+              <th>内容</th>
+              <th style="width:180px;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>1</strong></td><td>Python のインストール確認</td><td><span class="badge b-blue">自動確認</span></td></tr>
+            <tr><td><strong>2</strong></td><td>Chrome・Claude 拡張機能の確認</td><td><span class="badge b-blue">自動確認</span></td></tr>
+            <tr><td><strong>3</strong></td><td>Cowork（Claude Desktop Pro）の確認</td><td><span class="badge b-blue">自動確認</span></td></tr>
+            <tr><td><strong>4</strong></td><td>Claude CLI ログイン確認</td><td><span class="badge b-blue">自動確認</span></td></tr>
+            <tr><td><strong>5</strong></td><td>プロジェクトフォルダの確認・登録</td><td><span class="badge b-blue">自動確認</span></td></tr>
+            <tr><td><strong>6</strong></td><td>Google サービスアカウント JSON の自動配置</td><td><span class="badge b-blue">自動実行</span></td></tr>
+            <tr><td><strong>7</strong></td><td>環境変数の設定（JSON パス・API キー）</td><td><span class="badge b-yellow">Enter 2 回</span></td></tr>
+            <tr><td><strong>8</strong></td><td>必要なライブラリのインストール（pip）</td><td><span class="badge b-blue">自動実行</span></td></tr>
+            <tr><td><strong>9</strong></td><td>ランナーサーバーのスタートアップ登録・起動</td><td><span class="badge b-blue">自動実行</span></td></tr>
+            <tr><td><strong>10</strong></td><td>Cowork プロジェクト作成（案内に従い手動）</td><td><span class="badge b-green">手動</span></td></tr>
+            <tr><td><strong>11</strong></td><td>Spreadsheet の新規作成・共有設定</td><td><span class="badge b-green">手動</span></td></tr>
+          </tbody>
+        </table>
+        <div class="callout info" style="margin-top:14px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>STEP 1〜3 で未インストールのソフトウェアが見つかった場合、install.bat の画面に案内が表示されます。案内に従ってインストールを完了したあと <strong>install.bat を再実行</strong>してください。</div>
+        </div>
+      </div>
+    </section>
+
     <!-- ═══ STEP 1: Python ═══ -->
     <section class="section" id="step1">
       <div class="section-header">
@@ -465,47 +547,6 @@
         <div class="callout info">
           <span class="callout-icon">ℹ️</span>
           <div>Cowork には <strong>内部リンクエージェント プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成は install.bat の STEP 10 で案内します。</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ START: 起動方法 ═══ -->
-    <section class="section" id="start">
-      <div class="section-header">
-        <div class="step-circle" style="background:#16a34a; font-size:16px;">▶</div>
-        <div>
-          <h2>起動方法</h2>
-          <div class="sub">zip 展開 → install.bat ダブルクリックで開始</div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>① zip を展開してフォルダを配置する</h3>
-        <p>受け取った <span class="ic">nyseo-internal-link-agent.zip</span> を右クリック →「すべて展開」で展開してください。</p>
-        <p><strong>推奨の配置場所（日本語・スペースを含まないパス）：</strong></p>
-        <div class="code-block">
-          <div class="code-header"><span class="code-lang">推奨パス例</span></div>
-          <pre><code>C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\</code></pre>
-        </div>
-        <div class="callout warn">
-          <span class="callout-icon">⚠️</span>
-          <div>フォルダパスに<strong>全角文字（日本語）や半角スペース</strong>が含まれると、コマンド実行時にエラーが発生することがあります。できるだけ英数字のパスに置いてください。</div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>② install.bat をダブルクリックして起動する</h3>
-        <p>展開した <strong>nyseo-internal-link-agent</strong> フォルダを開き、<strong>install.bat</strong> をダブルクリックしてください。PowerShell が自動で起動してインストールが始まります。</p>
-        <div class="callout ok" style="margin-top:10px;">
-          <span class="callout-icon">✅</span>
-          <div>黒いウィンドウ（PowerShell）が開き、インストーラーのメッセージが表示されれば正常に起動しています。</div>
-        </div>
-        <div class="callout warn" style="margin-top:8px;">
-          <span class="callout-icon">⚠️</span>
-          <div>
-            <strong>「このアプリがデバイスに変更を加えることを許可しますか？」と表示される場合：</strong><br>
-            「はい」をクリックしてください。<br><br>
-            <strong>「Windows によって PC が保護されました」と表示される場合：</strong><br>
-            「詳細情報」→「実行」をクリックしてください。
-          </div>
         </div>
       </div>
     </section>
