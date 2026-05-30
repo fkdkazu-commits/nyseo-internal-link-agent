@@ -378,16 +378,45 @@
         </div>
       </div>
       <div class="card">
+        <p><span class="ic">install.bat</span> は、このツールのセットアップに必要な全 11 ステップを自動で案内する<strong>インストーラー</strong>です。</p>
+        <p>ダブルクリックするだけで PowerShell が開き、順番に処理が進みます。所要時間の目安は <strong>15〜20 分</strong>です。</p>
+        <ul style="margin-top:8px; margin-bottom:0;">
+          <li>STEP 1〜6・8・9 はすべて<strong>自動処理</strong>（待つだけ）</li>
+          <li>STEP 7 のみ <kbd>Enter</kbd> を 2 回押す操作が必要</li>
+          <li>STEP 10・11 は画面の案内に従って手動で設定</li>
+        </ul>
+        <p style="margin-top:10px; margin-bottom:0;">このページでは、zip 展開から各ステップの詳細まで順番に説明します。</p>
+      </div>
+
+      <div class="card">
         <h3>① zip を展開してフォルダを配置する</h3>
         <p>受け取った <span class="ic">nyseo-internal-link-agent.zip</span> を右クリック →「すべて展開」で展開してください。</p>
-        <p><strong>推奨の配置場所（日本語・スペースを含まないパス）：</strong></p>
-        <div class="code-block">
-          <div class="code-header"><span class="code-lang">推奨パス例</span></div>
-          <pre><code>C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\</code></pre>
+
+        <h4 style="margin-top:14px; margin-bottom:6px; font-size:13px;">配置場所について</h4>
+        <p>このツールは内部でコマンドを実行するため、<strong>フォルダのパスに日本語や半角スペースが含まれるとエラーが発生します。</strong></p>
+        <p>Windows の「ダウンロード」フォルダは見た目は日本語表示ですが、<strong>実際の内部パスは英語（<span class="ic">Downloads</span>）</strong>のため安全です。ただし <strong>Windowsのアカウント名（ユーザー名）が日本語の場合</strong>はパスに日本語が含まれるため、下の代替パスを使ってください。</p>
+
+        <div class="substep">
+          <div class="substep-label">アカウント名が英数字の場合（通常）</div>
+          <div class="code-block" style="margin-top:6px;">
+            <div class="code-header"><span class="code-lang">推奨パス例</span></div>
+            <pre><code>C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\</code></pre>
+          </div>
+          <p style="margin-top:6px; margin-bottom:0; font-size:12.5px; color:var(--text-secondary);">確認方法：コマンドプロンプトで <span class="ic">echo %USERNAME%</span> を実行。英数字のみなら OK です。</p>
         </div>
-        <div class="callout warn">
+
+        <div class="substep" style="margin-top:10px;">
+          <div class="substep-label">アカウント名に日本語が含まれる場合</div>
+          <div class="code-block" style="margin-top:6px;">
+            <div class="code-header"><span class="code-lang">代替パス例</span></div>
+            <pre><code>C:\tools\nyseo-internal-link-agent\</code></pre>
+          </div>
+          <p style="margin-top:6px; margin-bottom:0; font-size:12.5px; color:var(--text-secondary);"><span class="ic">C:\tools\</span> フォルダが存在しない場合はエクスプローラーで新規作成してください。</p>
+        </div>
+
+        <div class="callout warn" style="margin-top:10px;">
           <span class="callout-icon">⚠️</span>
-          <div>フォルダパスに<strong>全角文字（日本語）や半角スペース</strong>が含まれると、コマンド実行時にエラーが発生することがあります。できるだけ英数字のパスに置いてください。</div>
+          <div>OneDrive や デスクトップ（デスクトップ フォルダはパスに日本語が入ることがあります）への配置は避けてください。また、ネットワークドライブや USB メモリへの配置も推奨しません。</div>
         </div>
       </div>
       <div class="card">
