@@ -418,7 +418,9 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = 
                                 search_kws = [h for h in h2h3 if len(h) >= 2]
                                 target["kw"] = search_kws[0] if search_kws else _shorten_kw(title)
                     if not target["kw"]:
-                        logger.warning("KW検出できず → スキップ")
+                        logger.warning("KW検出できず → 「該当なし」を書き込みます")
+                        result_row = write_output(data[target["row_idx"]], [], max_cols)
+                        client.write_result(target["row_idx"], result_row)
                         skip_article = True
                         break
                 elif not search_kws:
@@ -438,7 +440,9 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = 
                                 candidates.append(c)
 
                 if not candidates:
-                    logger.warning("候補記事なし → スキップ")
+                    logger.warning("候補記事なし → 「該当なし」を書き込みます")
+                    result_row = write_output(data[target["row_idx"]], [], max_cols)
+                    client.write_result(target["row_idx"], result_row)
                     break
 
                 # match_score上位N件に絞る（通常20件・lean時10件）
