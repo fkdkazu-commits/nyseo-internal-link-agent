@@ -217,19 +217,20 @@
     <a class="nav-item" href="#overview"><span class="nav-badge">0</span> 仕組みと概要</a>
     <a class="nav-item" href="#prereq"><span class="nav-badge">★</span> 必要なもの一覧</a>
 
-    <div class="nav-group">インストール</div>
+    <div class="nav-group">インストール（install.bat の 11 ステップ）</div>
+    <a class="nav-item" href="#start"><span class="nav-badge">▶</span> 起動方法</a>
     <a class="nav-item" href="#step1"><span class="nav-badge">1</span> Python の確認</a>
     <a class="nav-item" href="#step2"><span class="nav-badge">2</span> Chrome + 拡張機能</a>
     <a class="nav-item" href="#step3"><span class="nav-badge">3</span> Cowork の確認</a>
-    <a class="nav-item" href="#step4"><span class="nav-badge">4</span> フォルダの配置</a>
-    <a class="nav-item" href="#step5"><span class="nav-badge">5</span> 認証 JSON の配置</a>
-    <a class="nav-item" href="#step6"><span class="nav-badge">6</span> ライブラリのインストール</a>
-    <a class="nav-item" href="#step7"><span class="nav-badge">7</span> セットアップスクリプト</a>
-    <a class="nav-item" href="#step8"><span class="nav-badge">8</span> Cowork 再起動・プロジェクト作成</a>
-    <a class="nav-item" href="#step9"><span class="nav-badge">9</span> 動作確認</a>
-
-    <div class="nav-group">Spreadsheet</div>
-    <a class="nav-item" href="#sheet"><span class="nav-badge">📊</span> Spreadsheet の準備</a>
+    <a class="nav-item" href="#step4"><span class="nav-badge">4</span> Claude CLI ログイン確認</a>
+    <a class="nav-item" href="#step5"><span class="nav-badge">5</span> フォルダの確認</a>
+    <a class="nav-item" href="#step6"><span class="nav-badge">6</span> JSON 自動配置</a>
+    <a class="nav-item" href="#step7"><span class="nav-badge">7</span> 環境変数の設定</a>
+    <a class="nav-item" href="#step8"><span class="nav-badge">8</span> ライブラリのインストール</a>
+    <a class="nav-item" href="#step9"><span class="nav-badge">9</span> ランナーサーバー起動</a>
+    <a class="nav-item" href="#step10"><span class="nav-badge">10</span> Cowork プロジェクト作成</a>
+    <a class="nav-item" href="#step11"><span class="nav-badge">11</span> Spreadsheet の準備</a>
+    <a class="nav-item" href="#verify"><span class="nav-badge">✓</span> 動作確認</a>
 
     <div class="nav-group">使い方</div>
     <a class="nav-item" href="#usage"><span class="nav-badge">▶</span> 日常の使い方</a>
@@ -361,7 +362,7 @@
         </table>
         <div class="callout warn" style="margin-top:14px;">
           <span class="callout-icon">⚠️</span>
-          <div>Spreadsheet にはサービスアカウントのメールアドレスの<strong>編集権限を付与</strong>する必要があります。メールアドレスは install.ps1 の STEP 11 で自動表示されます。</div>
+          <div>Spreadsheet にはサービスアカウントのメールアドレスの<strong>編集権限を付与</strong>する必要があります。メールアドレスは install.bat の STEP 11 で自動表示されます。</div>
         </div>
       </div>
     </section>
@@ -463,22 +464,23 @@
         </ul>
         <div class="callout info">
           <span class="callout-icon">ℹ️</span>
-          <div>Cowork には <strong>内部リンクエージェント プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成は install.ps1 の STEP 10 で案内します。</div>
+          <div>Cowork には <strong>内部リンクエージェント プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成は install.bat の STEP 10 で案内します。</div>
         </div>
       </div>
     </section>
 
-    <!-- ═══ STEP 4: フォルダ ═══ -->
-    <section class="section" id="step4">
+    <!-- ═══ START: 起動方法 ═══ -->
+    <section class="section" id="start">
       <div class="section-header">
-        <div class="step-circle">4</div>
+        <div class="step-circle" style="background:#16a34a; font-size:16px;">▶</div>
         <div>
-          <h2>プロジェクトフォルダの配置</h2>
-          <div class="sub">管理者から受け取ったフォルダを PC に配置します</div>
+          <h2>起動方法</h2>
+          <div class="sub">zip 展開 → install.bat ダブルクリックで開始</div>
         </div>
       </div>
       <div class="card">
-        <p>受け取った <span class="ic">nyseo-internal-link-agent</span> フォルダを PC 内の任意の場所に置いてください。</p>
+        <h3>① zip を展開してフォルダを配置する</h3>
+        <p>受け取った <span class="ic">nyseo-internal-link-agent.zip</span> を右クリック →「すべて展開」で展開してください。</p>
         <p><strong>推奨の配置場所（日本語・スペースを含まないパス）：</strong></p>
         <div class="code-block">
           <div class="code-header"><span class="code-lang">推奨パス例</span></div>
@@ -488,7 +490,67 @@
           <span class="callout-icon">⚠️</span>
           <div>フォルダパスに<strong>全角文字（日本語）や半角スペース</strong>が含まれると、コマンド実行時にエラーが発生することがあります。できるだけ英数字のパスに置いてください。</div>
         </div>
-        <p style="margin-top:14px;">フォルダ内に以下のファイル・フォルダが含まれていることを確認してください。</p>
+      </div>
+      <div class="card">
+        <h3>② install.bat をダブルクリックして起動する</h3>
+        <p>展開した <strong>nyseo-internal-link-agent</strong> フォルダを開き、<strong>install.bat</strong> をダブルクリックしてください。PowerShell が自動で起動してインストールが始まります。</p>
+        <div class="callout ok" style="margin-top:10px;">
+          <span class="callout-icon">✅</span>
+          <div>黒いウィンドウ（PowerShell）が開き、インストーラーのメッセージが表示されれば正常に起動しています。</div>
+        </div>
+        <div class="callout warn" style="margin-top:8px;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>「このアプリがデバイスに変更を加えることを許可しますか？」と表示される場合：</strong><br>
+            「はい」をクリックしてください。<br><br>
+            <strong>「Windows によって PC が保護されました」と表示される場合：</strong><br>
+            「詳細情報」→「実行」をクリックしてください。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 4: Claude CLI ═══ -->
+    <section class="section" id="step4">
+      <div class="section-header">
+        <div class="step-circle">4</div>
+        <div>
+          <h2>Claude CLI ログイン確認</h2>
+          <div class="sub">install.bat が自動で確認します</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>このステップは <strong>install.bat が自動で実行</strong>します。手動での操作は不要です。</p>
+        <p>Claude CLI（<span class="ic">claude</span> コマンド）が使用可能か確認し、バージョン情報を表示します。</p>
+        <div class="callout ok">
+          <span class="callout-icon">✅</span>
+          <div>以下のような表示が出れば正常です。</div>
+        </div>
+        <div class="terminal" style="margin-top:8px;">
+          <span class="t-yellow">━━━━━━ [4/11] Claude CLI ログイン確認 ━━━━━━</span><br>
+          <span class="t-green">✔ Claude CLI が確認されました（claude x.x.x）</span>
+        </div>
+        <div class="callout warn" style="margin-top:8px;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>「claude: コマンドが見つかりません」と表示される場合：</strong><br>
+            STEP 3 で Cowork（Claude Desktop Pro）が正しくインストールされていないか、まだ一度も起動していない可能性があります。Cowork を起動してログインを完了してから install.bat を再実行してください。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 5: フォルダ確認 ═══ -->
+    <section class="section" id="step5">
+      <div class="section-header">
+        <div class="step-circle">5</div>
+        <div>
+          <h2>プロジェクトフォルダの確認</h2>
+          <div class="sub">install.bat が自動で確認します</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>install.bat が実行されているフォルダを <strong>PROJECT_DIR</strong> として自動登録します。フォルダ内に必要なファイルが含まれているか確認されます。</p>
         <div class="tree">
           <span class="tree-dir">nyseo-internal-link-agent/</span><br>
           ├── <span class="tree-key">main.py</span>　　　　　<span style="color:#475569;">← メイン処理</span><br>
@@ -502,16 +564,20 @@
           ├── <span class="tree-dir">prompts/</span><br>
           └── <span class="tree-dir">docs/</span>
         </div>
+        <div class="callout warn" style="margin-top:12px;">
+          <span class="callout-icon">⚠️</span>
+          <div>インストーラーが起動中に「<strong>このままセットアップを続けると、ランナーサーバーの自動起動がこのフォルダを参照するように登録されます</strong>」と表示された場合、フォルダの場所が適切でない可能性があります。日本語や半角スペースを含まないパスに移動してから install.bat を再実行してください。</div>
+        </div>
       </div>
     </section>
 
-    <!-- ═══ STEP 5: JSON ═══ -->
-    <section class="section" id="step5">
+    <!-- ═══ STEP 6: JSON 自動配置 ═══ -->
+    <section class="section" id="step6">
       <div class="section-header">
-        <div class="step-circle">5</div>
+        <div class="step-circle">6</div>
         <div>
-          <h2>Google サービスアカウント JSON の確認</h2>
-          <div class="sub">zip に同梱されています。install.bat が自動で配置します</div>
+          <h2>Google サービスアカウント JSON の自動配置</h2>
+          <div class="sub">install.bat が自動でコピーします</div>
         </div>
       </div>
       <div class="card">
@@ -532,68 +598,22 @@
       </div>
     </section>
 
-    <!-- ═══ STEP 6: pip ═══ -->
-    <section class="section" id="step6">
-      <div class="section-header">
-        <div class="step-circle">6</div>
-        <div>
-          <h2>必要なライブラリのインストール</h2>
-          <div class="sub">install.bat が自動で実行します（約 2〜5 分）</div>
-        </div>
-      </div>
-      <div class="card">
-        <p>このステップは <strong>install.bat が自動で実行</strong>します。手動での操作は不要です。</p>
-        <div class="callout ok">
-          <span class="callout-icon">✅</span>
-          <div>install.bat 実行中に以下のような表示が出れば完了です。</div>
-        </div>
-        <div class="terminal" style="margin-top:8px;">
-          Successfully installed anthropic-x.x.x beautifulsoup4-4.12.x gspread-6.x.x ...<br>
-          <span class="t-dim">（バージョン番号は異なる場合があります）</span>
-        </div>
-        <div class="callout warn" style="margin-top:8px;">
-          <span class="callout-icon">⚠️</span>
-          <div>
-            <strong>「pip は認識されていません」と表示される場合：</strong><br>
-            STEP 1 で Python のインストール時に「Add Python to PATH」にチェックが入っていない可能性があります。Python を再インストールしてから install.bat を再実行してください。
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ STEP 7: install.ps1 ═══ -->
+    <!-- ═══ STEP 7: 環境変数 ═══ -->
     <section class="section" id="step7">
       <div class="section-header">
         <div class="step-circle">7</div>
         <div>
-          <h2>インストーラーの実行</h2>
-          <div class="sub">全11ステップを PowerShell 上で案内します</div>
+          <h2>環境変数の設定</h2>
+          <div class="sub">入力が必要な箇所は 2 箇所のみです</div>
         </div>
       </div>
-      <div class="card">
-        <p>展開した <strong>nyseo-internal-link-agent</strong> フォルダを開き、<strong>install.bat</strong> をダブルクリックしてください。PowerShell が自動で起動してインストールが始まります。</p>
-        <div class="callout ok" style="margin-top:10px;">
-          <span class="callout-icon">✅</span>
-          <div>黒いウィンドウ（PowerShell）が開き、インストーラーのメッセージが表示されれば正常に起動しています。</div>
-        </div>
-        <div class="callout warn" style="margin-top:8px;">
-          <span class="callout-icon">⚠️</span>
-          <div>
-            <strong>「このアプリがデバイスに変更を加えることを許可しますか？」と表示される場合：</strong><br>
-            「はい」をクリックしてください。<br><br>
-            <strong>「Windows によって PC が保護されました」と表示される場合：</strong><br>
-            「詳細情報」→「実行」をクリックしてください。
-          </div>
-        </div>
-      </div>
-
       <div class="card">
         <h3>入力が必要な箇所（全 11 ステップ中 2 箇所のみ）</h3>
         <p style="margin-bottom:12px;">インストーラーはほぼ自動で進みます。以下の 2 箇所だけ <kbd>Enter</kbd> を押す操作が必要です。</p>
 
         <div class="substep">
           <div class="substep-label">① Google サービスアカウントのパス確認</div>
-          <p>STEP 5 で配置した JSON のパスが自動表示されます。合っていれば <kbd>Enter</kbd> を押すだけです。</p>
+          <p>STEP 6 で配置した JSON のパスが自動表示されます。合っていれば <kbd>Enter</kbd> を押すだけです。</p>
           <div class="terminal">
 <span class="t-yellow">━━━━━━ [7/11] 環境変数の設定 ━━━━━━</span>
 &nbsp;
@@ -630,10 +650,75 @@
       </div>
     </section>
 
-    <!-- ═══ STEP 8: Cowork 再起動・プロジェクト作成 ═══ -->
+    <!-- ═══ STEP 8: pip ═══ -->
     <section class="section" id="step8">
       <div class="section-header">
         <div class="step-circle">8</div>
+        <div>
+          <h2>必要なライブラリのインストール</h2>
+          <div class="sub">install.bat が自動で実行します（約 2〜5 分）</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>このステップは <strong>install.bat が自動で実行</strong>します。手動での操作は不要です。</p>
+        <div class="callout ok">
+          <span class="callout-icon">✅</span>
+          <div>install.bat 実行中に以下のような表示が出れば完了です。</div>
+        </div>
+        <div class="terminal" style="margin-top:8px;">
+          Successfully installed anthropic-x.x.x beautifulsoup4-4.12.x gspread-6.x.x ...<br>
+          <span class="t-dim">（バージョン番号は異なる場合があります）</span>
+        </div>
+        <div class="callout warn" style="margin-top:8px;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>「pip は認識されていません」と表示される場合：</strong><br>
+            STEP 1 で Python のインストール時に「Add Python to PATH」にチェックが入っていない可能性があります。Python を再インストールしてから install.bat を再実行してください。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 9: ランナーサーバー ═══ -->
+    <section class="section" id="step9">
+      <div class="section-header">
+        <div class="step-circle">9</div>
+        <div>
+          <h2>ランナーサーバーの登録と起動</h2>
+          <div class="sub">install.bat が自動で登録・起動します</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>このステップは <strong>install.bat が自動で実行</strong>します。手動での操作は不要です。</p>
+        <p><span class="ic">local_runner.py</span>（ランナーサーバー）を Windows のスタートアップに登録し、続けてサーバーを起動します。次回 PC 起動時からは自動的に起動します。</p>
+        <div class="callout ok">
+          <span class="callout-icon">✅</span>
+          <div>以下のような表示が出れば完了です。</div>
+        </div>
+        <div class="terminal" style="margin-top:8px;">
+          <span class="t-yellow">━━━━━━ [9/11] ランナーサーバー登録・起動 ━━━━━━</span><br>
+          <span class="t-green">✔ スタートアップへの登録が完了しました</span><br>
+          <span class="t-green">✔ ランナーサーバーを起動しました（http://127.0.0.1:8765）</span>
+        </div>
+        <div class="callout info" style="margin-top:8px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>サーバーが起動すると、バックグラウンドで <span class="ic">http://127.0.0.1:8765</span> のリクエストを待ち受けます。Cowork からエージェントが実行命令を送ると、このサーバーが <span class="ic">main.py</span> を呼び出します。</div>
+        </div>
+        <div class="callout warn" style="margin-top:8px;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>サーバーが起動しない場合：</strong><br>
+            PowerShell で以下を実行して手動起動してください。
+            <div class="terminal" style="margin-top:8px;">py "<span class="t-blue">プロジェクトフォルダのパス</span>\local_runner.py"</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 10: Cowork プロジェクト ═══ -->
+    <section class="section" id="step10">
+      <div class="section-header">
+        <div class="step-circle">10</div>
         <div>
           <h2>Cowork の再起動とプロジェクト作成</h2>
           <div class="sub">設定を反映し、エージェント用プロジェクトを作成します</div>
@@ -695,17 +780,17 @@ SEOツールから出力したSpreadsheetを読み込み、被リンク不足記
 
 ### STEP 1：精度モードの選択
 
-> 精度モードを選択してください。
-> - **高精度**（推奨）: KWをトークン単位で分割してスコアリング。候補記事を多く拾いやすい。
-> - **中精度**: KW全体の文字列一致のみ。高速だが複合KWで候補が少なくなる場合がある。
+&gt; 精度モードを選択してください。
+&gt; - **高精度**（推奨）: KWをトークン単位で分割してスコアリング。候補記事を多く拾いやすい。
+&gt; - **中精度**: KW全体の文字列一致のみ。高速だが複合KWで候補が少なくなる場合がある。
 
 ---
 
 ### STEP 2：AIモードの選択
 
-> AIモードを選択してください。
-> - **CLIモード**: Cowork内蔵AIを使用。追加コストなし。処理は逐次（1件ずつ）。
-> - **APIモード**: Anthropic API直接呼び出し。5並列処理で高速。ANTHROPIC_API_KEY が必要。
+&gt; AIモードを選択してください。
+&gt; - **CLIモード**: Cowork内蔵AIを使用。追加コストなし。処理は逐次（1件ずつ）。
+&gt; - **APIモード**: Anthropic API直接呼び出し。5並列処理で高速。ANTHROPIC_API_KEY が必要。
 
 ---
 
@@ -721,11 +806,11 @@ http://127.0.0.1:8765/status
 - `{"status": "idle"}` → STEP 3② へ進む
 - `{"status": "running"}` → 「現在別の処理が実行中です。完了後に再度お試しください。」とユーザーに伝える
 - **接続できない場合** → 以下をユーザーに伝える：
-  > 「ランナーサーバーが起動していません。PowerShellで以下を実行してください：」
-  > ```powershell
-  > py "C:\Users\&lt;ユーザー名&gt;\Downloads\nyseo-internal-link-agent\local_runner.py"
-  > ```
-  > 「起動後にもう一度URLを送ってください。」
+  &gt; 「ランナーサーバーが起動していません。PowerShellで以下を実行してください：」
+  &gt; ```powershell
+  &gt; py "C:\Users\&lt;ユーザー名&gt;\Downloads\nyseo-internal-link-agent\local_runner.py"
+  &gt; ```
+  &gt; 「起動後にもう一度URLを送ってください。」
 
 **② 実行リクエストを送信**
 
@@ -741,7 +826,7 @@ http://127.0.0.1:8765/status
 `&lt;URL&gt;` はユーザーから受け取ったSpreadsheetのURLをそのまま入れる。
 
 `{"status": "started"}` が返ってきたら：
-> 「実行を開始しました。処理完了後にSpreadsheetをご確認ください。CLIモードは記事ごとに逐次処理、APIモードは5並列で一括処理します。」
+&gt; 「実行を開始しました。処理完了後にSpreadsheetをご確認ください。CLIモードは記事ごとに逐次処理、APIモードは5並列で一括処理します。」
 
 ---
 
@@ -757,7 +842,7 @@ http://127.0.0.1:8765/stop
 ```
 
 `{"status": "stop_requested"}` が返ってきたら：
-> 「中断シグナルを送信しました。現在処理中の記事が完了した後に停止します。Spreadsheetで処理済み記事（H列にデータあり）を確認できます。」
+&gt; 「中断シグナルを送信しました。現在処理中の記事が完了した後に停止します。Spreadsheetで処理済み記事（H列にデータあり）を確認できます。」
 
 **② 中断後の状態**
 - 処理済み記事のH〜M列はそのまま保持される
@@ -771,7 +856,7 @@ http://127.0.0.1:8765/stop
 - 通常通り STEP 1〜3 を実施してSpreadsheet URLを送信するだけでよい
 - H列が空白の記事だけが対象になるため、自動的に続きから処理される
 
-> 「再開します。前回の続きから処理します（H列にデータがある記事は自動スキップされます）。」
+&gt; 「再開します。前回の続きから処理します（H列にデータがある記事は自動スキップされます）。」
 
 ---
 
@@ -815,49 +900,10 @@ http://127.0.0.1:8765/stop
       </div>
     </section>
 
-    <!-- ═══ STEP 9: 動作確認 ═══ -->
-    <section class="section" id="step9">
+    <!-- ═══ STEP 11: Spreadsheet ═══ -->
+    <section class="section" id="step11">
       <div class="section-header">
-        <div class="step-circle">9</div>
-        <div>
-          <h2>動作確認</h2>
-          <div class="sub">インストールが正しく完了しているか確認します</div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>ランナーサーバーの確認</h3>
-        <p>ブラウザ（Chrome）で以下の URL を開いてください。</p>
-        <div class="code-block">
-          <div class="code-header"><span class="code-lang">ブラウザのアドレスバーに入力</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-          <pre><code>http://127.0.0.1:8765/status</code></pre>
-        </div>
-        <div class="callout ok">
-          <span class="callout-icon">✅</span>
-          <div>画面に <span class="ic">{"status": "idle"}</span> と表示されれば正常です。</div>
-        </div>
-        <div class="callout warn">
-          <span class="callout-icon">⚠️</span>
-          <div>「このサイトにアクセスできません」と表示される場合、ランナーサーバーが起動していません。「トラブル対応」を参照してください。</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>セットアップ完了チェックリスト</h3>
-        <ul class="checklist">
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">Python がインストールされている</div><div class="ck-desc"><span class="ic">py --version</span> でバージョンが表示される</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">Chrome に Claude 拡張機能がインストールされている</div><div class="ck-desc">ブラウザ右上に Claude アイコン（橙色）が表示されている</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">Cowork が起動している</div><div class="ck-desc">内部リンクエージェント プロジェクトが開ける</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">JSON ファイルが正しい場所にある</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo-agent-…json</span> が存在する</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">pip install が完了している</div><div class="ck-desc">requirements.txt のライブラリがすべて入っている</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">ランナーサーバーが起動している</div><div class="ck-desc"><span class="ic">http://127.0.0.1:8765/status</span> で <span class="ic">{"status": "idle"}</span> が返る</div></div></li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- ═══ Spreadsheet ═══ -->
-    <section class="section" id="sheet">
-      <div class="section-header">
-        <div class="step-circle" style="background:#16a34a; font-size:13px;">📊</div>
+        <div class="step-circle">11</div>
         <div>
           <h2>Spreadsheet の準備</h2>
           <div class="sub">処理対象の Spreadsheet に必要な設定</div>
@@ -895,7 +941,7 @@ http://127.0.0.1:8765/stop
         <h3>サービスアカウントへの編集権限付与</h3>
         <ol>
           <li>Spreadsheet 右上の「共有」ボタンをクリック</li>
-          <li>install.ps1 の STEP 11 で表示されたサービスアカウントのメールアドレスを入力</li>
+          <li>install.bat の STEP 11 で表示されたサービスアカウントのメールアドレスを入力</li>
           <li>権限を「<strong>編集者</strong>」に設定して「送信」</li>
         </ol>
         <div class="callout warn" style="margin-top:8px;">
@@ -952,6 +998,45 @@ http://127.0.0.1:8765/stop
         <ul>
           <li>2 回目以降の実行では、キャッシュ済みの記事は再取得をスキップするため処理が高速になります</li>
           <li>このタブは手動で編集しないでください</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══ 動作確認 ═══ -->
+    <section class="section" id="verify">
+      <div class="section-header">
+        <div class="step-circle" style="background:#16a34a;">✓</div>
+        <div>
+          <h2>動作確認</h2>
+          <div class="sub">インストールが正しく完了しているか確認します</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>ランナーサーバーの確認</h3>
+        <p>ブラウザ（Chrome）で以下の URL を開いてください。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">ブラウザのアドレスバーに入力</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>http://127.0.0.1:8765/status</code></pre>
+        </div>
+        <div class="callout ok">
+          <span class="callout-icon">✅</span>
+          <div>画面に <span class="ic">{"status": "idle"}</span> と表示されれば正常です。</div>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>「このサイトにアクセスできません」と表示される場合、ランナーサーバーが起動していません。「トラブル対応」を参照してください。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>セットアップ完了チェックリスト</h3>
+        <ul class="checklist">
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Python がインストールされている</div><div class="ck-desc"><span class="ic">py --version</span> でバージョンが表示される</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Chrome に Claude 拡張機能がインストールされている</div><div class="ck-desc">ブラウザ右上に Claude アイコン（橙色）が表示されている</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Cowork が起動している</div><div class="ck-desc">内部リンクエージェント プロジェクトが開ける</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">JSON ファイルが正しい場所にある</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo-agent-…json</span> が存在する</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">pip install が完了している</div><div class="ck-desc">requirements.txt のライブラリがすべて入っている</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">ランナーサーバーが起動している</div><div class="ck-desc"><span class="ic">http://127.0.0.1:8765/status</span> で <span class="ic">{"status": "idle"}</span> が返る</div></div></li>
         </ul>
       </div>
     </section>
@@ -1126,7 +1211,7 @@ STEP2: 候補 8 件
         </table>
         <div class="callout info" style="margin-top:12px;">
           <span class="callout-icon">ℹ️</span>
-          <div>API モードを使うには <span class="ic">ANTHROPIC_API_KEY</span> の設定が必要です。<span class="ic">install.ps1</span> を再実行して STEP 7-2 で追加してください。</div>
+          <div>API モードを使うには <span class="ic">ANTHROPIC_API_KEY</span> の設定が必要です。<span class="ic">install.bat</span> を再実行して STEP 7-2 で追加してください。</div>
         </div>
       </div>
     </section>
