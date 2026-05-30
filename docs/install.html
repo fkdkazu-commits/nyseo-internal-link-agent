@@ -493,7 +493,8 @@
           <span class="tree-dir">nyseo-internal-link-agent/</span><br>
           ├── <span class="tree-key">main.py</span>　　　　　<span style="color:#475569;">← メイン処理</span><br>
           ├── <span class="tree-key">local_runner.py</span>　<span style="color:#475569;">← ランナーサーバー（常駐）</span><br>
-          ├── <span class="tree-key">install.ps1</span>　　　<span style="color:#475569;">← 完全インストーラー（最初に実行）</span><br>
+          ├── <span class="tree-key">install.bat</span>　　　<span style="color:#475569;">← ダブルクリックで起動するインストーラー</span><br>
+          ├── <span class="tree-key">install.ps1</span>　　　<span style="color:#475569;">← install.bat から自動で呼ばれるスクリプト（直接実行不要）</span><br>
           ├── <span class="tree-key">requirements.txt</span>　<span style="color:#475569;">← 必要なライブラリ一覧</span><br>
           ├── <span class="tree-key">config.py</span><br>
           ├── <span class="tree-dir">steps/</span><br>
@@ -509,28 +510,24 @@
       <div class="section-header">
         <div class="step-circle">5</div>
         <div>
-          <h2>Google サービスアカウント JSON の配置</h2>
-          <div class="sub">認証ファイルをプロジェクト外の専用フォルダに保管します</div>
+          <h2>Google サービスアカウント JSON の確認</h2>
+          <div class="sub">zip に同梱されています。install.bat が自動で配置します</div>
         </div>
       </div>
       <div class="card">
-        <p>管理者から受け取った JSON ファイルを以下の場所に配置します。</p>
-        <div class="code-block">
-          <div class="code-header"><span class="code-lang">保存先パス</span></div>
-          <pre><code>C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\.secrets\nyseo-agent-xxxxxxxx.json</code></pre>
+        <p>受け取った zip を展開すると、プロジェクトフォルダ内の <span class="ic">secrets/</span> フォルダに JSON ファイルが含まれています。</p>
+        <div class="tree">
+          <span class="tree-dir">nyseo-internal-link-agent/</span><br>
+          └── <span class="tree-dir">secrets/</span><br>
+          　　 └── <span class="tree-key">nyseo-agent-xxxxxxxx.json</span>　<span style="color:#475569;">← ここに入っていれば OK</span>
         </div>
-        <p>PowerShell を開き、<span class="ic">.secrets</span> フォルダを作成してください（すでにある場合はスキップ）。</p>
-        <div class="code-block">
-          <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-          <pre><code>mkdir "$env:USERPROFILE\.secrets"</code></pre>
+        <div class="callout ok" style="margin-top:10px;">
+          <span class="callout-icon">✅</span>
+          <div>JSON ファイルが <span class="ic">secrets/</span> フォルダ内にあれば、<strong>install.bat が自動的に <span class="ic">~\.secrets\</span> へコピー</strong>します。手動での操作は不要です。</div>
         </div>
-        <p>作成したフォルダに JSON ファイルをコピーしてください（エクスプローラーでのコピー＆ペーストで OK です）。</p>
-        <div class="callout note">
-          <span class="callout-icon">🔒</span>
-          <div>
-            <strong>JSON ファイルはプロジェクトフォルダ内に置かないでください。</strong><br>
-            <span class="ic">.secrets</span> フォルダは git 管理外のため、誤ってファイルが共有・公開されるリスクがありません。
-          </div>
+        <div class="callout warn" style="margin-top:8px;">
+          <span class="callout-icon">⚠️</span>
+          <div>JSON ファイルが見つからない場合は管理者にお問い合わせください。<span class="ic">secrets/</span> フォルダ内に配置すれば install.bat が処理します。</div>
         </div>
       </div>
     </section>
@@ -541,26 +538,24 @@
         <div class="step-circle">6</div>
         <div>
           <h2>必要なライブラリのインストール</h2>
-          <div class="sub">Python パッケージをインストールします（約 2〜5 分）</div>
+          <div class="sub">install.bat が自動で実行します（約 2〜5 分）</div>
         </div>
       </div>
       <div class="card">
-        <p>PowerShell でプロジェクトフォルダに移動し、以下を実行してください。</p>
-        <div class="code-block">
-          <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-          <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
-pip install -r requirements.txt</code></pre>
+        <p>このステップは <strong>install.bat が自動で実行</strong>します。手動での操作は不要です。</p>
+        <div class="callout ok">
+          <span class="callout-icon">✅</span>
+          <div>install.bat 実行中に以下のような表示が出れば完了です。</div>
         </div>
-        <p>インストール中は多数のログが流れます。最後に以下のような表示が出れば完了です。</p>
-        <div class="terminal">
+        <div class="terminal" style="margin-top:8px;">
           Successfully installed anthropic-x.x.x beautifulsoup4-4.12.x gspread-6.x.x ...<br>
           <span class="t-dim">（バージョン番号は異なる場合があります）</span>
         </div>
-        <div class="callout warn">
+        <div class="callout warn" style="margin-top:8px;">
           <span class="callout-icon">⚠️</span>
           <div>
             <strong>「pip は認識されていません」と表示される場合：</strong><br>
-            Python のインストール時に PATH が設定されていない可能性があります。<span class="ic">py -m pip install -r requirements.txt</span> で代替してください。それでも失敗する場合は Python を再インストールしてください（「Add Python to PATH」にチェック）。
+            STEP 1 で Python のインストール時に「Add Python to PATH」にチェックが入っていない可能性があります。Python を再インストールしてから install.bat を再実行してください。
           </div>
         </div>
       </div>
@@ -593,12 +588,12 @@ pip install -r requirements.txt</code></pre>
       </div>
 
       <div class="card">
-        <h3>スクリプトの進行（全 11 ステップ）</h3>
-        <p style="margin-bottom:12px;">主な対話が発生するステップのみ抜粋しています。自動処理のステップは画面を見ながら待つだけです。</p>
+        <h3>入力が必要な箇所（全 11 ステップ中 2 箇所のみ）</h3>
+        <p style="margin-bottom:12px;">インストーラーはほぼ自動で進みます。以下の 2 箇所だけ <kbd>Enter</kbd> を押す操作が必要です。</p>
 
         <div class="substep">
-          <div class="substep-label">[STEP 7-1] Google サービスアカウントのパス設定</div>
-          <p>デフォルトのパスが表示されます。ステップ 5 で配置したパスと同じであれば <kbd>Enter</kbd> を押すだけです。</p>
+          <div class="substep-label">① Google サービスアカウントのパス確認</div>
+          <p>STEP 5 で配置した JSON のパスが自動表示されます。合っていれば <kbd>Enter</kbd> を押すだけです。</p>
           <div class="terminal">
 <span class="t-yellow">━━━━━━ [7/11] 環境変数の設定 ━━━━━━</span>
 &nbsp;
@@ -612,7 +607,7 @@ pip install -r requirements.txt</code></pre>
         </div>
 
         <div class="substep">
-          <div class="substep-label">[STEP 7-2] Anthropic API キー（任意・APIモード使用時のみ）</div>
+          <div class="substep-label">② Anthropic API キー（任意・APIモード使用時のみ）</div>
           <p><strong>CLI モードのみ使用する場合は <kbd>Enter</kbd> でスキップしてください。</strong></p>
           <p>API モード（5 並列・高速処理）を使う場合は <span class="ic">sk-ant-…</span> 形式のキーを入力してください。</p>
           <div class="terminal">
@@ -623,54 +618,14 @@ pip install -r requirements.txt</code></pre>
 </div>
           <div class="callout info" style="margin-top:10px;">
             <span class="callout-icon">ℹ️</span>
-            <div>API キーは後から変更できます。変更する場合は <span class="ic">install.ps1</span> を再実行してください。<br>
+            <div>API キーは後から変更できます。変更する場合は <span class="ic">install.bat</span> を再実行してください。<br>
             API キーを設定しても <strong>CLI モードには影響しません</strong>。CLI モード実行時は API キーを使わない設計になっています。</div>
           </div>
         </div>
 
-        <div class="substep">
-          <div class="substep-label">[STEP 9] スタートアップ登録 + ランナーサーバー起動</div>
-          <p>PC を再起動するたびにランナーサーバーが自動で起動するよう、Windows のスタートアップに登録してからサーバーを即時起動します。</p>
-          <div class="terminal">
-<span class="t-yellow">━━━━━━ [9/11] スタートアップ登録 + ランナーサーバー起動 ━━━━━━</span>
-&nbsp;
-  <span class="t-green">✔ スタートアップに登録しました</span>
-  <span class="t-green">✔ ランナーサーバーを起動しました</span>
-  <span class="t-green">✔ 起動確認: {"status": "idle"}</span>
-</div>
-          <p>スタートアップフォルダ（<span class="ic">%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\</span>）に起動スクリプトが作成されます。</p>
-        </div>
-
-        <div class="substep">
-          <div class="substep-label">[STEP 11] Spreadsheet の準備（手動）</div>
-          <p>最後のステップで Spreadsheet の作成・CSV インポート・共有設定を案内します。手順に従って操作してください。</p>
-          <div class="terminal">
-<span class="t-yellow">━━━━━━ [11/11] Spreadsheet の準備 ━━━━━━</span>
-&nbsp;
-  Google スプレッドシートを新規作成し、CSVデータをインポートしてください。
-  （画面の案内に従って操作してください）
-&nbsp;
-<span class="t-green">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-<span class="t-green"> セットアップ完了！</span>
-<span class="t-green">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-&nbsp;
-  次のステップ:
-  1. Cowork（Claude Desktop Pro）を再起動
-  2. 内部リンクエージェント プロジェクトを開く
-  3. Spreadsheet の URL をチャットに貼り付ける
-</div>
-          <div class="callout ok" style="margin-top:10px;">
-            <span class="callout-icon">✅</span>
-            <div><strong>「Server running: {"status": "idle"}」が表示されればセットアップ完了です。</strong></div>
-          </div>
-          <div class="callout warn" style="margin-top:8px;">
-            <span class="callout-icon">⚠️</span>
-            <div>
-              「Could not verify server start」と表示された場合：<br>
-              サーバーが起動中の可能性があります。30 秒ほど待ってからブラウザで <span class="ic">http://127.0.0.1:8765/status</span> を開いて確認してください。<br>
-              それでも接続できない場合は「トラブル対応」を参照してください。
-            </div>
-          </div>
+        <div class="callout info" style="margin-top:12px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>上記 2 箇所以外（Python 確認・JSON 自動コピー・pip インストール・スタートアップ登録・ランナーサーバー起動）はすべて<strong>自動処理</strong>です。画面を見ながら待つだけです。</div>
         </div>
       </div>
     </section>
