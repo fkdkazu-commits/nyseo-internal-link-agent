@@ -173,6 +173,34 @@ if ($missing.Count -eq 0) {
     exit 1
 }
 
+# Downloads / Temp への配置警告
+$tempPaths = @("Downloads", "Temp", "tmp", "デスクトップ", "Desktop")
+$inTempDir = $false
+foreach ($t in $tempPaths) {
+    if ($PROJECT_DIR -like "*\$t\*" -or $PROJECT_DIR -like "*\$t") {
+        $inTempDir = $true; break
+    }
+}
+if ($inTempDir) {
+    Write-Host ""
+    Write-Host "  ⚠️  【重要】このフォルダは一時的な場所にあります" -ForegroundColor Yellow
+    Write-Host "  現在のパス: $PROJECT_DIR" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  このままセットアップを続けると、ランナーサーバーの自動起動が" -ForegroundColor Yellow
+    Write-Host "  このフォルダを参照するように登録されます。" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  【推奨】以下のような恒久的な場所にフォルダを移動してから" -ForegroundColor Cyan
+    Write-Host "  install.ps1 を再実行してください：" -ForegroundColor Cyan
+    Write-Host "  例） C:\Users\$env:USERNAME\OneDrive\ドキュメント\Claude\nyseo-internal-link-agent" -ForegroundColor White
+    Write-Host "  例） C:\Users\$env:USERNAME\Documents\nyseo-internal-link-agent" -ForegroundColor White
+    Write-Host ""
+    $ans = Read-Host "  このまま続けますか？（移動してから再実行する場合は N を入力して終了）[Y/N]"
+    if ($ans -eq "N" -or $ans -eq "n") {
+        Write-Host "  フォルダを移動してから install.ps1 を再実行してください。" -ForegroundColor Cyan
+        exit 0
+    }
+}
+
 
 # ============================================================
 # STEP 5: Google サービスアカウント JSON の配置（自動）
