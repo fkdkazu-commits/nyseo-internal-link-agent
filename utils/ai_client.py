@@ -16,7 +16,7 @@ from utils.logger import get_logger
 logger = get_logger()
 
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
-CLI_TIMEOUT = 120  # 秒
+CLI_TIMEOUT = 240  # 秒（20件一括判定プロンプトは応答に2〜3分かかる場合がある）
 
 def _find_claude() -> str:
     """claude 実行ファイルのパスを返す。見つからなければ 'claude' を返す。"""
