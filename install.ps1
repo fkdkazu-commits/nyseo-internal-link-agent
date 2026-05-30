@@ -242,13 +242,13 @@ if ($inTempDir) {
     Write-Host "  このフォルダを参照するように登録されます。" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "  【推奨】以下のような恒久的な場所にフォルダを移動してから" -ForegroundColor Cyan
-    Write-Host "  install.ps1 を再実行してください：" -ForegroundColor Cyan
+    Write-Host "  install.bat を再実行してください：" -ForegroundColor Cyan
     Write-Host "  例） C:\Users\$env:USERNAME\OneDrive\ドキュメント\Claude\nyseo-internal-link-agent" -ForegroundColor White
     Write-Host "  例） C:\Users\$env:USERNAME\Documents\nyseo-internal-link-agent" -ForegroundColor White
     Write-Host ""
     $ans = Read-Host "  このまま続けますか？（移動してから再実行する場合は N を入力して終了）[Y/N]"
     if ($ans -eq "N" -or $ans -eq "n") {
-        Write-Host "  フォルダを移動してから install.ps1 を再実行してください。" -ForegroundColor Cyan
+        Write-Host "  フォルダを移動してから install.bat を再実行してください。" -ForegroundColor Cyan
         exit 0
     }
 }
@@ -306,7 +306,7 @@ if (Test-Path $saPath) {
     Show-Ok "ファイルを確認しました: $saPath"
 } else {
     Show-Warn "ファイルが見つかりません: $saPath"
-    Show-Warn "パスを後で修正する場合は install.ps1 を再実行してください"
+    Show-Warn "パスを後で修正する場合は install.bat を再実行してください"
 }
 [System.Environment]::SetEnvironmentVariable("GOOGLE_SERVICE_ACCOUNT", $saPath, "User")
 Show-Ok "GOOGLE_SERVICE_ACCOUNT を設定しました"
@@ -670,6 +670,6 @@ Write-Host "  2. チャット欄に Spreadsheet の URL を貼り付けて送信
 Write-Host "  3. 精度モード・AIモードを選択すると処理が自動で始まります" -ForegroundColor White
 Write-Host ""
 Write-Host "  ランナーサーバーは PC 起動時に自動で立ち上がります。" -ForegroundColor Gray
-Write-Host "  設定変更は install.ps1 を再実行してください。" -ForegroundColor Gray
+Write-Host "  設定変更は install.bat を再実行してください。" -ForegroundColor Gray
 Write-Host ""
 Read-Host "  Enter を押して終了"
