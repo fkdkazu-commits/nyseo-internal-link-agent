@@ -18,23 +18,31 @@ logger = get_logger()
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 CLI_TIMEOUT = 120  # 秒
 
-# Windows の Claude Desktop 既知インストールパス（PATHに入っていない場合のフォールバック）
-_CLAUDE_FALLBACK_PATHS = [
-    Path(os.environ.get("LOCALAPPDATA", "")) / "AnthropicClaude" / "claude.exe",
-    Path(os.environ.get("APPDATA", ""))     / "AnthropicClaude" / "claude.exe",
-    Path(os.environ.get("USERPROFILE", "")) / "AppData" / "Local" / "AnthropicClaude" / "claude.exe",
-]
-
-
 def _find_claude() -> str:
     """claude 実行ファイルのパスを返す。見つからなければ 'claude' を返す。"""
+    # 1. PATH から検索
     found = shutil.which("claude")
     if found:
         return found
-    for p in _CLAUDE_FALLBACK_PATHS:
+
+    local_app = Path(os.environ.get("LOCALAPPDATA", ""))
+
+    # 2. 通常インストール版
+    for p in [
+        local_app / "AnthropicClaude" / "claude.exe",
+        Path(os.environ.get("USERPROFILE", "")) / "AppData" / "Local" / "AnthropicClaude" / "claude.exe",
+    ]:
         if p.exists():
             logger.info(f"claude をフォールバックパスで発見: {p}")
             return str(p)
+
+    # 3. Windows ストア版（パッケージ名・バージョンが可変なのでglobで検索）
+    packages_dir = local_app / "Packages"
+    if packages_dir.exists():
+        for exe in packages_dir.glob("Claude_*/LocalCache/Roaming/Claude/claude-code/*/claude.exe"):
+            logger.info(f"claude をWindowsストア版パスで発見: {exe}")
+            return str(exe)
+
     return "claude"
 
 
