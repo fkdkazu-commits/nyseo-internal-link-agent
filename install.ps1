@@ -7,7 +7,7 @@
 # ============================================================
 
 $PROJECT_DIR = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-$STEP_TOTAL  = 10
+$STEP_TOTAL  = 11
 
 function Show-Header {
     param([string]$Step, [string]$Title, [string]$Mode = "auto")
@@ -152,9 +152,61 @@ Wait-Enter "Cowork のインストールとログインが完了したら Enter 
 
 
 # ============================================================
-# STEP 4: プロジェクトフォルダの確認（自動）
+# STEP 4: Claude CLI ログイン確認（自動）
 # ============================================================
-Show-Header "[$([string]4)/$STEP_TOTAL]" "プロジェクトフォルダの確認"
+Show-Header "[$([string]4)/$STEP_TOTAL]" "Claude CLI ログイン確認"
+
+# claude.exe を探す（Windowsストア版対応）
+$claudeExe = $null
+$localApp = $env:LOCALAPPDATA
+
+# 通常版
+foreach ($p in @(
+    "$localApp\AnthropicClaude\claude.exe",
+    "$env:USERPROFILE\AppData\Local\AnthropicClaude\claude.exe"
+)) {
+    if (Test-Path $p) { $claudeExe = $p; break }
+}
+
+# Windowsストア版（バージョン番号が可変なのでglobで検索）
+if (-not $claudeExe) {
+    $claudeExe = Get-ChildItem "$localApp\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\*\claude.exe" -ErrorAction SilentlyContinue |
+        Select-Object -First 1 -ExpandProperty FullName
+}
+
+if (-not $claudeExe) {
+    Show-Warn "claude.exe が見つかりませんでした。Cowork（Claude Desktop）が正しくインストールされているか確認してください。"
+    Wait-Enter "確認後 Enter を押してください"
+} else {
+    Show-Ok "claude.exe を発見: $claudeExe"
+    Write-Host ""
+
+    # ログイン状態を確認
+    $testResult = & $claudeExe --version 2>&1
+    $testStr = "$testResult"
+
+    if ($testStr -match "Not logged in") {
+        Write-Host ""
+        Show-Warn "Claude にログインしていません。ログインが必要です。"
+        Write-Host ""
+        Write-Host "  【手順】" -ForegroundColor Yellow
+        Show-Step "1. 以下のコマンドを別のターミナルで実行してください："
+        Write-Host "     & `"$claudeExe`"" -ForegroundColor White
+        Show-Step "2. 起動後に /login と入力して Enter"
+        Show-Step "3. ブラウザで Claude アカウントにログイン"
+        Show-Step "4. 完了後このウィンドウに戻って Enter を押してください"
+        Write-Host ""
+        Wait-Enter "ログインが完了したら Enter を押してください"
+    } else {
+        Show-Ok "Claude CLI のログインを確認しました"
+    }
+}
+
+
+# ============================================================
+# STEP 5: プロジェクトフォルダの確認（自動）
+# ============================================================
+Show-Header "[$([string]5)/$STEP_TOTAL]" "プロジェクトフォルダの確認"
 
 $requiredFiles = @("main.py", "local_runner.py", "install.ps1", "requirements.txt", "config.py")
 $missing = @()
@@ -203,9 +255,9 @@ if ($inTempDir) {
 
 
 # ============================================================
-# STEP 5: Google サービスアカウント JSON の配置（自動）
+# STEP 6: Google サービスアカウント JSON の配置（自動）
 # ============================================================
-Show-Header "[$([string]5)/$STEP_TOTAL]" "Google サービスアカウント JSON の配置"
+Show-Header "[$([string]6)/$STEP_TOTAL]" "Google サービスアカウント JSON の配置"
 
 $defaultSecretsDir = "$env:USERPROFILE\.secrets"
 $secretsSrcDir = Join-Path $PROJECT_DIR "secrets"
@@ -235,9 +287,9 @@ if ($bundledJson) {
 
 
 # ============================================================
-# STEP 6: 環境変数の設定（自動）
+# STEP 7: 環境変数の設定（自動）
 # ============================================================
-Show-Header "[$([string]6)/$STEP_TOTAL]" "環境変数の設定"
+Show-Header "[$([string]7)/$STEP_TOTAL]" "環境変数の設定"
 
 # [6-1] Google サービスアカウント
 Write-Host ""
@@ -290,9 +342,9 @@ if ($apiKey) {
 
 
 # ============================================================
-# STEP 7: ライブラリのインストール（自動）
+# STEP 8: ライブラリのインストール（自動）
 # ============================================================
-Show-Header "[$([string]7)/$STEP_TOTAL]" "Python ライブラリのインストール"
+Show-Header "[$([string]8)/$STEP_TOTAL]" "Python ライブラリのインストール"
 
 Write-Host ""
 Show-Info "pip install -r requirements.txt を実行しています..."
@@ -313,9 +365,9 @@ if ($LASTEXITCODE -eq 0) {
 
 
 # ============================================================
-# STEP 8: スタートアップ登録 + ランナーサーバー起動（自動）
+# STEP 9: スタートアップ登録 + ランナーサーバー起動（自動）
 # ============================================================
-Show-Header "[$([string]8)/$STEP_TOTAL]" "ランナーサーバーの登録・起動"
+Show-Header "[$([string]9)/$STEP_TOTAL]" "ランナーサーバーの登録・起動"
 
 # スタートアップ登録
 $pyPath = (Get-Command $pyCmd -ErrorAction SilentlyContinue).Source
@@ -324,7 +376,7 @@ $runnerScript = Join-Path $PROJECT_DIR "local_runner.py"
 $startupDir   = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
 $startupBat   = Join-Path $startupDir "nyseo_runner.bat"
 $batContent   = "@echo off`r`nstart `"`" /min `"$pyPath`" `"$runnerScript`"`r`n"
-[System.IO.File]::WriteAllText($startupBat, $batContent, [System.Text.Encoding]::ASCII)
+[System.IO.File]::WriteAllText($startupBat, $batContent, [System.Text.Encoding]::GetEncoding(932))
 Show-Ok "Windows 起動時の自動起動を登録しました"
 
 # 既存プロセスを停止
@@ -360,9 +412,9 @@ if (-not $serverOk) {
 
 
 # ============================================================
-# STEP 9: Cowork プロジェクトの作成（手動）
+# STEP 10: Cowork プロジェクトの作成（手動）
 # ============================================================
-Show-Header "[$([string]9)/$STEP_TOTAL]" "Cowork プロジェクトの作成" "manual"
+Show-Header "[$([string]10)/$STEP_TOTAL]" "Cowork プロジェクトの作成" "manual"
 
 $safeProjectDir = $PROJECT_DIR -replace '\\', '\\'
 
@@ -505,9 +557,9 @@ Wait-Enter "Cowork プロジェクトの作成・指示文の貼り付けが完�
 
 
 # ============================================================
-# STEP 10: Spreadsheet の準備（手動）
+# STEP 11: Spreadsheet の準備（手動）
 # ============================================================
-Show-Header "[$([string]10)/$STEP_TOTAL]" "Google Spreadsheet の準備" "manual"
+Show-Header "[$([string]11)/$STEP_TOTAL]" "Google Spreadsheet の準備" "manual"
 
 # サービスアカウントのメールアドレスを JSON から取得
 $saEmail = ""
@@ -604,6 +656,7 @@ Write-Host ""
 Write-Host "  ✔ Python                    インストール済み" -ForegroundColor Green
 Write-Host "  ✔ Chrome + Claude拡張機能   インストール済み" -ForegroundColor Green
 Write-Host "  ✔ Cowork                    インストール済み" -ForegroundColor Green
+Write-Host "  ✔ Claude CLI ログイン        確認済み" -ForegroundColor Green
 Write-Host "  ✔ Python ライブラリ          インストール済み" -ForegroundColor Green
 Write-Host "  ✔ 環境変数                  設定済み" -ForegroundColor Green
 Write-Host "  ✔ 自動起動                  登録済み" -ForegroundColor Green
