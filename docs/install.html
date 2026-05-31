@@ -582,21 +582,49 @@
         </div>
       </div>
       <div class="card">
-        <p>このステップは <strong>install.bat が自動で実行</strong>します。手動での操作は不要です。</p>
-        <p>Claude CLI（<span class="ic">claude</span> コマンド）が使用可能か確認し、バージョン情報を表示します。</p>
+        <p>install.bat が Claude CLI（<span class="ic">claude</span> コマンド）の場所を自動で検索し、<strong>実際にプロンプトを送信してログイン済みかどうかを確認</strong>します。</p>
         <div class="callout ok">
           <span class="callout-icon">✅</span>
-          <div>以下のような表示が出れば正常です。</div>
+          <div>ログイン済みであれば自動で次のステップへ進みます。</div>
         </div>
         <div class="terminal" style="margin-top:8px;">
           <span class="t-yellow">━━━━━━ [4/11] Claude CLI ログイン確認 ━━━━━━</span><br>
-          <span class="t-green">✔ Claude CLI が確認されました（claude x.x.x）</span>
+          ログイン状態を確認中...<br>
+          <span class="t-green">✔ Claude CLI のログインを確認しました</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>未ログインと判定された場合</h3>
+        <p>以下のメッセージが表示されたら、ログイン操作を行ってください。</p>
+        <div class="terminal" style="margin-top:8px; margin-bottom:12px;">
+          <span class="t-yellow">⚠ Claude にログインしていません。ログインが必要です。</span><br>
+          &nbsp;<br>
+          &nbsp; 【手順】<br>
+          &nbsp; 1. 別の PowerShell ウィンドウを開いて以下を実行：<br>
+          &nbsp;    &amp; "C:\...\claude.exe"<br>
+          &nbsp; 2. 起動後に /login と入力して Enter<br>
+          &nbsp; 3. ブラウザで Claude アカウントにログイン<br>
+          &nbsp; 4. ログイン完了後このウィンドウに戻ってください<br>
+          &nbsp;<br>
+          ログインが完了したら Enter を押してください（再確認します）:
+        </div>
+        <ol>
+          <li><strong>別の PowerShell ウィンドウを開く</strong>（install.bat のウィンドウはそのままにしておく）</li>
+          <li>表示されたパスの <span class="ic">claude.exe</span> を実行する</li>
+          <li>Claude の画面が開いたら <span class="ic">/login</span> と入力して <kbd>Enter</kbd></li>
+          <li>ブラウザが開くので Anthropic アカウントでログインする</li>
+          <li>install.bat のウィンドウに戻り <kbd>Enter</kbd> を押す → 自動で再確認されます</li>
+        </ol>
+        <div class="callout info" style="margin-top:10px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>ログインが完了するまでこのステップは先に進みません。ログインが確認されると自動で STEP 5 へ進みます。</div>
         </div>
         <div class="callout warn" style="margin-top:8px;">
           <span class="callout-icon">⚠️</span>
           <div>
             <strong>「claude: コマンドが見つかりません」と表示される場合：</strong><br>
-            STEP 3 で Cowork（Claude Desktop Pro）が正しくインストールされていないか、まだ一度も起動していない可能性があります。Cowork を起動してログインを完了してから install.bat を再実行してください。
+            Cowork（Claude Desktop Pro）が正しくインストールされていないか、まだ一度も起動していない可能性があります。Cowork を起動してログインを完了してから install.bat を再実行してください。
           </div>
         </div>
       </div>
