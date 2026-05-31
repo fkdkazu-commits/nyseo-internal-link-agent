@@ -732,19 +732,43 @@
         </div>
 
         <div class="substep">
-          <div class="substep-label">② Anthropic API キー（任意・APIモード使用時のみ）</div>
-          <p><strong>CLI モードのみ使用する場合は <kbd>Enter</kbd> でスキップしてください。</strong></p>
-          <p>API モード（5 並列・高速処理）を使う場合は <span class="ic">sk-ant-…</span> 形式のキーを入力してください。</p>
+          <div class="substep-label">② Anthropic API キー — <strong>今回は <kbd>Enter</kbd> でスキップ</strong></div>
+          <div class="callout ok" style="margin-bottom:12px;">
+            <span class="callout-icon">✅</span>
+            <div><strong>今回は CLIモードを使用するため、API キーは不要です。</strong><br>
+            何も入力せずに <kbd>Enter</kbd> を押してください。</div>
+          </div>
           <div class="terminal">
-  [7-2] Anthropic API キーの設定（APIモード使用時のみ）
+  [6-2] Anthropic API キーの設定（APIモード使用時のみ）
   CLIモードのみ使用する場合は Enter でスキップしてください。
-  API キー（sk-ant-... / CLIモードのみなら Enter でスキップ）: <span class="t-dim">← CLI のみなら Enter</span>
+  API キー（sk-ant-... / CLIモードのみなら Enter でスキップ）: <span class="t-dim">← そのまま Enter を押す</span>
   <span class="t-yellow">ℹ スキップしました（CLIモードのみで動作します）</span>
 </div>
           <div class="callout info" style="margin-top:10px;">
             <span class="callout-icon">ℹ️</span>
-            <div>API キーは後から変更できます。変更する場合は <span class="ic">install.bat</span> を再実行してください。<br>
-            API キーを設定しても <strong>CLI モードには影響しません</strong>。CLI モード実行時は API キーを使わない設計になっています。</div>
+            <div>
+              <strong>CLIモードとAPIモードの違い：</strong><br>
+              <table style="margin-top:6px; font-size:0.9em; border-collapse:collapse; width:100%;">
+                <tr style="background:#f0f4ff;">
+                  <th style="padding:4px 8px; text-align:left; border:1px solid #dde3f0;">モード</th>
+                  <th style="padding:4px 8px; text-align:left; border:1px solid #dde3f0;">仕組み</th>
+                  <th style="padding:4px 8px; text-align:left; border:1px solid #dde3f0;">追加費用</th>
+                  <th style="padding:4px 8px; text-align:left; border:1px solid #dde3f0;">速度</th>
+                </tr>
+                <tr>
+                  <td style="padding:4px 8px; border:1px solid #dde3f0;"><strong>CLIモード（今回）</strong></td>
+                  <td style="padding:4px 8px; border:1px solid #dde3f0;">Cowork（Claude Desktop Pro）の契約を利用</td>
+                  <td style="padding:4px 8px; border:1px solid #dde3f0;">なし</td>
+                  <td style="padding:4px 8px; border:1px solid #dde3f0;">1 件ずつ処理</td>
+                </tr>
+                <tr style="background:#f9f9f9;">
+                  <td style="padding:4px 8px; border:1px solid #dde3f0;">APIモード</td>
+                  <td style="padding:4px 8px; border:1px solid #dde3f0;">Anthropic API を直接呼び出し</td>
+                  <td style="padding:4px 8px; border:1px solid #dde3f0;">従量課金あり</td>
+                  <td style="padding:4px 8px; border:1px solid #dde3f0;">5 並列・高速</td>
+                </tr>
+              </table>
+            </div>
           </div>
         </div>
 
