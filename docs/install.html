@@ -613,7 +613,22 @@
           <li><strong>別の PowerShell ウィンドウを開く</strong>（install.bat のウィンドウはそのままにしておく）</li>
           <li>表示されたパスの <span class="ic">claude.exe</span> を実行する</li>
           <li>Claude の画面が開いたら <span class="ic">/login</span> と入力して <kbd>Enter</kbd></li>
-          <li>ブラウザが開くので Anthropic アカウントでログインする</li>
+          <li>
+            <strong>「Select login method:」画面が表示されたら <kbd>1</kbd> を入力して <kbd>Enter</kbd></strong>
+            <div class="terminal" style="margin-top:8px; margin-bottom:8px; font-size:0.85em;">
+              Select login method:<br>
+              &nbsp; &gt; <span class="t-green">1. Claude account with subscription</span> &nbsp;<span class="t-dim">· Pro, Max, Team, or Enterprise</span><br>
+              &nbsp; &nbsp; 2. Anthropic Console account &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-dim">· API usage billing</span><br>
+              &nbsp; &nbsp; 3. 3rd-party platform &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-dim">· Amazon Bedrock, Microsoft Foundry, or Vertex AI</span>
+            </div>
+            <div class="callout ok" style="margin-bottom:0;">
+              <span class="callout-icon">✅</span>
+              <div>Cowork（Claude Desktop Pro）のサブスクリプションをお持ちの場合は必ず <strong>1 番</strong> を選択してください。</div>
+            </div>
+          </li>
+          <li>ブラウザが自動で開くので「<strong>許可（Authorize）</strong>」をクリックしてログインを完了する<br>
+            <span style="font-size:0.88em; color:#666;">※ すでにブラウザで Claude にログイン済みの場合はボタンを押すだけで完了します</span>
+          </li>
           <li>install.bat のウィンドウに戻り <kbd>Enter</kbd> を押す → 自動で再確認されます</li>
         </ol>
         <div class="callout info" style="margin-top:10px;">
