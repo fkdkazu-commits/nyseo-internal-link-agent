@@ -181,24 +181,30 @@ if (-not $claudeExe) {
     Show-Ok "claude.exe を発見: $claudeExe"
     Write-Host ""
 
-    # ログイン状態を確認
-    $testResult = & $claudeExe --version 2>&1
-    $testStr = "$testResult"
+    # ログイン状態を確認（--version はログイン不要なので短いプロンプトで実際に確認）
+    Write-Host "  ログイン状態を確認中..." -ForegroundColor Cyan
+    $loggedIn = $false
+    while (-not $loggedIn) {
+        $testResult = & $claudeExe -p "ping" --model "claude-haiku-4-5-20251001" 2>&1
+        $testStr = "$testResult"
 
-    if ($testStr -match "Not logged in") {
-        Write-Host ""
-        Show-Warn "Claude にログインしていません。ログインが必要です。"
-        Write-Host ""
-        Write-Host "  【手順】" -ForegroundColor Yellow
-        Show-Step "1. 以下のコマンドを別のターミナルで実行してください："
-        Write-Host "     & `"$claudeExe`"" -ForegroundColor White
-        Show-Step "2. 起動後に /login と入力して Enter"
-        Show-Step "3. ブラウザで Claude アカウントにログイン"
-        Show-Step "4. 完了後このウィンドウに戻って Enter を押してください"
-        Write-Host ""
-        Wait-Enter "ログインが完了したら Enter を押してください"
-    } else {
-        Show-Ok "Claude CLI のログインを確認しました"
+        if ($testStr -match "Not logged in|Please run /login|not logged") {
+            Write-Host ""
+            Show-Warn "Claude にログインしていません。ログインが必要です。"
+            Write-Host ""
+            Write-Host "  【手順】" -ForegroundColor Yellow
+            Show-Step "1. 別の PowerShell ウィンドウを開いて以下を実行："
+            Write-Host "     & `"$claudeExe`"" -ForegroundColor White
+            Show-Step "2. 起動後に /login と入力して Enter"
+            Show-Step "3. ブラウザで Claude アカウントにログイン"
+            Show-Step "4. ログイン完了後このウィンドウに戻ってください"
+            Write-Host ""
+            Wait-Enter "ログインが完了したら Enter を押してください（再確認します）"
+            Write-Host "  再確認中..." -ForegroundColor Cyan
+        } else {
+            $loggedIn = $true
+            Show-Ok "Claude CLI のログインを確認しました"
+        }
     }
 }
 

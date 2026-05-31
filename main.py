@@ -32,7 +32,7 @@ from utils.ai_client import (
     expand_keywords, expand_keywords_sync_api,
     extract_main_kw, extract_main_kw_api_async,
     judge_relevance_batch, judge_relevance_batch_api_async,
-    TokenExhaustedError,
+    TokenExhaustedError, NotLoggedInError,
 )
 from utils.logger import get_logger
 from utils.sheets_client import SheetsClient
@@ -481,6 +481,11 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = 
                 client.write_result(target["row_idx"], result_row)
                 logger.info(f"→ 採用 {len(adopted)} 件をSpreadsheetに書き込みました")
                 break  # 成功 → 次の記事へ
+
+            except NotLoggedInError:
+                logger.error("\n⛔ Claude CLI に未ログインです。")
+                logger.error("PowerShell で claude を起動し /login でログインしてから再実行してください。")
+                return
 
             except TokenExhaustedError as e:
                 logger.warning(f"\n⛔ Claudeトークン上限: {e}")

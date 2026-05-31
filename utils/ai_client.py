@@ -54,6 +54,13 @@ class TokenExhaustedError(Exception):
     pass
 
 
+class NotLoggedInError(Exception):
+    """Claude CLI に未ログインの場合に raise する。"""
+    pass
+
+_NOT_LOGGED_IN_PATTERNS = ("Not logged in", "Please run /login", "not logged")
+
+
 def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "str | None":
     """claude CLIをサブプロセスで呼び出し、レスポンステキストを返す。"""
     for attempt in range(1, retries + 2):
@@ -74,6 +81,10 @@ def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "st
             # 1次: returncode != 0 かつ stdout が JSON でない → エラー文言と判断
             # 2次: 既知のパターンマッチ（returncode=0 でも念のため）
             is_json_response = stdout.lstrip().startswith(("[", "{"))
+            # 未ログイン検出（リトライ不要・即停止）
+            if any(p in combined for p in _NOT_LOGGED_IN_PATTERNS):
+                raise NotLoggedInError(combined.strip())
+
             if result.returncode != 0 and not is_json_response:
                 # エラー終了: stdout はエラーメッセージの可能性があるため使用しない
                 # 既知のトークン切れパターンなら即 raise、それ以外はリトライ
