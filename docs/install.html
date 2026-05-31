@@ -1233,9 +1233,21 @@ http://127.0.0.1:8765/stop
           </li>
 
         </ol>
-        <div class="callout ok" style="margin-top:16px;">
-          <span class="callout-icon">✅</span>
-          <div>処理中に PowerShell ウィンドウを閉じると処理が強制終了されます。完了のメッセージが出るまで閉じないでください。途中で止めたい場合は下の「中断・再開」を使ってください。</div>
+        <div class="callout warn" style="margin-top:16px;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>処理中は PC をスリープ・シャットダウンしないでください。</strong><br>
+            PowerShell ウィンドウを閉じると処理が強制終了されます。完了のメッセージが出るまで閉じないでください。<br>
+            途中で止めたい場合は下の「中断・再開」を使ってください。
+          </div>
+        </div>
+        <div class="callout info" style="margin-top:8px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>
+            <strong>万が一 PC を落としてしまった場合も、いつでも途中から再開できます。</strong><br>
+            再開手順：Cowork を起動 → 「内部リンクエージェント」プロジェクトを選択 → 同じ Spreadsheet URL を送信するだけです。<br>
+            すでに処理済みの記事（H 列にデータあり）は自動的にスキップされ、未処理の続きから再開します。
+          </div>
         </div>
       </div>
 
@@ -1265,15 +1277,20 @@ http://127.0.0.1:8765/stop
           <div>中断後も、処理済み記事（H 列にデータあり）のデータはそのまま Spreadsheet に残ります。未処理記事（H 列空白）だけが次回の処理対象になります。</div>
         </div>
 
-        <h4 style="margin-bottom:8px; color:var(--green);">▶ 再開する</h4>
+        <h4 style="margin-bottom:8px; color:var(--green);">▶ 再開する（中断後・PC 再起動後 どちらも同じ手順）</h4>
         <ol style="line-height:2.3;">
-          <li><strong>Cowork で同じ Spreadsheet URL を送信するだけです</strong><br>
+          <li><strong>Cowork を起動し、「内部リンクエージェント」プロジェクトを選択する</strong></li>
+          <li><strong>同じ Spreadsheet URL を送信するだけです</strong><br>
             <span style="color:var(--text-secondary); font-size:12.5px;">精度・AI モードの選択から通常どおり進めてください</span>
           </li>
           <li><strong>H 列が空白の記事だけが自動的に処理されます</strong><br>
             <span style="color:var(--text-secondary); font-size:12.5px;">処理済み記事は自動スキップされるため、続きから再開されます</span>
           </li>
         </ol>
+        <div class="callout ok" style="margin-top:10px;">
+          <span class="callout-icon">✅</span>
+          <div>PC をシャットダウン・スリープしてしまった場合も、再起動後に上記の手順で途中から再開できます。データが消えることはありません。</div>
+        </div>
       </div>
 
       <div class="card">
