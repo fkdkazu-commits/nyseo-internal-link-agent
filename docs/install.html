@@ -1205,12 +1205,23 @@ http://127.0.0.1:8765/stop
             <span style="color:var(--text-secondary); font-size:12.5px;">「CLI モード」または「API モード」を返答してください（詳細は「モード選択の目安」参照）</span>
           </li>
 
-          <li><strong>エージェントがサーバーの状態を自動確認する</strong><br>
+          <li>
+            <strong>エージェントがサーバーの状態を自動確認する</strong><br>
             <span style="color:var(--text-secondary); font-size:12.5px;">Chrome が自動で <span class="ic">http://127.0.0.1:8765/status</span> を開き、サーバーの状態を確認します</span>
+            <div class="callout warn" style="margin-top:8px; margin-bottom:0; font-size:13px;">
+              <span class="callout-icon">⚠️</span>
+              <div><strong>Chrome が別ウィンドウで開いたタイミングで、Cowork 上に「許可（Allow）」ボタンが表示されます。</strong><br>
+              必ず <strong>「Allow」をクリック</strong>してください。クリックしないと処理が先に進みません。</div>
+            </div>
           </li>
 
-          <li><strong>エージェントが処理を自動開始する</strong><br>
+          <li>
+            <strong>エージェントが処理を自動開始する</strong><br>
             <span style="color:var(--text-secondary); font-size:12.5px;">Chrome が自動で <span class="ic">http://127.0.0.1:8765/run?url=…</span> を開きます。<span class="ic">{"status": "started"}</span> が返ると処理開始です</span>
+            <div class="callout info" style="margin-top:8px; margin-bottom:0; font-size:13px;">
+              <span class="callout-icon">ℹ️</span>
+              <div>このタイミングでも「Allow」ボタンが表示される場合があります。同様にクリックしてください。</div>
+            </div>
           </li>
 
           <li><strong>PowerShell ウィンドウが自動で開き、リアルタイムのログが表示される</strong><br>
