@@ -5,6 +5,7 @@ Google Sheets 読み書きクライアント。
 
 import json
 import os
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -149,9 +150,19 @@ class SheetsClient:
             logger.warning(f"キャッシュKW更新失敗({url[:40]}): {e}")
 
     def write_result(self, row_idx: int, result_row: list[str]) -> None:
-        """H〜M列（インデックス7〜12）をSpreadsheetに書き込む。"""
+        """H〜M列（インデックス7〜12）をSpreadsheetに書き込む。ネットワークエラー時は3回リトライ。"""
         sheet_row = row_idx + 2  # 0始まりデータ + 1始まりSheet + ヘッダー行
         values = result_row[7:13]
         while len(values) < 6:
             values.append("")
-        self._data_ws.update(f"H{sheet_row}:M{sheet_row}", [values])
+        for attempt in range(1, 4):
+            try:
+                self._data_ws.update(f"H{sheet_row}:M{sheet_row}", [values])
+                return
+            except Exception as e:
+                if attempt < 3:
+                    logger.warning(f"Spreadsheet書き込みエラー（試行{attempt}/3）: {e} → 10秒後リトライ")
+                    time.sleep(10)
+                else:
+                    logger.error(f"Spreadsheet書き込み失敗（3回試行）: {e}")
+                    raise
