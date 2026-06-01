@@ -317,34 +317,6 @@ if (Test-Path $saPath) {
 [System.Environment]::SetEnvironmentVariable("GOOGLE_SERVICE_ACCOUNT", $saPath, "User")
 Show-Ok "GOOGLE_SERVICE_ACCOUNT を設定しました"
 
-# [6-2] Anthropic API キー（任意）
-Write-Host ""
-Write-Host "  [6-2] Anthropic API キーの設定（APIモード使用時のみ）" -ForegroundColor Cyan
-Write-Host "  CLIモードのみ使用する場合は Enter でスキップしてください。" -ForegroundColor Gray
-Write-Host "  APIモード（5並列・高速）を使う場合は sk-ant-... 形式のキーを入力します。" -ForegroundColor Gray
-
-$currentKey = [System.Environment]::GetEnvironmentVariable("ANTHROPIC_API_KEY", "User")
-if ($currentKey) {
-    $last4 = $currentKey.Substring([Math]::Max(0, $currentKey.Length - 4))
-    Write-Host "  現在設定済み（末尾: ...$last4）" -ForegroundColor Gray
-    $update = Read-Host "  変更しますか？（y で変更 / Enter でスキップ）"
-    if ($update -eq "y") {
-        $apiKey = Read-Host "  新しい API キー (sk-ant-...)"
-    }
-} else {
-    $apiKey = Read-Host "  API キー（sk-ant-... / CLIモードのみなら Enter でスキップ）"
-}
-
-if ($apiKey) {
-    [System.Environment]::SetEnvironmentVariable("ANTHROPIC_API_KEY", $apiKey, "User")
-    Show-Ok "ANTHROPIC_API_KEY を設定しました"
-} else {
-    if (-not $currentKey) {
-        Show-Info "スキップしました（CLIモードのみで動作します）"
-    } else {
-        Show-Info "変更しませんでした"
-    }
-}
 
 
 # ============================================================
@@ -472,15 +444,7 @@ SEOツールから出力したSpreadsheetを読み込み、被リンク不足記
 
 ---
 
-### STEP 2：AIモードの選択
-
-> AIモードを選択してください。
-> - **CLIモード**: Cowork内蔵AIを使用。追加コストなし。処理は逐次（1件ずつ）。
-> - **APIモード**: Anthropic API直接呼び出し。5並列処理で高速。ANTHROPIC_API_KEY が必要。
-
----
-
-### STEP 3：ランナーサーバーの確認と実行
+### STEP 2：ランナーサーバーの確認と実行
 
 **① サーバーの状態確認**
 
@@ -496,23 +460,16 @@ http://127.0.0.1:8765/status
 
 **② 実行リクエストを送信**
 
-パラメータの意味（変更禁止）：
-- mid=false → 高精度、mid=true → 中精度
-- api=false → CLIモード、api=true → APIモード
-- パラメータ名は必ず mid と api を使うこと。mode や ai など別の名前に変えてはならない
-
-選択結果に応じて Claude in Chrome で以下のURLを開く：
-| 精度 | AIモード | URL |
-|------|----------|-----|
-| 高精度 | CLI | http://127.0.0.1:8765/run?url=<URL>&mid=false&api=false |
-| 高精度 | API | http://127.0.0.1:8765/run?url=<URL>&mid=false&api=true |
-| 中精度 | CLI | http://127.0.0.1:8765/run?url=<URL>&mid=true&api=false |
-| 中精度 | API | http://127.0.0.1:8765/run?url=<URL>&mid=true&api=true |
+精度モードの選択結果に応じて Claude in Chrome で以下のURLを開く：
+| 精度 | URL |
+|------|-----|
+| 高精度 | http://127.0.0.1:8765/run?url=<URL>&mid=false&api=false |
+| 中精度 | http://127.0.0.1:8765/run?url=<URL>&mid=true&api=false |
 
 <URL> はユーザーから受け取ったSpreadsheetのURLをそのまま入れる。
 
 {"status": "started"} が返ってきたら：
-「実行を開始しました。処理完了後にSpreadsheetをご確認ください。CLIモードは記事ごとに逐次処理、APIモードは5並列で一括処理します。」
+「実行を開始しました。処理完了後にSpreadsheetをご確認ください。」
 
 ---
 
