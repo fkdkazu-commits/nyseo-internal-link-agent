@@ -1470,9 +1470,9 @@ PowerShell -ExecutionPolicy Bypass -File ".\install.ps1"</code></pre>
         <div class="trouble-q"><span class="qi">Q</span>処理に非常に時間がかかっている</div>
         <div class="trouble-a">
           <ul>
-            <li><strong>CLI モード初回実行時：</strong>全記事の HTML 取得とキャッシュ作成に時間がかかります（200 記事で 30〜60 分程度）。2 回目以降はキャッシュを使うため大幅に短縮されます</li>
-            <li><strong>高速化したい場合：</strong>API モードを使うと約 3〜5 倍速くなります（API キーが必要）</li>
+            <li><strong>初回実行時：</strong>全記事の HTML 取得とキャッシュ作成に時間がかかります（200 記事で 30〜60 分程度）。2 回目以降はキャッシュを使うため大幅に短縮されます</li>
             <li>処理は途中で止めても続きから再開できるため、必要に応じて分割して実行してください</li>
+            <li>夜間・土日など Claude を使わない時間帯に実行するとトークンを消費せず効率的です</li>
           </ul>
         </div>
       </div>
