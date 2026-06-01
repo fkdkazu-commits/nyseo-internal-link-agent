@@ -714,8 +714,8 @@
         </div>
       </div>
       <div class="card">
-        <h3>入力が必要な箇所（全 11 ステップ中 2 箇所のみ）</h3>
-        <p style="margin-bottom:12px;">インストーラーはほぼ自動で進みます。以下の 2 箇所だけ <kbd>Enter</kbd> を押す操作が必要です。</p>
+        <h3>入力が必要な箇所（全 11 ステップ中 1 箇所のみ）</h3>
+        <p style="margin-bottom:12px;">インストーラーはほぼ自動で進みます。以下の 1 箇所だけ <kbd>Enter</kbd> を押す操作が必要です。</p>
 
         <div class="substep">
           <div class="substep-label">① Google サービスアカウントのパス確認</div>
@@ -732,50 +732,9 @@
           <p><strong>別のパスに保存した場合：</strong>フルパスを入力して <kbd>Enter</kbd> を押してください。「ファイルが見つかりません」と出た場合はパスを再確認してください。</p>
         </div>
 
-        <div class="substep">
-          <div class="substep-label">② Anthropic API キー — <strong>今回は <kbd>Enter</kbd> でスキップ</strong></div>
-          <div class="callout ok" style="margin-bottom:12px;">
-            <span class="callout-icon">✅</span>
-            <div><strong>今回は CLIモードを使用するため、API キーは不要です。</strong><br>
-            何も入力せずに <kbd>Enter</kbd> を押してください。</div>
-          </div>
-          <div class="terminal">
-  [6-2] Anthropic API キーの設定（APIモード使用時のみ）
-  CLIモードのみ使用する場合は Enter でスキップしてください。
-  API キー（sk-ant-... / CLIモードのみなら Enter でスキップ）: <span class="t-dim">← そのまま Enter を押す</span>
-  <span class="t-yellow">ℹ スキップしました（CLIモードのみで動作します）</span>
-</div>
-          <div class="callout info" style="margin-top:10px;">
-            <span class="callout-icon">ℹ️</span>
-            <div>
-              <strong>CLIモードとAPIモードの違い：</strong><br>
-              <table style="margin-top:6px; font-size:0.9em; border-collapse:collapse; width:100%;">
-                <tr style="background:#f0f4ff;">
-                  <th style="padding:4px 8px; text-align:left; border:1px solid #dde3f0;">モード</th>
-                  <th style="padding:4px 8px; text-align:left; border:1px solid #dde3f0;">仕組み</th>
-                  <th style="padding:4px 8px; text-align:left; border:1px solid #dde3f0;">追加費用</th>
-                  <th style="padding:4px 8px; text-align:left; border:1px solid #dde3f0;">速度</th>
-                </tr>
-                <tr>
-                  <td style="padding:4px 8px; border:1px solid #dde3f0;"><strong>CLIモード（今回）</strong></td>
-                  <td style="padding:4px 8px; border:1px solid #dde3f0;">Cowork（Claude Desktop Pro）の契約を利用</td>
-                  <td style="padding:4px 8px; border:1px solid #dde3f0;">なし</td>
-                  <td style="padding:4px 8px; border:1px solid #dde3f0;">1 件ずつ処理</td>
-                </tr>
-                <tr style="background:#f9f9f9;">
-                  <td style="padding:4px 8px; border:1px solid #dde3f0;">APIモード</td>
-                  <td style="padding:4px 8px; border:1px solid #dde3f0;">Anthropic API を直接呼び出し</td>
-                  <td style="padding:4px 8px; border:1px solid #dde3f0;">従量課金あり</td>
-                  <td style="padding:4px 8px; border:1px solid #dde3f0;">5 並列・高速</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-        </div>
-
         <div class="callout info" style="margin-top:12px;">
           <span class="callout-icon">ℹ️</span>
-          <div>上記 2 箇所以外（Python 確認・JSON 自動コピー・pip インストール・スタートアップ登録・ランナーサーバー起動）はすべて<strong>自動処理</strong>です。画面を見ながら待つだけです。</div>
+          <div>上記以外（Python 確認・JSON 自動コピー・pip インストール・スタートアップ登録・ランナーサーバー起動）はすべて<strong>自動処理</strong>です。画面を見ながら待つだけです。</div>
         </div>
       </div>
     </section>
