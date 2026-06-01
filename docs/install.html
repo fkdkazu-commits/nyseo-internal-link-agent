@@ -923,15 +923,7 @@ SEOツールから出力したSpreadsheetを読み込み、被リンク不足記
 
 ---
 
-### STEP 2：AIモードの選択
-
-&gt; AIモードを選択してください。
-&gt; - **CLIモード**: Cowork内蔵AIを使用。追加コストなし。処理は逐次（1件ずつ）。
-&gt; - **APIモード**: Anthropic API直接呼び出し。5並列処理で高速。ANTHROPIC_API_KEY が必要。
-
----
-
-### STEP 3：ランナーサーバーの確認と実行
+### STEP 2：ランナーサーバーの確認と実行
 
 **① サーバーの状態確認**
 
@@ -951,19 +943,17 @@ http://127.0.0.1:8765/status
 
 **② 実行リクエストを送信**
 
-選択結果に応じて Claude in Chrome で以下のURLを開く：
+精度モードの選択結果に応じて Claude in Chrome で以下のURLを開く：
 
-| 精度 | AIモード | URL |
-|------|----------|-----|
-| 高精度 | CLI | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=false&amp;api=false` |
-| 高精度 | API | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=false&amp;api=true` |
-| 中精度 | CLI | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=true&amp;api=false` |
-| 中精度 | API | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=true&amp;api=true` |
+| 精度 | URL |
+|------|-----|
+| 高精度 | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=false&amp;api=false` |
+| 中精度 | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=true&amp;api=false` |
 
 `&lt;URL&gt;` はユーザーから受け取ったSpreadsheetのURLをそのまま入れる。
 
 `{"status": "started"}` が返ってきたら：
-&gt; 「実行を開始しました。処理完了後にSpreadsheetをご確認ください。CLIモードは記事ごとに逐次処理、APIモードは5並列で一括処理します。」
+&gt; 「実行を開始しました。処理完了後にSpreadsheetをご確認ください。記事ごとに1件ずつ処理します。」
 
 ---
 
@@ -1200,10 +1190,6 @@ http://127.0.0.1:8765/stop
 
           <li><strong>精度モードを選択する（エージェントが案内します）</strong><br>
             <span style="color:var(--text-secondary); font-size:12.5px;">「高精度」または「中精度」を返答してください（詳細は「モード選択の目安」参照）</span>
-          </li>
-
-          <li><strong>AI モードを選択する — <span style="color:var(--green);">「CLIモード」と返答してください</span></strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">追加費用なし・Cowork の契約内で動作します。APIモードは別途 API キーの取得・設定が必要なため、通常は CLIモードを使用してください。</span>
           </li>
 
           <li>
