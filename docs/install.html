@@ -1187,6 +1187,16 @@ http://127.0.0.1:8765/stop
         </div>
       </div>
 
+      <div class="callout warn" style="margin-bottom:12px;">
+        <span class="callout-icon">⚠️</span>
+        <div>
+          <strong>CLIモードはClaudeのトークン（使用枠）を消費します</strong><br>
+          処理中は通常のClaude（Web・Cowork）が「使用上限に達しました」となり、他の作業ができなくなる場合があります。<br>
+          <strong>夜間・土日など、Claudeを使わない時間帯に実行することを推奨します。</strong><br>
+          <span style="font-size:12.5px;">トークンは約5時間ごとにリセットされます。上限に達して止まった場合も、リセット後に同じ手順で続きから再開できます。</span>
+        </div>
+      </div>
+
       <div class="card">
         <h3>実行手順</h3>
         <ol style="line-height:2.3; counter-reset: step;">
@@ -1256,25 +1266,26 @@ http://127.0.0.1:8765/stop
         <p style="margin-bottom:14px;">処理中に止める必要が生じた場合、以下の手順で安全に中断できます。<strong>処理済みのデータは保持され、再開時は続きから自動で再処理されます。</strong></p>
 
         <h4 style="margin-bottom:8px; color:var(--red);">⏹ 中断する</h4>
+        <p style="font-size:13px; margin-bottom:10px;">以下の 3 つのいずれかの方法で止められます。</p>
         <ol style="line-height:2.3; margin-bottom:16px;">
-          <li><strong>Cowork で「止めて」または「中断して」と送信する</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">エージェントが自動で中断リクエストを送信します</span>
+          <li><strong>PowerShell ウィンドウを閉じる ← 最も簡単</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">ウィンドウを閉じると即停止します。処理中だった記事は H 列が空白のままになりますが、再開時に自動で再処理されるため問題ありません。</span>
           </li>
-          <li><strong>または、ブラウザで直接アクセスする</strong><br>
+          <li><strong>Cowork で「止めて」または「中断して」と送信する</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">エージェントが自動で中断リクエストを送信します。現在処理中の記事が完了してから停止します（数分かかる場合があります）。</span>
+          </li>
+          <li><strong>ブラウザで直接アクセスする</strong><br>
             <div class="code-block" style="margin:6px 0;">
               <button class="copy-btn" onclick="copyCode(this)">コピー</button>
               <pre>http://127.0.0.1:8765/stop</pre>
             </div>
-            <span style="color:var(--text-secondary); font-size:12.5px;"><span class="ic">{"status": "stop_requested"}</span> が返れば中断シグナルが送信されました</span>
-          </li>
-          <li><strong>現在処理中の記事が完了した後に停止します</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">PowerShell ウィンドウに「⏹ 中断シグナルを受信しました。」と表示されたら停止完了です</span>
+            <span style="color:var(--text-secondary); font-size:12.5px;"><span class="ic">{"status": "stop_requested"}</span> が返れば中断シグナルが送信されました。現在処理中の記事が完了してから停止します。</span>
           </li>
         </ol>
 
         <div class="callout info" style="margin-bottom:16px;">
           <span class="callout-icon">ℹ️</span>
-          <div>中断後も、処理済み記事（H 列にデータあり）のデータはそのまま Spreadsheet に残ります。未処理記事（H 列空白）だけが次回の処理対象になります。</div>
+          <div>どの方法で止めても、処理済み記事（H 列にデータあり）のデータはそのまま Spreadsheet に残ります。未処理記事（H 列空白）だけが次回の処理対象になります。</div>
         </div>
 
         <h4 style="margin-bottom:8px; color:var(--green);">▶ 再開する（中断後・PC 再起動後 どちらも同じ手順）</h4>
