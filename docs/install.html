@@ -354,11 +354,6 @@
               <td><span class="ic">nyseo-agent-xxxxxxxx.json</span> — Spreadsheet への読み書き権限</td>
               <td><span class="badge b-blue">管理者が渡す</span></td>
             </tr>
-            <tr>
-              <td><strong>記事一覧 CSV</strong></td>
-              <td>SEOツールから書き出した記事一覧データ（CSV形式）。Google Spreadsheet へのインポート手順は STEP 11 で案内します</td>
-              <td><span class="badge b-green">自分で用意</span></td>
-            </tr>
           </tbody>
         </table>
         <div class="callout warn" style="margin-top:14px;">
@@ -626,8 +621,14 @@
               <div>Cowork（Claude Desktop Pro）のサブスクリプションをお持ちの場合は必ず <strong>1 番</strong> を選択してください。</div>
             </div>
           </li>
-          <li>ブラウザが自動で開くので「<strong>許可（Authorize）</strong>」をクリックしてログインを完了する<br>
+          <li>
+            ブラウザが自動で開くので「<strong>許可（Authorize）</strong>」または「<strong>承諾</strong>」をクリックしてログインを完了する<br>
             <span style="font-size:0.88em; color:#666;">※ すでにブラウザで Claude にログイン済みの場合はボタンを押すだけで完了します</span>
+            <div class="callout warn" style="margin-top:8px; margin-bottom:0; font-size:13px;">
+              <span class="callout-icon">⚠️</span>
+              <div><strong>ブラウザが自動で開かない場合：</strong><br>
+              PowerShell の画面に長い URL が表示されています。その URL を<strong>コピーしてブラウザのアドレスバーに貼り付け</strong>てください。承諾ボタンのある画面が開きます。</div>
+            </div>
           </li>
           <li>install.bat のウィンドウに戻り <kbd>Enter</kbd> を押す → 自動で再確認されます</li>
         </ol>
@@ -1056,21 +1057,11 @@ http://127.0.0.1:8765/stop
       </div>
 
       <div class="card">
-        <h3>② CSV データをインポートする</h3>
-        <ol>
-          <li>メニューの「ファイル」→「インポート」をクリック</li>
-          <li>「アップロード」タブで SEO ツールから書き出した CSV ファイルを選択</li>
-          <li>インポート設定を以下の通りに設定する</li>
-        </ol>
-        <div class="callout info" style="margin-top:8px;">
+        <h3>② データを Spreadsheet に用意する</h3>
+        <div class="callout info">
           <span class="callout-icon">ℹ️</span>
-          <div>
-            インポート場所：<strong>現在のシートを置換する</strong><br>
-            区切り文字：<strong>カンマ</strong><br>
-            テキストを数値・日付に変換する：<strong>オン</strong>
-          </div>
+          <div>記事データのインポート方法は管理者から別途案内があります。インポート後、以下の列構成になっているか確認してください。</div>
         </div>
-        <p style="margin-top:12px;">インポート後、列構成が以下になっているか確認してください。</p>
       </div>
 
       <div class="card">
@@ -1211,8 +1202,8 @@ http://127.0.0.1:8765/stop
             <span style="color:var(--text-secondary); font-size:12.5px;">「高精度」または「中精度」を返答してください（詳細は「モード選択の目安」参照）</span>
           </li>
 
-          <li><strong>AI モードを選択する（エージェントが案内します）</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">「CLI モード」または「API モード」を返答してください（詳細は「モード選択の目安」参照）</span>
+          <li><strong>AI モードを選択する — <span style="color:var(--green);">「CLIモード」と返答してください</span></strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">追加費用なし・Cowork の契約内で動作します。APIモードは別途 API キーの取得・設定が必要なため、通常は CLIモードを使用してください。</span>
           </li>
 
           <li>
@@ -1239,7 +1230,7 @@ http://127.0.0.1:8765/stop
           </li>
 
           <li><strong>処理完了後、Spreadsheet を確認する</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">PowerShell ウィンドウに「完了しました。このウィンドウを閉じてください。」と表示されたら終了です</span>
+            <span style="color:var(--text-secondary); font-size:12.5px;">PowerShell ウィンドウに「全処理完了。Spreadsheet をご確認ください。」と表示されたら終了です。ウィンドウはそのまま開いておいて構いません。</span>
           </li>
 
         </ol>
@@ -1326,8 +1317,6 @@ STEP2: 候補 8 件
 <span class="t-green">==================================================</span>
 <span class="t-green">全処理完了。Spreadsheetをご確認ください。</span>
 <span class="t-green">==================================================</span>
-
-完了しました。このウィンドウを閉じてください。
 </div>
       </div>
     </section>
@@ -1364,29 +1353,29 @@ STEP2: 候補 8 件
       </div>
 
       <div class="card">
-        <h3>AI モード</h3>
+        <h3>AI モード — 通常は CLIモードを選択してください</h3>
         <table class="tbl">
-          <thead><tr><th>モード</th><th>仕組み</th><th>コスト</th><th>速度</th><th>推奨</th></tr></thead>
+          <thead><tr><th>モード</th><th>仕組み</th><th>コスト</th><th>速度</th><th>選択</th></tr></thead>
           <tbody>
             <tr>
               <td><strong>CLI モード</strong></td>
               <td>Cowork の内蔵 AI（Claude）を使用。1 件ずつ逐次処理</td>
               <td>追加コストなし（Claude Pro 契約内）</td>
               <td>1 記事あたり 10〜20 秒程度</td>
-              <td><span class="badge b-green">推奨</span></td>
+              <td><span class="badge b-green">通常はこちら</span></td>
             </tr>
-            <tr>
+            <tr style="color:#999;">
               <td><strong>API モード</strong></td>
               <td>Anthropic API を直接呼び出し。5 並列処理</td>
               <td>API 使用料が発生（1 サイト約 $10〜15 程度）</td>
               <td>CLI の約 3〜5 倍高速</td>
-              <td><span class="badge b-yellow">高速が必要な場合</span></td>
+              <td><span class="badge b-gray">要・別途設定</span></td>
             </tr>
           </tbody>
         </table>
-        <div class="callout info" style="margin-top:12px;">
-          <span class="callout-icon">ℹ️</span>
-          <div>API モードを使うには <span class="ic">ANTHROPIC_API_KEY</span> の設定が必要です。<span class="ic">install.bat</span> を再実行して STEP 7-2 で追加してください。</div>
+        <div class="callout warn" style="margin-top:12px;">
+          <span class="callout-icon">⚠️</span>
+          <div>API モードを使うには Anthropic API キーの取得と設定が別途必要です。案内があるまでは <strong>CLIモード</strong> を選択してください。</div>
         </div>
       </div>
     </section>
