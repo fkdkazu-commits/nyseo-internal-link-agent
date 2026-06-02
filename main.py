@@ -268,10 +268,8 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
     max_cols = max(13, len(header))
 
     # STEP1: 対象記事抽出
-    red_mode = False
     if reprocess_all:
-        # --reprocess-all: 全行をH列状態に関わらず強制処理・赤字書き込み
-        red_mode = True
+        # --reprocess-all: 全行をH列状態に関わらず強制処理
         targets = []
         for row_idx, row in enumerate(data):
             url = row[COL_URL].strip() if len(row) > COL_URL else ""
@@ -284,13 +282,12 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
                 "kw": kw,
                 "kw_source": "manual" if kw else "auto_detect",
             })
-        logger.info(f"--reprocess-all: 全 {len(targets)} 件を強制処理します（結果は赤字で書き込み）")
+        logger.info(f"--reprocess-all: 全 {len(targets)} 件を強制処理します")
         if limit > 0:
             targets = targets[:limit]
             logger.info(f"--limit {limit} 指定: 先頭 {limit} 件のみ処理します")
     elif force_rows:
-        # --rows 指定: 複数NO行を強制処理・結果を赤字で書き込む
-        red_mode = True
+        # --rows 指定: 複数NO行を強制処理
         targets = []
         for rno in force_rows:
             row_idx = rno - 1
@@ -306,7 +303,7 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
                 "kw": kw,
                 "kw_source": "manual" if kw else "auto_detect",
             })
-        logger.info(f"--rows 指定: {len(targets)} 件を強制処理します（結果は赤字で書き込み）")
+        logger.info(f"--rows 指定: {len(targets)} 件を強制処理します")
         if not targets:
             logger.info("処理対象がありません。終了します。")
             return
@@ -462,7 +459,7 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
                     if not target["kw"]:
                         logger.warning("KW検出できず → 「該当なし」を書き込みます")
                         result_row = write_output(data[target["row_idx"]], [], max_cols)
-                        client.write_result(target["row_idx"], result_row, red=red_mode)
+                        client.write_result(target["row_idx"], result_row)
                         skip_article = True
                         break
                 elif not search_kws:
@@ -484,7 +481,7 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
                 if not candidates:
                     logger.warning("候補記事なし → 「該当なし」を書き込みます")
                     result_row = write_output(data[target["row_idx"]], [], max_cols)
-                    client.write_result(target["row_idx"], result_row, red=red_mode)
+                    client.write_result(target["row_idx"], result_row)
                     break
 
                 # match_score上位N件に絞る（通常20件・lean時10件）
@@ -520,7 +517,7 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
 
                 # STEP5: Sheetsに書き込み
                 result_row = write_output(data[target["row_idx"]], adopted, max_cols)
-                client.write_result(target["row_idx"], result_row, red=red_mode)
+                client.write_result(target["row_idx"], result_row)
                 logger.info(f"→ 採用 {len(adopted)} 件をSpreadsheetに書き込みました")
                 break  # 成功 → 次の記事へ
 

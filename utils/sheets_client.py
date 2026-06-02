@@ -149,24 +149,15 @@ class SheetsClient:
         except Exception as e:
             logger.warning(f"キャッシュKW更新失敗({url[:40]}): {e}")
 
-    def write_result(self, row_idx: int, result_row: list[str], red: bool = False) -> None:
-        """H〜M列（インデックス7〜12）をSpreadsheetに書き込む。ネットワークエラー時は3回リトライ。
-        red=True のときはテキストを赤字で書き込む（再処理結果の識別用）。
-        """
+    def write_result(self, row_idx: int, result_row: list[str]) -> None:
+        """H〜M列（インデックス7〜12）をSpreadsheetに書き込む。ネットワークエラー時は3回リトライ。"""
         sheet_row = row_idx + 2  # 0始まりデータ + 1始まりSheet + ヘッダー行
-        cell_range = f"H{sheet_row}:M{sheet_row}"
         values = result_row[7:13]
         while len(values) < 6:
             values.append("")
         for attempt in range(1, 4):
             try:
-                self._data_ws.update(cell_range, [values])
-                if red:
-                    self._data_ws.format(cell_range, {
-                        "textFormat": {
-                            "foregroundColor": {"red": 1.0, "green": 0.0, "blue": 0.0}
-                        }
-                    })
+                self._data_ws.update(f"H{sheet_row}:M{sheet_row}", [values])
                 return
             except Exception as e:
                 if attempt < 3:
