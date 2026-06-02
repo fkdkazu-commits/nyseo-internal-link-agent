@@ -242,7 +242,7 @@ def _run_api_mode(
     logger.info("Phase2完了")
 
 
-def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = False, strict: bool = False, api: bool = False, mid: bool = False) -> None:
+def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: list = None, lean: bool = False, strict: bool = False, api: bool = False, mid: bool = False) -> None:
     use_token_scoring = not mid
     logger.info("=" * 50)
     logger.info("NYSEO 内部リンク構築AIエージェント 開始")
@@ -268,7 +268,30 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = 
     max_cols = max(13, len(header))
 
     # STEP1: 対象記事抽出
-    if force_row > 0:
+    red_mode = False
+    if force_rows:
+        # --rows 指定: 複数NO行を強制処理・結果を赤字で書き込む
+        red_mode = True
+        targets = []
+        for rno in force_rows:
+            row_idx = rno - 1
+            if row_idx >= len(data):
+                logger.warning(f"--rows: NO={rno} は存在しません（スキップ）")
+                continue
+            row = data[row_idx]
+            url = row[COL_URL].strip() if len(row) > COL_URL else ""
+            kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
+            targets.append({
+                "row_idx": row_idx,
+                "url": url,
+                "kw": kw,
+                "kw_source": "manual" if kw else "auto_detect",
+            })
+        logger.info(f"--rows 指定: {len(targets)} 件を強制処理します（結果は赤字で書き込み）")
+        if not targets:
+            logger.info("処理対象がありません。終了します。")
+            return
+    elif force_row > 0:
         # --row 指定: H列スキップ判定を無視して指定NO行を強制処理
         row_idx = force_row - 1  # NO は1始まり、data は0始まり
         if row_idx >= len(data):
@@ -420,7 +443,7 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = 
                     if not target["kw"]:
                         logger.warning("KW検出できず → 「該当なし」を書き込みます")
                         result_row = write_output(data[target["row_idx"]], [], max_cols)
-                        client.write_result(target["row_idx"], result_row)
+                        client.write_result(target["row_idx"], result_row, red=red_mode)
                         skip_article = True
                         break
                 elif not search_kws:
@@ -442,7 +465,7 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = 
                 if not candidates:
                     logger.warning("候補記事なし → 「該当なし」を書き込みます")
                     result_row = write_output(data[target["row_idx"]], [], max_cols)
-                    client.write_result(target["row_idx"], result_row)
+                    client.write_result(target["row_idx"], result_row, red=red_mode)
                     break
 
                 # match_score上位N件に絞る（通常20件・lean時10件）
@@ -478,7 +501,7 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = 
 
                 # STEP5: Sheetsに書き込み
                 result_row = write_output(data[target["row_idx"]], adopted, max_cols)
-                client.write_result(target["row_idx"], result_row)
+                client.write_result(target["row_idx"], result_row, red=red_mode)
                 logger.info(f"→ 採用 {len(adopted)} 件をSpreadsheetに書き込みました")
                 break  # 成功 → 次の記事へ
 
@@ -503,17 +526,19 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, lean: bool = 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("使い方: py main.py <SpreadsheetURL> [--limit N] [--row N] [--lean] [--mid] [--api]")
-        print("  --limit N : 未処理記事の先頭N件だけ処理")
-        print("  --row N   : NO列がNの行をH列の状態に関わらず強制処理")
-        print("  --lean    : トークン節約モード（本文150文字・候補数は通常どおり）")
-        print("  --strict  : 低スコア候補除外モード（match_score<5の候補をAI判定から除外）")
-        print("  --mid     : 中精度モード（KWトークン分割スコアリングを無効化）")
-        print("  --api     : Anthropic API直接呼び出し・5並列（ANTHROPIC_API_KEY 環境変数が必要）")
+        print("使い方: py main.py <SpreadsheetURL> [--limit N] [--row N] [--rows N,M,...] [--lean] [--mid] [--api]")
+        print("  --limit N     : 未処理記事の先頭N件だけ処理")
+        print("  --row N       : NO列がNの行をH列の状態に関わらず強制処理")
+        print("  --rows N,M,.. : 複数NO行を強制処理・結果を赤字で書き込む（再処理の識別用）")
+        print("  --lean        : トークン節約モード（本文150文字・候補数は通常どおり）")
+        print("  --strict      : 低スコア候補除外モード（match_score<5の候補をAI判定から除外）")
+        print("  --mid         : 中精度モード（KWトークン分割スコアリングを無効化）")
+        print("  --api         : Anthropic API直接呼び出し・5並列（ANTHROPIC_API_KEY 環境変数が必要）")
         sys.exit(1)
     _args = sys.argv[1:]
     _limit = 0
     _row = 0
+    _rows = []
 
     def _pop_int_arg(args, flag):
         if flag in args:
@@ -523,8 +548,17 @@ if __name__ == "__main__":
             return args, val
         return args, 0
 
+    def _pop_rows_arg(args):
+        if "--rows" in args:
+            idx = args.index("--rows")
+            val = [int(x.strip()) for x in args[idx + 1].split(",")] if idx + 1 < len(args) else []
+            args = [a for i, a in enumerate(args) if i != idx and i != idx + 1]
+            return args, val
+        return args, []
+
     _args, _limit = _pop_int_arg(_args, "--limit")
     _args, _row   = _pop_int_arg(_args, "--row")
+    _args, _rows  = _pop_rows_arg(_args)
     _lean = "--lean" in _args
     if _lean:
         _args = [a for a in _args if a != "--lean"]
@@ -537,4 +571,4 @@ if __name__ == "__main__":
     _mid = "--mid" in _args
     if _mid:
         _args = [a for a in _args if a != "--mid"]
-    main(_args[0], limit=_limit, force_row=_row, lean=_lean, strict=_strict, api=_api, mid=_mid)
+    main(_args[0], limit=_limit, force_row=_row, force_rows=_rows, lean=_lean, strict=_strict, api=_api, mid=_mid)
