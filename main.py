@@ -242,7 +242,7 @@ def _run_api_mode(
     logger.info("Phase2完了")
 
 
-def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: list = None, lean: bool = False, strict: bool = False, api: bool = False, mid: bool = False) -> None:
+def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: list = None, reprocess_all: bool = False, lean: bool = False, strict: bool = False, api: bool = False, mid: bool = False) -> None:
     use_token_scoring = not mid
     logger.info("=" * 50)
     logger.info("NYSEO 内部リンク構築AIエージェント 開始")
@@ -269,7 +269,26 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
 
     # STEP1: 対象記事抽出
     red_mode = False
-    if force_rows:
+    if reprocess_all:
+        # --reprocess-all: 全行をH列状態に関わらず強制処理・赤字書き込み
+        red_mode = True
+        targets = []
+        for row_idx, row in enumerate(data):
+            url = row[COL_URL].strip() if len(row) > COL_URL else ""
+            kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
+            if not url:
+                continue
+            targets.append({
+                "row_idx": row_idx,
+                "url": url,
+                "kw": kw,
+                "kw_source": "manual" if kw else "auto_detect",
+            })
+        logger.info(f"--reprocess-all: 全 {len(targets)} 件を強制処理します（結果は赤字で書き込み）")
+        if limit > 0:
+            targets = targets[:limit]
+            logger.info(f"--limit {limit} 指定: 先頭 {limit} 件のみ処理します")
+    elif force_rows:
         # --rows 指定: 複数NO行を強制処理・結果を赤字で書き込む
         red_mode = True
         targets = []
@@ -526,14 +545,15 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("使い方: py main.py <SpreadsheetURL> [--limit N] [--row N] [--rows N,M,...] [--lean] [--mid] [--api]")
-        print("  --limit N     : 未処理記事の先頭N件だけ処理")
-        print("  --row N       : NO列がNの行をH列の状態に関わらず強制処理")
-        print("  --rows N,M,.. : 複数NO行を強制処理・結果を赤字で書き込む（再処理の識別用）")
-        print("  --lean        : トークン節約モード（本文150文字・候補数は通常どおり）")
-        print("  --strict      : 低スコア候補除外モード（match_score<5の候補をAI判定から除外）")
-        print("  --mid         : 中精度モード（KWトークン分割スコアリングを無効化）")
-        print("  --api         : Anthropic API直接呼び出し・5並列（ANTHROPIC_API_KEY 環境変数が必要）")
+        print("使い方: py main.py <SpreadsheetURL> [--limit N] [--row N] [--rows N,M,...] [--reprocess-all] [--lean] [--mid] [--api]")
+        print("  --limit N        : 未処理記事の先頭N件だけ処理（--reprocess-all と併用可）")
+        print("  --row N          : NO列がNの行をH列の状態に関わらず強制処理")
+        print("  --rows N,M,..    : 複数NO行を強制処理・結果を赤字で書き込む（再処理の識別用）")
+        print("  --reprocess-all  : 全行をH列の状態に関わらず強制処理・結果を赤字で書き込む")
+        print("  --lean           : トークン節約モード（本文150文字・候補数は通常どおり）")
+        print("  --strict         : 低スコア候補除外モード（match_score<5の候補をAI判定から除外）")
+        print("  --mid            : 中精度モード（KWトークン分割スコアリングを無効化）")
+        print("  --api            : Anthropic API直接呼び出し・5並列（ANTHROPIC_API_KEY 環境変数が必要）")
         sys.exit(1)
     _args = sys.argv[1:]
     _limit = 0
@@ -559,6 +579,9 @@ if __name__ == "__main__":
     _args, _limit = _pop_int_arg(_args, "--limit")
     _args, _row   = _pop_int_arg(_args, "--row")
     _args, _rows  = _pop_rows_arg(_args)
+    _reprocess_all = "--reprocess-all" in _args
+    if _reprocess_all:
+        _args = [a for a in _args if a != "--reprocess-all"]
     _lean = "--lean" in _args
     if _lean:
         _args = [a for a in _args if a != "--lean"]
@@ -571,4 +594,4 @@ if __name__ == "__main__":
     _mid = "--mid" in _args
     if _mid:
         _args = [a for a in _args if a != "--mid"]
-    main(_args[0], limit=_limit, force_row=_row, force_rows=_rows, lean=_lean, strict=_strict, api=_api, mid=_mid)
+    main(_args[0], limit=_limit, force_row=_row, force_rows=_rows, reprocess_all=_reprocess_all, lean=_lean, strict=_strict, api=_api, mid=_mid)
