@@ -214,7 +214,7 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
     lines = []
     for c in candidates:
         h2 = c.get("h2_list", [])[:15]
-        h3 = c.get("h3_list", [])[:8]
+        h3 = c.get("h3_list", [])[:20]
         h2_text = "H2: " + " / ".join(h2) if h2 else ""
         h3_text = "H3: " + " / ".join(h3) if h3 else ""
         headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
@@ -408,7 +408,7 @@ async def judge_relevance_batch_api_async(
     lines = []
     for c in candidates:
         h2 = c.get("h2_list", [])[:15]
-        h3 = c.get("h3_list", [])[:8]
+        h3 = c.get("h3_list", [])[:20]
         h2_text = "H2: " + " / ".join(h2) if h2 else ""
         h3_text = "H3: " + " / ".join(h3) if h3 else ""
         headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
