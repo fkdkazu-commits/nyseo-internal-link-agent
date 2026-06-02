@@ -25,10 +25,10 @@ def write_output(
         row.append("")
 
     if not top:
-        row[7] = "該当なし"
-        for col_url, col_heading in _COL_PAIRS[1:]:
+        for col_url, col_heading in _COL_PAIRS:
             row[col_url] = ""
             row[col_heading] = ""
+        row[7] = "該当なし"
         logger.info("STEP5完了: 該当なし を出力")
         return row
 
