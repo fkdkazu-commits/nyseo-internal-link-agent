@@ -37,10 +37,14 @@ def judge_candidates(
 
     scored.sort(key=lambda x: x["score"], reverse=True)
 
-    adopted = [c for c in scored if c["score"] >= SCORE_THRESHOLD]
+    adopted = [c for c in scored if c["score"] >= SCORE_THRESHOLD and c.get("heading", "")]
+
+    heading_empty = [c for c in scored if c["score"] >= SCORE_THRESHOLD and not c.get("heading", "")]
+    if heading_empty:
+        logger.info(f"STEP4: 見出し空のため除外 {len(heading_empty)} 件: {[c['url'] for c in heading_empty]}")
 
     if not adopted:
-        logger.info(f"STEP4完了: 採用0件（閾値{SCORE_THRESHOLD}点未満）→ 「該当なし」を出力")
+        logger.info(f"STEP4完了: 採用0件（閾値{SCORE_THRESHOLD}点未満 or 見出し空）→ 「該当なし」を出力")
     else:
         logger.info(f"STEP4完了: 採用 {len(adopted)} 件")
     return adopted
