@@ -412,7 +412,7 @@
     <div class="sidebar-header">
       <div class="sidebar-label">System Specification</div>
       <div class="sidebar-title">内部リンク構築AIエージェント</div>
-      <div class="sidebar-meta">Ver 2.0 &nbsp;|&nbsp; 2026-05-17</div>
+      <div class="sidebar-meta">Ver 2.1 &nbsp;|&nbsp; 2026-06-04</div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-group-label">関連ドキュメント</div>
@@ -443,6 +443,7 @@
       <a class="nav-item" href="#flow">05. 処理フロー設計</a>
       <a class="nav-item nav-sub" href="#flow-main">メイン処理フロー</a>
       <a class="nav-item nav-sub" href="#flow-ops">クライアント運用フロー</a>
+      <a class="nav-item nav-sub" href="#flow-options">CLIオプション一覧</a>
       <a class="nav-item nav-sub" href="#flow-cost">費用について</a>
     </nav>
   </aside>
@@ -454,8 +455,8 @@
       <div class="page-header-label">System Specification Document</div>
       <div class="page-header-title">内部リンク構築AIエージェント<br>技術仕様書</div>
       <div class="page-header-badges">
-        <span class="ph-badge">📅 更新日: 2026-05-17</span>
-        <span class="ph-badge">🏷 Ver 2.0 — Google Sheets方式</span>
+        <span class="ph-badge">📅 更新日: 2026-06-04</span>
+        <span class="ph-badge">🏷 Ver 2.1 — Google Sheets方式</span>
         <span class="ph-badge">⚙️ ステータス: 本番稼働中</span>
       </div>
     </div>
@@ -558,7 +559,7 @@
               <ul>
                 <li><strong>まずarticle_cacheタブを確認し、キャッシュ済みURLはHTTP取得をスキップする</strong></li>
                 <li>キャッシュがない場合のみHTTPSリクエストを送信する（タイムアウト10秒）</li>
-                <li>BeautifulSoupで <code>&lt;title&gt;</code>・<code>&lt;h1&gt;</code>・<code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code>・本文テキスト（先頭1500文字）を抽出する</li>
+                <li>BeautifulSoupで <code>&lt;title&gt;</code>・<code>&lt;h1&gt;</code>・<code>&lt;h2&gt;</code>（最大15件）/<code>&lt;h3&gt;</code>（最大20件）・本文テキスト（先頭1500文字）を抽出する</li>
                 <li>取得成功時はarticle_cacheタブに保存する（次回・他ユーザーの実行で再利用）</li>
                 <li>HTTP失敗（404・タイムアウト等）はスキップ・警告ログ出力・処理継続する</li>
                 <li>最大2回リトライ後に失敗した場合は候補から除外する</li>
@@ -575,7 +576,8 @@
               <ul>
                 <li>Claude Sonnetが読者層・地理的一致・自然さ・トピック深度の4項目・100点満点で全候補を一括採点する</li>
                 <li>スコア ≥ 60点の記事を採用候補とする（未満は「該当なし」）</li>
-                <li>採用候補から「リンクを貼る箇所の見出し」もAIが合わせて特定する</li>
+                <li>採用候補から「リンクを貼る箇所の見出し（recommended_heading）」もAIが合わせて特定する。<strong>H3/H4見出しを優先し、見当たらない場合のみH2を使用する</strong></li>
+                <li><strong>recommended_headingが空欄の場合はスコアが60点以上でも除外する</strong>（リンク設置箇所が特定できない候補は採用しない）</li>
                 <li>採用なしの場合はH列に「該当なし」と書き込み（空白のままにしない）</li>
               </ul>
             </div>
@@ -854,6 +856,7 @@ nyseo-internal-link-agent/
               <tr class="hl-cache"><td><code>h3_json</code></td><td>h3見出し一覧（JSON配列文字列）</td><td><code>["見出しC", "見出しD"]</code></td></tr>
               <tr class="hl-cache"><td><code>body_text</code></td><td>本文テキスト（先頭1500文字）</td><td></td></tr>
               <tr class="hl-cache"><td><code>fetched_at</code></td><td>取得日時</td><td><code>YYYY-MM-DD HH:MM:SS</code></td></tr>
+              <tr class="hl-cache"><td><code>main_kw</code></td><td>記事のメインキーワード（C列またはAI推定）</td><td>STEP2スコアリングで使用。未設定記事は自動抽出</td></tr>
             </table>
           </div>
           <div class="alert alert-info">
@@ -984,11 +987,11 @@ nyseo-internal-link-agent/
           <div class="table-wrap">
             <table>
               <tr><th>判定観点</th><th>配点</th><th>判定内容</th></tr>
-              <tr><td><strong>読者層の一致</strong></td><td>25点</td><td>利用者側・提供者側・管理者側を自律推定し、両記事の読者層が一致するか評価</td></tr>
-              <tr><td><strong>地理的一致</strong></td><td>15点</td><td>地名を含む記事同士は地域マッチを必須判定。地域外リンクを排除</td></tr>
+              <tr><td><strong>読者層の一致</strong></td><td>25点</td><td>利用者側・提供者側・管理者側を自律推定し、両記事の読者層が一致するか評価。不一致の場合は30点以下に制限</td></tr>
+              <tr><td><strong>地理的一致</strong></td><td>15点</td><td>地名を含む記事同士は区・市・駅名レベルで一致が必須。隣接エリアは不一致扱い。非地域記事（ハウツー・用語解説）への地域記事リンクは禁止（0点）</td></tr>
               <tr><td><strong>読者にとっての自然さ</strong></td><td>35点</td><td>リンクが読者の記事内での流れを妨げないか。文脈上の自然さを評価</td></tr>
-              <tr><td><strong>トピックの深さと関連性</strong></td><td>25点</td><td>表面的なキーワード一致でなく、内容レベルの接点があるか評価</td></tr>
-              <tr style="background:#f8fafc"><td><strong>合計</strong></td><td><strong>100点</strong></td><td>60点以上を採用</td></tr>
+              <tr><td><strong>トピックの深さと関連性</strong></td><td>25点</td><td>表面的なキーワード一致でなく、内容レベルの接点があるか評価。<strong>同業種カテゴリが同じだけでは不十分</strong>（候補記事の見出し・本文に対象記事のKWが登場することが必要）</td></tr>
+              <tr style="background:#f8fafc"><td><strong>合計</strong></td><td><strong>100点</strong></td><td>60点以上かつrecommended_heading非空を採用</td></tr>
             </table>
           </div>
         </div>
@@ -1002,6 +1005,9 @@ nyseo-internal-link-agent/
               <tr class="score-mid"><td>60〜79点</td><td>関連あり</td><td>✅ 通常採用</td></tr>
               <tr class="score-none"><td>0〜59点</td><td>関連なし・不十分</td><td>❌ 除外（「該当なし」と出力）</td></tr>
             </table>
+          </div>
+          <div class="alert alert-info" style="margin-top:12px">
+            📌 <strong>追加フィルタ：</strong>スコアが60点以上でも <code>recommended_heading</code>（リンク設置見出し）が空欄の候補は除外されます。AIがリンク設置箇所を特定できない場合は採用しません。
           </div>
         </div>
 
@@ -1025,30 +1031,35 @@ nyseo-internal-link-agent/
 
           <h4>STEP4: 関連性判定プロンプト（4項目・100点満点）</h4>
           <pre>
-あなたはSEOの内部リンク構造を最適化する専門家です。
+あなたはSEO専門家です。「対象記事」に対する複数の「候補記事」の内部リンク適性を一括評価してください。
 
-## 内部リンクの方向
-候補記事（リンクを貼る側）→ 対象記事（リンク先・被リンクを増やしたい記事）
-
-## 対象記事（被リンクを増やしたい記事）
-- KW: {target_kw}
+## 対象記事（内部リンクを受ける側）
+- メインKW: {target_kw}
 - URL: {target_url}
+- タイトル: {target_title}
+- 見出し: {target_headings}
+- 本文冒頭: {target_body}
 
-## 候補記事リスト（JSON）
-{candidates_json}
+## 候補記事リスト
+{candidates_block}
 
 ## 採点基準（合計100点）
 1. 読者層の一致（25点）
-   利用者側・提供者側・管理者側を自律推定し、両記事の読者層が一致するか
+   利用者側・提供者側・管理者側を自律推定し、両記事の読者層が一致するか。不一致なら30点以下
 2. 地理的一致（15点）
-   地名を含む記事同士は地域マッチ必須。地域外リンクは0点
+   区・市・駅名レベルで一致するか。隣接エリアは不一致扱い。
+   地域横断と判定する場合は候補記事内に具体的な地名の明示が必要。
+   非地域記事（ハウツー・用語解説）への地域記事リンクは禁止（0点）
 3. 読者にとっての自然さ（35点）
    リンクが読者の記事内での流れを妨げないか
 4. トピックの深さと関連性（25点）
-   表面的なKW一致でなく、内容レベルの接点があるか
+   表面的なKW一致でなく、内容レベルの接点があるか。
+   同業種カテゴリが同じだけでは不十分。候補記事の見出し・本文に対象記事のKWが登場することが必要
 
-## 出力形式（JSONのみ・余分なテキスト不要）
-[{"url": "候補URL", "score": 整数(0-100), "reason": "判定理由（1〜2文）", "recommended_heading": "リンクを設置する最適な見出し"}, ...]</pre>
+## 出力形式（JSON配列のみ・説明不要）
+[{"url": "候補URL", "score": 整数(0-100), "reason": "理由（1文）", "recommended_heading": "H3/H4優先・なければH2・なければ空文字"}, ...]
+
+recommended_headingはH3またはH4見出しを優先して記入すること。H3/H4がない場合のみH2を使用してよい。</pre>
         </div>
       </div>
 
@@ -1163,8 +1174,28 @@ flowchart TD
           </div>
         </div>
 
+        <div class="card" id="flow-options">
+          <div class="card-title">5.3 CLIオプション一覧</div>
+          <p style="margin-bottom:8px"><code>py main.py &lt;URL&gt; [オプション]</code> で指定できるオプションの一覧です。</p>
+          <div class="table-wrap">
+            <table>
+              <tr><th>オプション</th><th>説明</th><th>使用例</th></tr>
+              <tr><td><code>--limit N</code></td><td>処理する対象記事数をN件に制限（テスト・部分実行用）</td><td><code>--limit 10</code></td></tr>
+              <tr><td><code>--row N</code></td><td>指定した1行（スプレッドシート行番号）のみ処理</td><td><code>--row 42</code></td></tr>
+              <tr><td><code>--rows N,M,...</code></td><td>複数行を強制再処理（赤字で上書き）。H列に既存データがある行も再処理</td><td><code>--rows 15,32,79</code></td></tr>
+              <tr><td><code>--reprocess-all</code></td><td>全行を強制再処理（赤字で上書き）。<code>--limit</code> と組み合わせ可能</td><td><code>--reprocess-all --limit 50</code></td></tr>
+              <tr><td><code>--api</code></td><td>Claude APIを直接呼び出すAPIモードで実行（5並列・高速）</td><td><code>--api</code></td></tr>
+              <tr><td><code>--mid</code></td><td>中間モデル（claude-sonnet）を使用（--apiと併用）</td><td><code>--api --mid</code></td></tr>
+              <tr><td><code>--lean</code></td><td>省リソースモードで実行（候補数を削減）</td><td><code>--lean</code></td></tr>
+            </table>
+          </div>
+          <div class="alert alert-info" style="margin-top:12px">
+            🔄 <strong>再処理について：</strong><code>--rows</code> / <code>--reprocess-all</code> で再処理した行は赤字で書き込まれます。通常実行（H列空白のみ対象）との区別に使います。
+          </div>
+        </div>
+
         <div class="card">
-          <div class="card-title">5.3 将来拡張（本フェーズ対象外）</div>
+          <div class="card-title">5.4 将来拡張（本フェーズ対象外）</div>
           <div class="table-wrap">
             <table>
               <tr><th>機能</th><th>概要</th><th>追加コスト（目安）</th></tr>
@@ -1177,7 +1208,7 @@ flowchart TD
         </div>
 
         <div class="card" id="flow-cost">
-          <div class="card-title">5.4 費用について</div>
+          <div class="card-title">5.5 費用について</div>
           <h4>開発費用</h4>
           <p>開発期間中に発生するテスト実行分の費用は開発費用に含まれます。別途ご負担いただく費用はありません。</p>
 
@@ -1265,7 +1296,7 @@ flowchart TD
         </div>
 
         <div class="footer">
-          <p>内部リンク構築AIエージェント 技術仕様書 v2.1 — 更新日: 2026-05-30</p>
+          <p>内部リンク構築AIエージェント 技術仕様書 v2.1 — 更新日: 2026-06-04</p>
           <p>本ドキュメントは GitHub Pages で公開されています。内容は開発進捗に応じて更新されます。</p>
         </div>
       </div>
