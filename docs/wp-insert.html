@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WordPress内部リンク自動挿入ツール 要件定義書</title>
+  <style>
+    :root {
+      --sidebar-width: 264px;
+      --sidebar-bg: #0f172a;
+      --sidebar-text: #94a3b8;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: #60a5fa;
+      --header-bg: #1e3a8a;
+      --content-bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --accent: #1d4ed8;
+      --accent-light: #dbeafe;
+      --border: #e2e8f0;
+      --code-bg: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text-primary);
+      background: var(--content-bg);
+    }
+
+    .wrapper { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 100;
+      scrollbar-width: thin;
+      scrollbar-color: #334155 transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+    .sidebar-header {
+      padding: 24px 20px 18px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .sidebar-meta {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 6px;
+    }
+
+    .sidebar-nav { padding: 8px 0 24px; }
+    .nav-group-label {
+      padding: 16px 20px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #334155;
+    }
+    .nav-item {
+      display: block;
+      padding: 7px 20px;
+      color: var(--sidebar-text);
+      text-decoration: none;
+      font-size: 13px;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-item:hover {
+      background: var(--sidebar-hover);
+      color: #e2e8f0;
+    }
+    .nav-item.active {
+      border-left-color: var(--sidebar-active);
+      color: var(--sidebar-active);
+      background: rgba(96,165,250,0.08);
+    }
+    .nav-sub {
+      padding-left: 34px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .nav-sub:hover { color: #94a3b8; }
+
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      padding: 44px 52px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::after {
+      content: '';
+      position: absolute;
+      right: -60px; top: -60px;
+      width: 280px; height: 280px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+    .page-header-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #93c5fd;
+      margin-bottom: 10px;
+    }
+    .page-header-title {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.35;
+      margin-bottom: 16px;
+    }
+    .page-header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .ph-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #bfdbfe;
+      background: rgba(255,255,255,0.1);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .content {
+      padding: 36px 52px 80px;
+      max-width: 980px;
+    }
+
+    .doc-section { margin-bottom: 56px; }
+    .doc-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--accent);
+    }
+    .doc-num {
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 14px;
+      letter-spacing: 0.05em;
+    }
+    .doc-title {
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    h4 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin: 18px 0 8px;
+    }
+    h4:first-child { margin-top: 0; }
+
+    p { margin-bottom: 12px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { margin-bottom: 5px; }
+
+    .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 14px;
+      text-align: left;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; }
+    tr:nth-child(even) td { background: #fafbfc; }
+
+    code {
+      font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+      font-size: 12px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #1d4ed8;
+    }
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+      font-size: 12.5px;
+      line-height: 1.65;
+      font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+    }
+    pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+
+    .step-card {
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .step-header {
+      background: var(--accent-light);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #bfdbfe;
+    }
+    .step-num {
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title { font-size: 13px; font-weight: 700; color: #1e40af; }
+    .step-body { padding: 14px 16px; background: white; }
+    .step-body ul { margin: 0; }
+    .step-body li { font-size: 13px; }
+
+    .alert {
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    .alert-info {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      color: #1e40af;
+    }
+    .alert-warning {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      color: #78350f;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-orange { background: #ffedd5; color: #9a3412; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li { padding: 4px 0 4px 26px; position: relative; }
+    .checklist li::before { content: '☐'; position: absolute; left: 0; color: var(--accent); font-size: 15px; line-height: 1.4; }
+
+    .hl-input { background: #f0fdf4; }
+    .hl-output { background: #eff6ff; }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .choice-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: white;
+    }
+    .choice-box-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .choice-box ul { margin: 0; padding-left: 18px; }
+    .choice-box li { font-size: 12px; color: var(--text-secondary); }
+
+    .phase-item { display: flex; gap: 16px; margin-bottom: 16px; }
+    .phase-dot {
+      width: 32px; height: 32px;
+      background: var(--accent-light);
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .phase-content {
+      flex: 1;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .phase-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .phase-tasks { list-style: none; padding: 0; margin: 0; }
+    .phase-tasks li { font-size: 12px; color: var(--text-secondary); padding: 2px 0; }
+    .phase-tasks li::before { content: '→ '; color: var(--accent); }
+
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      margin-top: 32px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: center;
+    }
+    .footer p { margin-bottom: 4px; }
+
+    @media (max-width: 800px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; }
+      .content { padding: 24px 20px; }
+      .page-header { padding: 28px 20px; }
+      .choice-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-label">Requirements Document</div>
+      <div class="sidebar-title">WordPress内部リンク<br>自動挿入ツール</div>
+      <div class="sidebar-meta">Ver 1.0 &nbsp;|&nbsp; 2026-06-10</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">関連ドキュメント</div>
+      <a class="nav-item" href="index.html" style="color:#34d399; border-left-color:#34d399; background:rgba(52,211,153,.07);">
+        📋 内部リンクエージェント 技術仕様書
+      </a>
+
+      <div class="nav-group-label">目次</div>
+      <a class="nav-item" href="#req">01. 要件定義書</a>
+      <a class="nav-item nav-sub" href="#req-overview">プロジェクト概要</a>
+      <a class="nav-item nav-sub" href="#req-prereq">前提条件</a>
+      <a class="nav-item nav-sub" href="#req-func">機能要件</a>
+      <a class="nav-item nav-sub" href="#req-choice">実行時選択仕様</a>
+      <a class="nav-item nav-sub" href="#req-nonfunc">非機能要件・制約</a>
+      <a class="nav-item nav-sub" href="#req-client">クライアント準備事項</a>
+      <a class="nav-item" href="#design">02. 基本設計書</a>
+      <a class="nav-item nav-sub" href="#design-stack">技術スタック</a>
+      <a class="nav-item nav-sub" href="#design-arch">システム構成</a>
+      <a class="nav-item nav-sub" href="#design-module">モジュール構成</a>
+      <a class="nav-item nav-sub" href="#design-editor">エディタ別処理方式</a>
+      <a class="nav-item nav-sub" href="#design-error">エラー処理</a>
+      <a class="nav-item nav-sub" href="#design-phase">開発フェーズ</a>
+      <a class="nav-item" href="#data">03. データ設計</a>
+      <a class="nav-item nav-sub" href="#data-input">入力データ（Spreadsheet）</a>
+      <a class="nav-item nav-sub" href="#data-api">WordPress API仕様</a>
+      <a class="nav-item" href="#flow">04. 処理フロー設計</a>
+      <a class="nav-item nav-sub" href="#flow-main">処理フロー</a>
+      <a class="nav-item nav-sub" href="#flow-ops">運用フロー</a>
+      <a class="nav-item nav-sub" href="#flow-cost">費用について</a>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-header-label">Requirements Document</div>
+      <div class="page-header-title">WordPress内部リンク自動挿入ツール<br>要件定義書</div>
+      <div class="page-header-badges">
+        <span class="ph-badge">📅 作成日: 2026-06-10</span>
+        <span class="ph-badge">🏷 Ver 1.0</span>
+        <span class="ph-badge">⚙️ ステータス: 開発前（要件確定）</span>
+        <span class="ph-badge">💴 開発費: 5万円</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ========================================
+           SECTION 1: 要件定義書
+      ======================================== -->
+      <div class="doc-section" id="req">
+        <div class="doc-header">
+          <span class="doc-num">01</span>
+          <span class="doc-title">要件定義書</span>
+        </div>
+
+        <div class="card" id="req-overview">
+          <div class="card-title">1.1 プロジェクト概要</div>
+          <h4>目的</h4>
+          <p>内部リンク構築AIエージェントがGoogle Spreadsheetに出力した提案結果（H〜M列）を読み込み、WordPress記事の指定見出しセクション末尾にブログカード（リンク）を自動挿入する。クライアントが手動でWordPressを開いてリンクを設置する作業を自動化することで、内部リンク構築業務を完全自動化する。</p>
+          <div class="alert alert-info">
+            💡 本ツールは内部リンク構築AIエージェント（v1.2）の後続ツールです。エージェントの実行→Spreadsheet確認・承認→本ツールで自動挿入、という運用フローを想定しています。
+          </div>
+          <h4>主要機能</h4>
+          <ul>
+            <li>SpreadsheetのH〜M列（候補記事URL・見出し）を読み込む</li>
+            <li>候補記事ごとにWordPress REST APIで記事コンテンツを取得する</li>
+            <li>指定見出しのセクション末尾にブログカードを挿入する</li>
+            <li>クラシックエディタ（HTML）とGutenbergブロックエディタの両方に対応する</li>
+            <li>リンク形式（URLのみ / aタグ）をCowork実行時に選択できる</li>
+            <li>挿入結果をSpreadsheetのN〜P列に記録する（成功・失敗ステータス）</li>
+          </ul>
+        </div>
+
+        <div class="card" id="req-prereq">
+          <div class="card-title">1.2 前提条件</div>
+          <div class="alert alert-warning">
+            ⚠️ 本ツールは内部リンク構築AIエージェントの出力結果を入力として使用します。エージェントを先に実行し、Spreadsheetのレビュー・承認を完了してから本ツールを実行してください。
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>前提条件</th><th>内容</th></tr>
+              <tr>
+                <td>内部リンクエージェント実行済み</td>
+                <td>SpreadsheetのH〜M列に候補記事URL・見出しが書き込まれていること。「該当なし」の行は自動スキップされる</td>
+              </tr>
+              <tr>
+                <td>Spreadsheet承認済み</td>
+                <td>クライアント担当者がH〜M列をレビューし、問題ない行のみ本ツールで処理する（全行一括 or 個別行指定で実行可能）</td>
+              </tr>
+              <tr>
+                <td>WordPress Application Password設定済み</td>
+                <td>WordPress管理画面でApplication Passwordを発行し、環境変数に設定していること（WP 5.6以降の標準機能）</td>
+              </tr>
+              <tr>
+                <td>article_cacheタブに記事タイトルあり</td>
+                <td>aタグ形式でリンクを挿入する場合、アンカーテキストにarticle_cacheのtitle列を使用するため、事前にキャッシュが必要</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="req-func">
+          <div class="card-title">1.3 機能要件（処理フロー）</div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">1</div>
+              <div class="step-title">STEP1 — Spreadsheetから挿入対象を読み込む</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>SpreadsheetのSheet1を全行読み込む</li>
+                <li>H列が空白または「該当なし」の行はスキップする</li>
+                <li>N列（挿入済みフラグ）が「済み」の行はスキップする（再実行時の重複防止）</li>
+                <li>H列・J列・L列のURLと、I列・K列・M列の見出しをセットで取得する（最大3セット/行）</li>
+                <li><code>--row N</code> オプションで特定行のみ処理することもできる</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">2</div>
+              <div class="step-title">STEP2 — WordPress記事を取得する</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>候補記事のURL（H列・J列・L列）をもとにWordPress REST APIで記事を検索・取得する</li>
+                <li>URLのスラッグ部分を使ってAPIエンドポイント <code>GET /wp/v2/posts?slug=xxx</code> で検索する</li>
+                <li>記事が見つかれば投稿IDと現在のコンテンツ（<code>content.raw</code>）を取得する</li>
+                <li>記事が見つからない場合はスキップ・警告ログを出力して処理継続する</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">3</div>
+              <div class="step-title">STEP3 — 見出しセクションを特定する</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>I列・K列・M列の見出しテキストをもとに、記事コンテンツ内の該当見出しを探す</li>
+                <li>クラシックエディタの場合：HTMLの <code>&lt;h2&gt;</code>〜<code>&lt;h4&gt;</code> タグで文字列一致を確認する</li>
+                <li>Gutenbergの場合：ブロックJSONの <code>core/heading</code> ブロックで文字列一致を確認する</li>
+                <li>見出しが見つからない場合はスキップ・警告ログを出力して次のセットへ進む</li>
+                <li>見出し発見後、そのセクションの「末尾」（次の同レベル以上の見出しの直前）を挿入位置とする</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">4</div>
+              <div class="step-title">STEP4 — ブログカードを挿入する</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li>Cowork実行時に選択されたリンク形式・エディタ形式に従って挿入コンテンツを生成する</li>
+                <li><strong>クラシックエディタ：</strong>HTML文字列に <code>&lt;p&gt;[リンク]&lt;/p&gt;</code> を挿入する</li>
+                <li><strong>Gutenberg：</strong>paragraphブロックまたはhtmlブロックをブロックJSONに追加する</li>
+                <li>1行につき最大3セット（H+I列、J+K列、L+M列）を処理する。各セットは同じ記事への挿入が必要なため、まとめて1回のPUT更新にする</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">5</div>
+              <div class="step-title">STEP5 — WordPress記事を更新し結果を記録する</div>
+            </div>
+            <div class="step-body">
+              <ul>
+                <li><code>POST /wp/v2/posts/{id}</code> で更新済みコンテンツを書き込む</li>
+                <li>成功した場合、SpreadsheetのN列に「済み」・O列に更新日時・P列に挿入数を記録する</li>
+                <li>失敗した場合、N列に「エラー」・O列にエラー内容を記録する</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="req-choice">
+          <div class="card-title">1.4 実行時選択仕様（Coworkが実行前に確認）</div>
+          <p>本ツールはCowork（Claude Desktop）から実行します。Coworkが以下2つの選択肢を実行前にユーザーに確認します。</p>
+
+          <div class="choice-grid">
+            <div class="choice-box">
+              <div class="choice-box-title">Q1. エディタ形式は？</div>
+              <ul>
+                <li><strong>クラシックエディタ</strong><br>HTMLとして記事コンテンツを操作</li>
+                <li><strong>Gutenbergブロックエディタ</strong><br>ブロックJSONとして記事コンテンツを操作</li>
+              </ul>
+            </div>
+            <div class="choice-box">
+              <div class="choice-box-title">Q2. リンク形式は？</div>
+              <ul>
+                <li><strong>URLのみ</strong><br>WordPress側のブログカード自動展開に任せる</li>
+                <li><strong>aタグ</strong><br><code>&lt;a href="URL"&gt;記事タイトル&lt;/a&gt;</code><br>アンカーテキストはarticle_cacheのtitleを使用</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="alert alert-info">
+            💡 クライアントのWordPressがどちらのエディタかは、初回実行前に口頭確認します。確認できた場合はデフォルト値として環境変数に設定することも可能です（<code>WP_EDITOR=classic</code> など）。
+          </div>
+        </div>
+
+        <div class="card" id="req-nonfunc">
+          <div class="card-title">1.5 非機能要件</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th></tr>
+              <tr><td>対象デバイス</td><td>PC（Cowork実行環境）</td></tr>
+              <tr><td>処理速度</td><td>1記事あたり最大30秒以内（WordPress API取得・更新込み）</td></tr>
+              <tr><td>認証方式</td><td>WordPress Application Password（Basic認証ヘッダー）+ Googleサービスアカウント（Sheets）</td></tr>
+              <tr><td>通信</td><td>HTTPS（WordPress REST API・Google Sheets API）</td></tr>
+              <tr><td>エラー耐性</td><td>個別記事のAPI失敗はスキップして処理継続。Spreadsheetにエラー内容を記録する</td></tr>
+              <tr><td>冪等性</td><td>N列の「済み」フラグにより再実行時の重複挿入を防止する</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">1.6 制約条件</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th></tr>
+              <tr><td>WordPress バージョン</td><td>5.6以降（Application Password機能が必要）</td></tr>
+              <tr><td>WordPress REST API</td><td>有効化されていること（デフォルトで有効）</td></tr>
+              <tr><td>AIモデル</td><td>使用しない（AIによる判断は不要。ルールベースで処理）</td></tr>
+              <tr><td>言語</td><td>Python 3.10以上（requests / gspread / google-auth / beautifulsoup4）</td></tr>
+              <tr><td>実行環境</td><td>Cowork上で完結させる（既存の内部リンクエージェントと同一環境）</td></tr>
+              <tr><td>認証情報管理</td><td>WP_APP_PASSWORD等はプロジェクトフォルダ外の専用フォルダに保管。環境変数で参照</td></tr>
+              <tr><td>アンカーテキスト</td><td>aタグ形式の場合、article_cacheのtitle列を使用する（手動入力不要）</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="req-client">
+          <div class="card-title">1.7 クライアント側の準備事項</div>
+          <div class="alert alert-warning">
+            ⚠️ 以下の項目はシステム稼働前にご準備いただく必要があります。
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th><th>確認状況</th></tr>
+              <tr>
+                <td>WordPress Application Password</td>
+                <td>WordPress管理画面 → ユーザー → プロフィール → アプリケーションパスワードで発行。管理者権限ユーザーが必要</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>WordPress エディタ種類</td>
+                <td>クラシックエディタ か Gutenbergブロックエディタ か（Cowork実行時に選択式で対応可能）</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>WordPress REST API</td>
+                <td>有効化されていること。管理画面 → 設定 → パーマリンク で「投稿名」等に設定されていれば有効</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+              <tr>
+                <td>内部リンクエージェント実行済み</td>
+                <td>SpreadsheetのH〜M列に提案結果が書き込まれており、承認済みであること</td>
+                <td><span class="badge badge-orange">要確認</span></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================
+           SECTION 2: 基本設計書
+      ======================================== -->
+      <div class="doc-section" id="design">
+        <div class="doc-header">
+          <span class="doc-num">02</span>
+          <span class="doc-title">基本設計書</span>
+        </div>
+
+        <div class="card" id="design-stack">
+          <div class="card-title">2.1 技術スタック</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>カテゴリ</th><th>技術</th><th>選定理由</th></tr>
+              <tr><td>エージェント実行環境</td><td><strong>Cowork（Claude Desktop Pro）</strong></td><td>既存の内部リンクエージェントと同一環境。追加インフラ不要</td></tr>
+              <tr><td>スクリプト言語</td><td><strong>Python 3.10以上</strong></td><td>既存環境と統一。requests / gspread / beautifulsoup4 既インストール済み</td></tr>
+              <tr><td>WordPressクライアント</td><td><strong>requests（REST API）</strong></td><td>既存依存ライブラリで対応可能。追加インストール不要</td></tr>
+              <tr><td>HTML操作</td><td><strong>BeautifulSoup4</strong></td><td>クラシックエディタのHTML解析・見出し特定に使用。既存依存ライブラリ</td></tr>
+              <tr><td>JSON操作</td><td><strong>標準 json ライブラリ</strong></td><td>GutenbergのブロックJSON操作。追加インストール不要</td></tr>
+              <tr><td>データ基盤</td><td><strong>Google Spreadsheet</strong></td><td>既存の内部リンクエージェントと同一シートを使用</td></tr>
+              <tr><td>AI</td><td><strong>使用しない</strong></td><td>ルールベースで処理完結。AIによる判断は不要</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="design-arch">
+          <div class="card-title">2.2 システム構成</div>
+          <pre>
+[クライアント / 運用者]
+    ↓ Coworkのチャット欄にSpreadsheet URLを伝える
+    ↓ Coworkが「エディタ形式」「リンク形式」を確認
+[Cowork + Pythonスクリプト（py main_wp.py &lt;URL&gt;）]
+    ├─ SheetsClient: Spreadsheet接続・H〜M列読み込み・N〜P列書き込み
+    │   └─ article_cacheタブ: aタグ形式時にtitle取得
+    ├─ STEP1: 挿入対象行の抽出（H列空・「該当なし」・N列「済み」をスキップ）
+    ├─ STEP2: WordPress REST APIで候補記事を取得
+    │   └─ GET /wp/v2/posts?slug={slug}
+    ├─ STEP3: 見出しセクションの特定（HTML or ブロックJSON）
+    ├─ STEP4: ブログカードを挿入（URLのみ or aタグ）
+    └─ STEP5: WordPress記事を更新・Spreadsheetに結果記録
+        └─ POST /wp/v2/posts/{id}
+
+[WordPress REST API]
+    ├─ 認証: Application Password（Base64エンコードのBasic認証）
+    └─ エンドポイント: /wp/v2/posts
+
+[Google Spreadsheet（共有）]
+    ├─ Sheet1: H〜M列（入力）/ N〜P列（出力：挿入結果）
+    └─ article_cache: url・title列（aタグのアンカーテキスト取得用）</pre>
+        </div>
+
+        <div class="card" id="design-module">
+          <div class="card-title">2.3 モジュール構成・追加ファイル</div>
+          <div class="alert alert-info">
+            📁 既存の <code>nyseo-internal-link-agent/</code> プロジェクトに追加します。既存ファイルへの影響は最小限です。
+          </div>
+          <pre>
+nyseo-internal-link-agent/
+├── main_wp.py                  # 【新規】エントリーポイント: py main_wp.py &lt;URL&gt;
+│
+├── steps/
+│   └── step_wp_insert.py       # 【新規】STEP2〜5: 記事取得・見出し特定・挿入・更新
+│
+├── utils/
+│   └── wp_client.py            # 【新規】WordPress REST APIクライアント（認証・GET・PUT）
+│
+├── local_runner.py             # 【修正】/run-wpエンドポイント追加
+└── install.ps1                 # 【修正】WP_URL・WP_USER・WP_APP_PASSWORD設定ステップ追加
+
+（既存ファイルはすべてそのまま。内部リンクエージェントは引き続き py main.py で実行）</pre>
+        </div>
+
+        <div class="card" id="design-editor">
+          <div class="card-title">2.4 エディタ別コンテンツ処理方式</div>
+          <h4>クラシックエディタ（HTML形式）</h4>
+          <div class="table-wrap">
+            <table>
+              <tr><th>処理</th><th>方式</th></tr>
+              <tr><td>コンテンツ取得</td><td>REST API <code>content.raw</code> フィールドにHTMLが格納されている</td></tr>
+              <tr><td>見出し特定</td><td>BeautifulSoupで <code>&lt;h2&gt;</code>〜<code>&lt;h4&gt;</code> タグを検索し、テキストが一致する要素を探す</td></tr>
+              <tr><td>挿入位置</td><td>該当見出しから次の同レベル以上の見出しタグの直前。セクション末尾に相当する</td></tr>
+              <tr><td>挿入形式</td><td><code>&lt;p&gt;URL&lt;/p&gt;</code> または <code>&lt;p&gt;&lt;a href="URL"&gt;タイトル&lt;/a&gt;&lt;/p&gt;</code></td></tr>
+              <tr><td>更新</td><td>編集後のHTML文字列を <code>content</code> フィールドにPUTする</td></tr>
+            </table>
+          </div>
+
+          <h4>Gutenbergブロックエディタ（JSON形式）</h4>
+          <div class="table-wrap">
+            <table>
+              <tr><th>処理</th><th>方式</th></tr>
+              <tr><td>コンテンツ取得</td><td>REST API <code>content.raw</code> にブロックシリアライズ形式（HTML + ブロックコメント）が格納されている</td></tr>
+              <tr><td>ブロック解析</td><td>Gutenbergのブロック形式は <code>&lt;!-- wp:heading --&gt;</code> のようなHTMLコメントで識別できる。正規表現でブロックを分割する</td></tr>
+              <tr><td>見出し特定</td><td><code>wp:heading</code> ブロック内のテキストが一致するブロックを探す</td></tr>
+              <tr><td>挿入位置</td><td>該当見出しブロックから次の同レベル以上の見出しブロックの直前</td></tr>
+              <tr><td>挿入形式（URLのみ）</td><td><code>&lt;!-- wp:paragraph --&gt;&lt;p&gt;URL&lt;/p&gt;&lt;!-- /wp:paragraph --&gt;</code></td></tr>
+              <tr><td>挿入形式（aタグ）</td><td><code>&lt;!-- wp:paragraph --&gt;&lt;p&gt;&lt;a href="URL"&gt;タイトル&lt;/a&gt;&lt;/p&gt;&lt;!-- /wp:paragraph --&gt;</code></td></tr>
+              <tr><td>更新</td><td>編集後のブロック文字列を <code>content</code> フィールドにPUTする</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">2.5 外部連携</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>外部サービス</th><th>用途</th><th>認証</th><th>注意事項</th></tr>
+              <tr>
+                <td><strong>WordPress REST API</strong></td>
+                <td>記事取得・コンテンツ更新</td>
+                <td>Application Password<br>（Basic認証ヘッダー）</td>
+                <td>環境変数 <code>WP_URL</code> / <code>WP_USER</code> / <code>WP_APP_PASSWORD</code> で指定</td>
+              </tr>
+              <tr>
+                <td><strong>Google Sheets API</strong></td>
+                <td>H〜M列読み込み・N〜P列書き込み・article_cacheのtitle取得</td>
+                <td>サービスアカウントJSON<br>（既存の設定を流用）</td>
+                <td>既存の <code>GOOGLE_SERVICE_ACCOUNT</code> 環境変数を流用。追加設定不要</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="design-error">
+          <div class="card-title">2.6 エラー処理</div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>エラー種別</th><th>対応</th><th>処理継続</th></tr>
+              <tr><td>WordPress認証失敗（401）</td><td>エラーログ出力・実行停止（認証情報を確認）</td><td>❌ 停止</td></tr>
+              <tr><td>記事が見つからない（404）</td><td>該当行をスキップ・N列に「エラー: 記事が見つかりません」を記録</td><td>✅ 継続</td></tr>
+              <tr><td>見出しが見つからない</td><td>該当セットをスキップ・警告ログ出力。他のセットは処理継続</td><td>✅ 継続</td></tr>
+              <tr><td>記事更新失敗（APIエラー）</td><td>N列に「エラー」・O列にエラー内容を記録してスキップ</td><td>✅ 継続</td></tr>
+              <tr><td>Google Sheets接続失敗</td><td>エラーログ出力・実行停止</td><td>❌ 停止</td></tr>
+              <tr><td>N列「済み」の行</td><td>スキップ（重複挿入防止）</td><td>✅ 継続</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">2.7 セキュリティ考慮事項</div>
+          <ul class="checklist">
+            <li>WordPress Application Passwordはプロジェクトフォルダ外の専用フォルダに保管する</li>
+            <li>環境変数 <code>WP_URL</code> / <code>WP_USER</code> / <code>WP_APP_PASSWORD</code> でCredentialsを参照する（コードにハードコードしない）</li>
+            <li>WordPress REST APIはHTTPS経由のみ使用する（HTTP不可）</li>
+            <li>記事の読み取り（GET）と更新（POST）のみ実施。記事の新規作成・削除は行わない</li>
+            <li><code>.gitignore</code> で <code>.env</code> をGit管理対象外に設定（既存設定を流用）</li>
+          </ul>
+        </div>
+
+        <div class="card" id="design-phase">
+          <div class="card-title">2.8 開発フェーズ</div>
+          <div class="phase-item">
+            <div class="phase-dot">P1</div>
+            <div class="phase-content">
+              <div class="phase-title">Phase 1 — 基盤実装</div>
+              <ul class="phase-tasks">
+                <li>wp_client.py: WordPress REST API認証・GET・POST実装</li>
+                <li>main_wp.py: エントリーポイント実装</li>
+                <li>Local by Flywheel でローカルWordPress環境を構築・接続確認</li>
+              </ul>
+            </div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-dot">P2</div>
+            <div class="phase-content">
+              <div class="phase-title">Phase 2 — クラシックエディタ対応実装・テスト</div>
+              <ul class="phase-tasks">
+                <li>step_wp_insert.py: HTML操作（見出し特定・ブログカード挿入）</li>
+                <li>URLのみ形式・aタグ形式の両方をローカルWordPressで動作確認</li>
+                <li>1記事に1〜3セット挿入するケースをテスト</li>
+              </ul>
+            </div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-dot">P3</div>
+            <div class="phase-content">
+              <div class="phase-title">Phase 3 — Gutenberg対応実装・テスト</div>
+              <ul class="phase-tasks">
+                <li>Gutenbergブロック解析・挿入処理の実装</li>
+                <li>ローカルWordPressでGutenberg記事を使って動作確認</li>
+                <li>クラシック / Gutenberg 切り替えオプションのテスト</li>
+              </ul>
+            </div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-dot">P4</div>
+            <div class="phase-content">
+              <div class="phase-title">Phase 4 — 結合テスト・引き渡し</div>
+              <ul class="phase-tasks">
+                <li>実Spreadsheet + ローカルWordPressでのエンドツーエンドテスト</li>
+                <li>install.ps1 / local_runner.py の修正・動作確認</li>
+                <li>クライアントへの説明・デモ・本番移行（WP_URL をクライアント環境に切り替え）</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================
+           SECTION 3: データ設計
+      ======================================== -->
+      <div class="doc-section" id="data">
+        <div class="doc-header">
+          <span class="doc-num">03</span>
+          <span class="doc-title">データ設計</span>
+        </div>
+
+        <div class="card" id="data-input">
+          <div class="card-title">3.1 Spreadsheet列定義（Sheet1）</div>
+          <div class="alert alert-info">
+            📋 A〜M列は内部リンクエージェントの既存列定義です。本ツールはH〜M列を<strong>入力</strong>として読み込み、N〜P列に<strong>挿入結果</strong>を書き込みます。
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>列</th><th>内容</th><th>本ツールでの役割</th></tr>
+              <tr class="hl-input"><td><strong>H列</strong></td><td>候補記事URL①</td><td>入力：この記事にリンクを挿入する</td></tr>
+              <tr class="hl-input"><td><strong>I列</strong></td><td>リンク設置箇所見出し①</td><td>入力：H列の記事内でリンクを挿入するセクションの見出し</td></tr>
+              <tr class="hl-input"><td><strong>J列</strong></td><td>候補記事URL②</td><td>入力（任意）</td></tr>
+              <tr class="hl-input"><td><strong>K列</strong></td><td>リンク設置箇所見出し②</td><td>入力（任意）</td></tr>
+              <tr class="hl-input"><td><strong>L列</strong></td><td>候補記事URL③</td><td>入力（任意）</td></tr>
+              <tr class="hl-input"><td><strong>M列</strong></td><td>リンク設置箇所見出し③</td><td>入力（任意）</td></tr>
+              <tr class="hl-output"><td><strong>N列</strong></td><td>挿入ステータス</td><td>出力：「済み」/ 「エラー」/ 「スキップ」</td></tr>
+              <tr class="hl-output"><td><strong>O列</strong></td><td>処理日時 / エラー内容</td><td>出力：成功時は更新日時・失敗時はエラーメッセージ</td></tr>
+              <tr class="hl-output"><td><strong>P列</strong></td><td>挿入件数</td><td>出力：その行で実際に挿入した件数（0〜3）</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="data-api">
+          <div class="card-title">3.2 WordPress REST API仕様</div>
+          <h4>認証</h4>
+          <pre>
+Authorization: Basic base64("{WP_USER}:{WP_APP_PASSWORD}")
+Content-Type: application/json</pre>
+
+          <h4>記事検索（URLスラッグで検索）</h4>
+          <pre>
+GET {WP_URL}/wp/v2/posts?slug={slug}&_fields=id,slug,content
+
+レスポンス例:
+[{
+  "id": 1234,
+  "slug": "article-slug",
+  "content": {
+    "raw": "&lt;!-- wp:heading --&gt;&lt;h2&gt;見出しテキスト&lt;/h2&gt;&lt;!-- /wp:heading --&gt;..."
+  }
+}]</pre>
+
+          <h4>記事更新</h4>
+          <pre>
+POST {WP_URL}/wp/v2/posts/{id}
+Body: {
+  "content": "更新後のコンテンツ（HTML or Gutenbergブロック文字列）"
+}
+
+レスポンス: 200 OK → 更新成功
+            401 → 認証エラー
+            404 → 記事が見つからない</pre>
+
+          <h4>環境変数</h4>
+          <div class="table-wrap">
+            <table>
+              <tr><th>変数名</th><th>内容</th><th>設定場所</th></tr>
+              <tr><td><code>WP_URL</code></td><td>WordPressサイトのURL（例: https://example.com）</td><td>install.ps1 で自動設定</td></tr>
+              <tr><td><code>WP_USER</code></td><td>WordPressの管理者ユーザー名</td><td>install.ps1 で自動設定</td></tr>
+              <tr><td><code>WP_APP_PASSWORD</code></td><td>Application Password（スペース区切りの24文字）</td><td>install.ps1 で自動設定</td></tr>
+              <tr><td><code>GOOGLE_SERVICE_ACCOUNT</code></td><td>サービスアカウントJSONのパス（既存）</td><td>既存設定を流用</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================
+           SECTION 4: 処理フロー設計
+      ======================================== -->
+      <div class="doc-section" id="flow">
+        <div class="doc-header">
+          <span class="doc-num">04</span>
+          <span class="doc-title">処理フロー設計</span>
+        </div>
+
+        <div class="card" id="flow-main">
+          <div class="card-title">4.1 main_wp.py 処理順序</div>
+          <pre>
+[起動] py main_wp.py &lt;SpreadsheetURL&gt; [--row N]
+    ↓
+[Coworkが確認]
+    Q1. エディタ形式は？ → classic / gutenberg
+    Q2. リンク形式は？  → url / atag
+    ↓
+[STEP1] Spreadsheet読み込み
+    ├─ H列が空 or「該当なし」→ スキップ
+    ├─ N列が「済み」→ スキップ（重複防止）
+    └─ H/I列・J/K列・L/M列のセットを最大3件抽出
+    ↓
+[STEP2] WordPress記事を取得
+    ├─ URLのスラッグを抽出
+    ├─ GET /wp/v2/posts?slug={slug} で記事検索
+    └─ 見つからない場合 → N列「エラー」・スキップ
+    ↓
+[STEP3] 見出しセクションを特定
+    ├─ classic: BeautifulSoupでhタグ検索
+    ├─ gutenberg: ブロックコメントで分割・heading検索
+    └─ 見つからない場合 → 該当セットをスキップ
+    ↓
+[STEP4] ブログカードを挿入
+    ├─ urlのみ: &lt;p&gt;URL&lt;/p&gt; を見出しセクション末尾に追加
+    └─ atag: article_cacheのtitleを取得し &lt;a href=&gt; を生成
+    ↓
+[STEP5] WordPress記事を更新・結果を記録
+    ├─ POST /wp/v2/posts/{id} でコンテンツを更新
+    ├─ 成功 → N列「済み」・O列「更新日時」・P列「挿入件数」
+    └─ 失敗 → N列「エラー」・O列「エラーメッセージ」</pre>
+        </div>
+
+        <div class="card" id="flow-ops">
+          <div class="card-title">4.2 クライアント運用フロー</div>
+
+          <h4>推奨フロー（レビューあり）</h4>
+          <div class="table-wrap">
+            <table>
+              <tr><th>手順</th><th>担当</th><th>操作内容</th></tr>
+              <tr><td>①</td><td>運用者</td><td>Coworkのチャット欄にSpreadsheet URLを伝えて内部リンクエージェントを実行</td></tr>
+              <tr><td>②</td><td>Cowork</td><td>エージェント完了後、自動的に確認を出す：<br>「WordPressへの自動挿入も続けますか？<strong>はい</strong> or <strong>いいえ</strong>」</td></tr>
+              <tr><td>③</td><td>運用者</td><td><strong>「いいえ」を選択</strong>してSpreadsheetでH〜M列を確認・承認（URLと見出しが正しいか目視確認）</td></tr>
+              <tr><td>④</td><td>運用者</td><td>Coworkのチャット欄に「WordPress挿入を実行して」と伝える</td></tr>
+              <tr><td>⑤</td><td>Cowork</td><td>「エディタ形式」「リンク形式」を確認してから <code>py main_wp.py &lt;URL&gt;</code> を自動実行</td></tr>
+              <tr><td>⑥</td><td>システム（自動）</td><td>WordPress記事にリンクを挿入し、N〜P列に結果を記録</td></tr>
+              <tr><td>⑦</td><td>全員</td><td>SpreadsheetのN列で「済み」「エラー」を確認。WordPress記事でリンクを目視確認</td></tr>
+              <tr><td>⑧</td><td>運用者</td><td>エラー行は原因を調査し、必要に応じて <code>--row N</code> で個別再実行</td></tr>
+            </table>
+          </div>
+
+          <h4>連続実行フロー（レビューなし・スピード優先）</h4>
+          <div class="alert alert-warning">
+            ⚠️ AIの判定結果をレビューせずにWordPressへ反映します。誤ったリンクが挿入された場合は手動で削除が必要です。信頼できる実績が蓄積された後に使用することを推奨します。
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>手順</th><th>担当</th><th>操作内容</th></tr>
+              <tr><td>①</td><td>運用者</td><td>Coworkのチャット欄にSpreadsheet URLを伝えて内部リンクエージェントを実行</td></tr>
+              <tr><td>②</td><td>Cowork</td><td>エージェント完了後：「WordPressへの自動挿入も続けますか？」の確認を出す</td></tr>
+              <tr><td>③</td><td>運用者</td><td><strong>「はい」を選択</strong>。Coworkが警告を表示してから「エディタ形式」「リンク形式」を確認</td></tr>
+              <tr><td>④</td><td>システム（自動）</td><td>WordPress記事にリンクを挿入し、N〜P列に結果を記録</td></tr>
+              <tr><td>⑤</td><td>全員</td><td>SpreadsheetのN列で「済み」「エラー」を確認</td></tr>
+            </table>
+          </div>
+          <div class="alert alert-info">
+            💡 <strong>単独実行にも対応：</strong>エージェントのみ・WP挿入のみをCoworkのチャット欄から個別に指示できます。内部リンクエージェントは <code>py main.py</code>、WP挿入は <code>py main_wp.py</code> として完全に独立したスクリプトです。
+          </div>
+        </div>
+
+        <div class="card" id="flow-cost">
+          <div class="card-title">4.3 費用について</div>
+          <h4>開発費用</h4>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th></tr>
+              <tr><td>開発費（一括）</td><td>5万円（税別）</td></tr>
+              <tr><td>内訳</td><td>設計・実装・テスト（Local WordPress環境含む）・クライアントへの説明・デモ込み</td></tr>
+              <tr><td>開発期間目安</td><td>要件確定後 1〜2週間</td></tr>
+            </table>
+          </div>
+
+          <h4>運用コスト（月次）</h4>
+          <div class="table-wrap">
+            <table>
+              <tr><th>項目</th><th>内容</th><th>目安</th></tr>
+              <tr>
+                <td><strong>AIモデル</strong></td>
+                <td>本ツールはAIを使用しない。追加コストなし</td>
+                <td>無料</td>
+              </tr>
+              <tr>
+                <td><strong>WordPress REST API</strong></td>
+                <td>クライアント自身のWordPressへのAPIアクセス。追加費用なし</td>
+                <td>無料</td>
+              </tr>
+              <tr>
+                <td><strong>Cowork・Google Sheets API</strong></td>
+                <td>既存の内部リンクエージェントと同一。追加費用なし</td>
+                <td>既存費用に含む</td>
+              </tr>
+            </table>
+          </div>
+          <div class="alert alert-info">
+            💡 本ツールはAIを使用しないため、内部リンクエージェントと異なり実行コストが発生しません。運用コストは既存の内部リンクエージェントと同水準です。
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>WordPress内部リンク自動挿入ツール 要件定義書 v1.0 — 作成日: 2026-06-10</p>
+          <p>本ドキュメントは nyseo-internal-link-agent プロジェクトの追加機能（v1.3）に関するものです。</p>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /wrapper -->
+
+<script>
+  const navLinks = document.querySelectorAll('.nav-item[href^="#"]');
+  const sections = [...document.querySelectorAll('[id]')];
+
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY + 100;
+    let current = '';
+    sections.forEach(s => {
+      if (s.getBoundingClientRect().top + window.scrollY <= scrollY) {
+        current = s.id;
+      }
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>
