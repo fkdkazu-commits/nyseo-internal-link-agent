@@ -410,130 +410,147 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
         return
 
     # STEP2・4・5: 対象記事ごと（CLI モード）
-    for i, target in enumerate(targets, start=1):
-        if STOP_FLAG.exists():
-            STOP_FLAG.unlink()
-            logger.info("\n⏹ 中断シグナルを受信しました。処理を停止します。")
-            logger.info("再開するには、Coworkで同じSpreadsheet URLを送信してください。")
-            return
-        print(f"\n[{i}/{len(targets)}] {target['url']}", flush=True)
+    # AI判定失敗で空欄になった行を最大2回まで自動再試行する
+    MAX_RETRY_PASSES = 2
+    for retry_pass in range(MAX_RETRY_PASSES + 1):
+        if retry_pass > 0:
+            logger.info(f"\n🔄 再試行パス {retry_pass}/{MAX_RETRY_PASSES}: 空欄行を再チェック中…")
+            _, data = client.load_data()
+            targets = extract_targets(data)
+            if not targets:
+                logger.info("✅ 空欄行なし。再試行完了。")
+                break
+            logger.info(f"再試行対象: {len(targets)} 件")
 
-        # 対象記事がキャッシュなければ今すぐ取得して保存
-        if not client.get_cache(target["url"]):
-            fetched = fetch_and_parse(target["url"])
-            if fetched:
-                fetched["kw"] = target["kw"]
-                client.save_cache(fetched)
-                for a in all_articles:
-                    if a["url"] == target["url"]:
-                        a.update(fetched)
-                        break
+        stopped = False
+        for i, target in enumerate(targets, start=1):
+            if STOP_FLAG.exists():
+                STOP_FLAG.unlink()
+                logger.info("\n⏹ 中断シグナルを受信しました。処理を停止します。")
+                logger.info("再開するには、Coworkで同じSpreadsheet URLを送信してください。")
+                stopped = True
+                break
+            print(f"\n[{i}/{len(targets)}] {target['url']}", flush=True)
 
-        search_kws: list[str] = []
-        skip_article = False
+            # 対象記事がキャッシュなければ今すぐ取得して保存
+            if not client.get_cache(target["url"]):
+                fetched = fetch_and_parse(target["url"])
+                if fetched:
+                    fetched["kw"] = target["kw"]
+                    client.save_cache(fetched)
+                    for a in all_articles:
+                        if a["url"] == target["url"]:
+                            a.update(fetched)
+                            break
 
-        # トークン切れ時は待機して同じ記事を再試行するためretryループ
-        while True:
-            try:
-                # C列空の場合のKW設定
-                if target["kw_source"] == "auto_detect" and not search_kws:
-                    if target["kw"]:
-                        # bootstrap またはキャッシュで既に取得済み → AI呼び出し不要
+            search_kws: list[str] = []
+            skip_article = False
+
+            # トークン切れ時は待機して同じ記事を再試行するためretryループ
+            while True:
+                try:
+                    # C列空の場合のKW設定
+                    if target["kw_source"] == "auto_detect" and not search_kws:
+                        if target["kw"]:
+                            # bootstrap またはキャッシュで既に取得済み → AI呼び出し不要
+                            search_kws = [target["kw"]]
+                            logger.info(f"KW（キャッシュ済み）: 「{target['kw']}」")
+                        else:
+                            # キャッシュミス時のフォールバック: AIで抽出してキャッシュ更新
+                            art = next((a for a in all_articles if a["url"] == target["url"]), None)
+                            if art:
+                                title = art.get("title", "") or art.get("h1", "")
+                                extracted = extract_main_kw(title, art.get("h2_list", []))
+                                if extracted:
+                                    target["kw"] = extracted
+                                    search_kws = [extracted]
+                                    client.update_cache_kw(target["url"], extracted)
+                                    logger.info(f"KW自動抽出（フォールバック）: 「{extracted}」")
+                                else:
+                                    h2h3 = art.get("h2_list", [])[:4] + art.get("h3_list", [])[:3]
+                                    search_kws = [h for h in h2h3 if len(h) >= 2]
+                                    target["kw"] = search_kws[0] if search_kws else _shorten_kw(title)
+                        if not target["kw"]:
+                            logger.warning("KW検出できず → 「該当なし」を書き込みます")
+                            result_row = write_output(data[target["row_idx"]], [], max_cols)
+                            client.write_result(target["row_idx"], result_row)
+                            skip_article = True
+                            break
+                    elif not search_kws:
                         search_kws = [target["kw"]]
-                        logger.info(f"KW（キャッシュ済み）: 「{target['kw']}」")
-                    else:
-                        # キャッシュミス時のフォールバック: AIで抽出してキャッシュ更新
-                        art = next((a for a in all_articles if a["url"] == target["url"]), None)
-                        if art:
-                            title = art.get("title", "") or art.get("h1", "")
-                            extracted = extract_main_kw(title, art.get("h2_list", []))
-                            if extracted:
-                                target["kw"] = extracted
-                                search_kws = [extracted]
-                                client.update_cache_kw(target["url"], extracted)
-                                logger.info(f"KW自動抽出（フォールバック）: 「{extracted}」")
-                            else:
-                                h2h3 = art.get("h2_list", [])[:4] + art.get("h3_list", [])[:3]
-                                search_kws = [h for h in h2h3 if len(h) >= 2]
-                                target["kw"] = search_kws[0] if search_kws else _shorten_kw(title)
-                    if not target["kw"]:
-                        logger.warning("KW検出できず → 「該当なし」を書き込みます")
-                        result_row = write_output(data[target["row_idx"]], [], max_cols)
-                        client.write_result(target["row_idx"], result_row)
-                        skip_article = True
-                        break
-                elif not search_kws:
-                    search_kws = [target["kw"]]
 
-                # STEP2: 候補探索
-                candidates: list[dict] = []
-                for kw in search_kws or [target["kw"]]:
-                    for c in search_candidates({**target, "kw": kw}, all_articles, min_score=min_score, use_token_scoring=use_token_scoring):
-                        if not any(x["url"] == c["url"] for x in candidates):
-                            candidates.append(c)
-                # 候補が少ない場合のみKW拡張（トークン節約）
-                if len(candidates) < MIN_CANDIDATES:
-                    for ekw in expand_keywords(target["kw"]):
-                        for c in search_candidates({**target, "kw": ekw}, all_articles, use_token_scoring=use_token_scoring):
+                    # STEP2: 候補探索
+                    candidates: list[dict] = []
+                    for kw in search_kws or [target["kw"]]:
+                        for c in search_candidates({**target, "kw": kw}, all_articles, min_score=min_score, use_token_scoring=use_token_scoring):
                             if not any(x["url"] == c["url"] for x in candidates):
                                 candidates.append(c)
+                    # 候補が少ない場合のみKW拡張（トークン節約）
+                    if len(candidates) < MIN_CANDIDATES:
+                        for ekw in expand_keywords(target["kw"]):
+                            for c in search_candidates({**target, "kw": ekw}, all_articles, use_token_scoring=use_token_scoring):
+                                if not any(x["url"] == c["url"] for x in candidates):
+                                    candidates.append(c)
 
-                if not candidates:
-                    logger.warning("候補記事なし → 「該当なし」を書き込みます")
-                    result_row = write_output(data[target["row_idx"]], [], max_cols)
+                    if not candidates:
+                        logger.warning("候補記事なし → 「該当なし」を書き込みます")
+                        result_row = write_output(data[target["row_idx"]], [], max_cols)
+                        client.write_result(target["row_idx"], result_row)
+                        break
+
+                    # match_score上位N件に絞る（通常20件・lean時10件）
+                    candidates = sorted(candidates, key=lambda c: c.get("match_score", 0), reverse=True)[:max_candidates]
+                    logger.info(f"STEP2: 候補 {len(candidates)} 件")
+                    for _c in candidates:
+                        logger.debug(f"  候補: [{_c.get('match_score',0)}点] {_c.get('title','')[:40]} ({_c.get('url','')})")
+
+                    # 候補記事のうちキャッシュなしのものをオンデマンド取得
+                    fetch_count = 0
+                    for c in candidates:
+                        if not client.get_cache(c["url"]):
+                            fetched = fetch_and_parse(c["url"])
+                            if fetched:
+                                client.save_cache(fetched)
+                                c.update(fetched)
+                                fetch_count += 1
+                    if fetch_count:
+                        logger.info(f"候補記事のHTML取得: {fetch_count} 件")
+
+                    # STEP4: AI一括判定（全候補を1回の呼び出しで判定）
+                    adopted = judge_candidates(
+                        target, candidates,
+                        lambda t, c: judge_relevance_batch(t, c, body_chars=body_chars),
+                    )
+
+                    if adopted is None:
+                        # AI失敗（トークン切れ以外のエラー）→ 書き込みせずスキップ（再試行パスで再処理）
+                        break
+
+                    if len(adopted) < MIN_CANDIDATES:
+                        logger.warning(f"採用 {len(adopted)} 件（閾値未満）")
+
+                    # STEP5: Sheetsに書き込み
+                    result_row = write_output(data[target["row_idx"]], adopted, max_cols)
                     client.write_result(target["row_idx"], result_row)
-                    break
+                    logger.info(f"→ 採用 {len(adopted)} 件をSpreadsheetに書き込みました")
+                    break  # 成功 → 次の記事へ
 
-                # match_score上位N件に絞る（通常20件・lean時10件）
-                candidates = sorted(candidates, key=lambda c: c.get("match_score", 0), reverse=True)[:max_candidates]
-                logger.info(f"STEP2: 候補 {len(candidates)} 件")
-                for _c in candidates:
-                    logger.debug(f"  候補: [{_c.get('match_score',0)}点] {_c.get('title','')[:40]} ({_c.get('url','')})")
+                except NotLoggedInError:
+                    logger.error("\n⛔ Claude CLI に未ログインです。")
+                    logger.error("PowerShell で claude を起動し /login でログインしてから再実行してください。")
+                    return
 
-                # 候補記事のうちキャッシュなしのものをオンデマンド取得
-                fetch_count = 0
-                for c in candidates:
-                    if not client.get_cache(c["url"]):
-                        fetched = fetch_and_parse(c["url"])
-                        if fetched:
-                            client.save_cache(fetched)
-                            c.update(fetched)
-                            fetch_count += 1
-                if fetch_count:
-                    logger.info(f"候補記事のHTML取得: {fetch_count} 件")
+                except TokenExhaustedError as e:
+                    logger.warning(f"\n⛔ Claudeトークン上限: {e}")
+                    _wait_for_token_reset(str(e))
+                    # retryループ継続 → 同じ記事を再試行
 
-                # STEP4: AI一括判定（全候補を1回の呼び出しで判定）
-                adopted = judge_candidates(
-                    target, candidates,
-                    lambda t, c: judge_relevance_batch(t, c, body_chars=body_chars),
-                )
+            if skip_article:
+                continue
+            time.sleep(0.5)
 
-                if adopted is None:
-                    # AI失敗（トークン切れ以外のエラー）→ 書き込みせずスキップ
-                    break
-
-                if len(adopted) < MIN_CANDIDATES:
-                    logger.warning(f"採用 {len(adopted)} 件（閾値未満）")
-
-                # STEP5: Sheetsに書き込み
-                result_row = write_output(data[target["row_idx"]], adopted, max_cols)
-                client.write_result(target["row_idx"], result_row)
-                logger.info(f"→ 採用 {len(adopted)} 件をSpreadsheetに書き込みました")
-                break  # 成功 → 次の記事へ
-
-            except NotLoggedInError:
-                logger.error("\n⛔ Claude CLI に未ログインです。")
-                logger.error("PowerShell で claude を起動し /login でログインしてから再実行してください。")
-                return
-
-            except TokenExhaustedError as e:
-                logger.warning(f"\n⛔ Claudeトークン上限: {e}")
-                _wait_for_token_reset(str(e))
-                # retryループ継続 → 同じ記事を再試行
-
-        if skip_article:
-            continue
-        time.sleep(0.5)
+        if stopped:
+            return
 
     logger.info("\n" + "=" * 50)
     logger.info("全処理完了。Spreadsheetをご確認ください。")
