@@ -455,8 +455,8 @@
       <div class="page-header-label">System Specification Document</div>
       <div class="page-header-title">内部リンク構築AIエージェント<br>技術仕様書</div>
       <div class="page-header-badges">
-        <span class="ph-badge">📅 更新日: 2026-06-04</span>
-        <span class="ph-badge">🏷 Ver 2.1 — Google Sheets方式</span>
+        <span class="ph-badge">📅 更新日: 2026-06-12</span>
+        <span class="ph-badge">🏷 Ver 2.2 — Google Sheets方式</span>
         <span class="ph-badge">⚙️ ステータス: 本番稼働中</span>
       </div>
     </div>
@@ -898,7 +898,8 @@ nyseo-internal-link-agent/
               <tr><th>エラー種別</th><th>対応</th><th>処理継続</th></tr>
               <tr><td>Google Sheets接続失敗</td><td>エラーログ出力・実行停止（環境変数・権限を確認）</td><td>❌ 停止</td></tr>
               <tr><td>HTTP取得失敗（404・タイムアウト等）</td><td>該当記事をスキップ・警告ログ出力</td><td>✅ 継続</td></tr>
-              <tr><td>Cowork内蔵AI エラー</td><td>最大2回リトライ後、スキップ・エラーログ</td><td>✅ 継続</td></tr>
+              <tr><td>Cowork内蔵AI エラー</td><td>最大2回リトライ後、スキップ・エラーログ（H列は空欄のまま）</td><td>✅ 継続</td></tr>
+              <tr><td>AI判定技術的失敗（H列空欄残留）</td><td>全行完了後に自動で再チェック・最大2パス再処理（v1.2.1〜）</td><td>✅ 自動回復</td></tr>
               <tr><td>JSON解析失敗（AI出力不正）</td><td>デフォルト値（スコア0）で処理継続</td><td>✅ 継続</td></tr>
               <tr><td>候補記事が2件未満</td><td>閾値を60→40に下げて再判定。不足なら空欄出力</td><td>✅ 継続</td></tr>
               <tr><td>B列（記事URL）が空白</td><td>該当行をスキップ・警告ログ</td><td>✅ 継続</td></tr>
@@ -1149,7 +1150,9 @@ flowchart TD
     STEP4 --> STEP5[STEP5: H〜M列に書き込み\n採用なし→「該当なし」\n技術的失敗→空欄のまま]
     STEP5 --> NEXT{次の対象記事あり?}
     NEXT -- Yes --> TARGET_LOOP
-    NEXT -- No --> DONE([全処理完了])
+    NEXT -- No --> RETRY{空欄行が残っている?\n最大2パスまで}
+    RETRY -- Yes --> TARGET_LOOP
+    RETRY -- No --> DONE([全処理完了])
             </pre>
           </div>
         </div>
