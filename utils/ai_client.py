@@ -248,13 +248,14 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
     raw = _extract_json(response, "[")
     if not raw:
         logger.warning(f"AI一括判定: JSON配列が見つかりません")
-        logger.debug(f"レスポンス内容: {response[:300]}")
+        logger.warning(f"[DEBUG_RESPONSE] {response[:500]}")
         return []
 
     try:
         results = json.loads(raw)
         if not isinstance(results, list):
             logger.warning("AI一括判定: レスポンスがリスト形式ではありません")
+            logger.warning(f"[DEBUG_RESPONSE] {raw[:500]}")
             return []
         out = []
         for r in results:
@@ -271,6 +272,7 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
         return out
     except json.JSONDecodeError as e:
         logger.warning(f"AI一括判定: JSON解析失敗 — {e}")
+        logger.warning(f"[DEBUG_RESPONSE] {raw[:500]}")
 
     return []
 
