@@ -410,8 +410,8 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
         return
 
     # STEP2・4・5: 対象記事ごと（CLI モード）
-    # AI判定失敗で空欄になった行を最大5回まで自動再試行する
-    MAX_RETRY_PASSES = 5
+    # AI判定失敗で空欄になった行を最大2回まで自動再試行する
+    MAX_RETRY_PASSES = 2
     for retry_pass in range(MAX_RETRY_PASSES + 1):
         if retry_pass > 0:
             logger.info(f"\n🔄 再試行パス {retry_pass}/{MAX_RETRY_PASSES}: 空欄行を再チェック中…")
