@@ -1494,6 +1494,24 @@ PowerShell -ExecutionPolicy Bypass -File ".\install.ps1"</code></pre>
       </div>
 
       <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>アップデート版が届いた。どう適用すればよいか</div>
+        <div class="trouble-a">
+          <p>以下の手順で上書き適用できます。<span class="ic">secrets/</span> フォルダ・環境変数の再設定は不要です。</p>
+          <ol style="margin:8px 0 0 18px; line-height:2;">
+            <li>受け取った zip を展開する</li>
+            <li><span class="ic">nyseo-internal-link-agent\</span> フォルダの中身を既存フォルダに上書きコピー</li>
+            <li>PowerShell で以下を実行（新しいライブラリが追加されている場合に対応）</li>
+          </ol>
+          <div class="code-block" style="margin-top:8px;">
+            <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+            <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
+pip install -r requirements.txt</code></pre>
+          </div>
+          <p style="margin-top:8px;">4. 通常通り実行してください。</p>
+        </div>
+      </div>
+
+      <div class="trouble">
         <div class="trouble-q"><span class="qi">Q</span>処理に非常に時間がかかっている</div>
         <div class="trouble-a">
           <ul>
