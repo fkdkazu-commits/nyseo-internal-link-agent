@@ -61,7 +61,7 @@ class NotLoggedInError(Exception):
 _NOT_LOGGED_IN_PATTERNS = ("Not logged in", "Please run /login", "not logged")
 
 
-def _call_claude(prompt: str, retries: int = 5, model: str = MODEL_JUDGE) -> "str | None":
+def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "str | None":
     """claude CLIをサブプロセスで呼び出し、レスポンステキストを返す。"""
     for attempt in range(1, retries + 2):
         try:
