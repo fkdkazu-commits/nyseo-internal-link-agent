@@ -255,14 +255,11 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
         logger.warning(f"[DEBUG_RESPONSE] {response[:500]}")
         return []
 
-    try:
-        results = json.loads(raw)
-        if not isinstance(results, list):
-            logger.warning("AI一括判定: レスポンスがリスト形式ではありません")
-            logger.warning(f"[DEBUG_RESPONSE] {raw[:500]}")
-            return []
+    def _parse_results(data) -> "list | None":
+        if not isinstance(data, list):
+            return None
         out = []
-        for r in results:
+        for r in data:
             try:
                 out.append({
                     "url": r.get("url", ""),
@@ -272,10 +269,30 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
                 })
             except (ValueError, TypeError):
                 continue
+        return out
+
+    try:
+        results = json.loads(raw)
+        out = _parse_results(results)
+        if out is None:
+            logger.warning("AI一括判定: レスポンスがリスト形式ではありません")
+            logger.warning(f"[DEBUG_RESPONSE] {raw[:500]}")
+            return []
         logger.info(f"AI一括判定完了: {len(out)} 件")
         return out
     except json.JSONDecodeError as e:
-        logger.warning(f"AI一括判定: JSON解析失敗 — {e}")
+        logger.warning(f"AI一括判定: JSON解析失敗 — {e}。json_repairで修復を試みます")
+        try:
+            from json_repair import repair_json
+            fixed = json.loads(repair_json(raw))
+            out = _parse_results(fixed)
+            if out is not None:
+                logger.info(f"AI一括判定: json_repairで修復成功 {len(out)} 件")
+                return out
+        except ImportError:
+            pass
+        except Exception as e2:
+            logger.warning(f"AI一括判定: json_repairも失敗 — {e2}")
         logger.warning(f"[DEBUG_RESPONSE] {raw[:500]}")
 
     return []
