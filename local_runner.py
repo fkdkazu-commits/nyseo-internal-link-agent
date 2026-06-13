@@ -1,13 +1,17 @@
 """
 NYSEO ローカルランナーサーバー
-Cowork (Claude in Chrome) から main.py を起動するための橋渡し。
+Cowork (Claude in Chrome) から main.py / main_wp.py を起動するための橋渡し。
 ポート 8765 で待機し、Chrome からの GET リクエストを受け取る。
 
 エンドポイント:
-  GET /status          現在の実行状態を返す
-  GET /run?url=...     main.py を実行開始する
-       &mid=true/false  中精度モード（省略時=false=高精度）
-       &api=true/false  APIモード（省略時=false=CLIモード）
+  GET /status                          現在の実行状態を返す
+  GET /run?url=...                     main.py を実行開始する
+       &mid=true/false                  中精度モード（省略時=false=高精度）
+       &api=true/false                  APIモード（省略時=false=CLIモード）
+  GET /run-wp?url=...                  main_wp.py を実行開始する（v1.3〜）
+       &editor=classic|gutenberg        エディタ形式
+       &link=url|atag                   リンク形式
+  GET /stop                            実行中の処理を停止する
 """
 
 import subprocess
@@ -41,6 +45,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == "/run":
             self._handle_run(parsed)
+            return
+
+        if parsed.path == "/run-wp":
+            self._handle_run_wp(parsed)
             return
 
         if parsed.path == "/stop":
@@ -77,6 +85,44 @@ class Handler(BaseHTTPRequestHandler):
         self._respond(200, f'{{"status": "started", "precision": "{precision}", "ai_mode": "{ai_mode}"}}')
 
         threading.Thread(target=self._execute, args=(url, mid, api), daemon=True).start()
+
+    def _handle_run_wp(self, parsed):
+        global _running
+        with _lock:
+            if _running:
+                self._respond(409, '{"status": "busy", "message": "Already running. Check /status."}')
+                return
+            _running = True
+
+        params = parse_qs(parsed.query)
+        url    = params.get("url",    [""])[0]
+        editor = params.get("editor", ["classic"])[0]
+        link   = params.get("link",   ["url"])[0]
+
+        if not url:
+            with _lock:
+                _running = False
+            self._respond(400, '{"error": "url parameter is required"}')
+            return
+
+        self._respond(200, f'{{"status": "started", "editor": "{editor}", "link": "{link}"}}')
+        threading.Thread(target=self._execute_wp, args=(url, editor, link), daemon=True).start()
+
+    def _execute_wp(self, url: str, editor: str, link: str):
+        global _running
+        try:
+            ps_cmd = (
+                f'cd "{PROJECT_DIR}"; '
+                f'py main_wp.py "{url}" --editor {editor} --link {link}; '
+                f'Write-Host ""; Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green; '
+                f'pause'
+            )
+            subprocess.Popen(
+                ["cmd", "/c", "start", "powershell", "-NoExit", "-Command", ps_cmd],
+            )
+        finally:
+            with _lock:
+                _running = False
 
     def _handle_stop(self):
         with _lock:

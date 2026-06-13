@@ -43,6 +43,11 @@ API_CONCURRENCY = 5
 # score=5: h2/h3にKWが含まれる（推奨最低ライン）
 STRICT_MIN_MATCH_SCORE = 5        # これ未満の候補はAIに渡さない
 
+# WordPress挿入ステータス列（v1.3〜）
+COL_WP_STATUS  = 13   # N列: 挿入ステータス（「済み」/「エラー」/「スキップ」）
+COL_WP_DATE    = 14   # O列: 処理日時 / エラー内容
+COL_WP_COUNT   = 15   # P列: 挿入件数（0〜3）
+
 # HTTP設定
 HTTP_TIMEOUT = 10   # 秒
 HTTP_RETRY = 2      # リトライ回数
