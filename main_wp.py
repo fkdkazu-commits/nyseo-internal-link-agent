@@ -103,6 +103,7 @@ def main(
             insertions.append((cand_url, cand_head, target_url, target_title))
 
         total_inserted = 0
+        total_skipped  = 0
         errors = []
 
         for cand_url, cand_heading, tgt_url, tgt_title in insertions:
@@ -138,7 +139,8 @@ def main(
                 else:
                     errors.append(f"更新失敗: {cand_url}")
             elif skipped > 0:
-                logger.info(f"  セクション内既存リンクのためスキップ: {cand_url}")
+                total_skipped += 1
+                logger.info(f"  セクション内既存リンクのためスキップ: {cand_url} 見出し「{cand_heading[:30]}」")
             else:
                 errors.append(f"見出し未発見: {cand_heading[:30]}")
 
@@ -147,6 +149,9 @@ def main(
         if errors:
             status_val = "エラー"
             date_val   = now + " / " + " | ".join(errors)
+        elif total_skipped > 0:
+            status_val = "済み（スキップあり）"
+            date_val   = now
         else:
             status_val = "済み"
             date_val   = now

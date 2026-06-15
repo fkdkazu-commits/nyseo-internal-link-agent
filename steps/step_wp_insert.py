@@ -210,7 +210,11 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
     """Gutenberg用ブロックを生成する。URLのみ→embedブロック、aタグ→paragraphブロック。"""
     if link_format == "atag":
         safe_text = link_text or url
-        return f'<!-- wp:paragraph -->\n<p><a href="{url}">{safe_text}</a></p>\n<!-- /wp:paragraph -->'
+        return (
+            f'<!-- wp:paragraph -->\n'
+            f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
+            f'<!-- /wp:paragraph -->'
+        )
     else:
         return (
             f'<!-- wp:embed {{"url":"{url}"}} -->\n'
@@ -225,6 +229,6 @@ def _build_link_html(url: str, link_text: str, link_format: str) -> str:
     """クラシックエディタ用HTMLを生成する。<p>タグで囲み記事枠内に収める。"""
     if link_format == "atag":
         safe_text = link_text or url
-        return f'<p><a href="{url}">{safe_text}</a></p>\n'
+        return f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
     else:
         return f'<p>{url}</p>\n'
