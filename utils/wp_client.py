@@ -1,9 +1,11 @@
 """
 WordPress REST API クライアント。
-認証情報は ~/.secrets/.env から読み込む。
+認証情報は ~/.secrets/nyseo_sites.json（Spreadsheet IDで検索）または
+~/.secrets/.env から読み込む。
 """
 
 import base64
+import json
 import os
 import re
 from pathlib import Path
@@ -15,11 +17,35 @@ from utils.logger import get_logger
 
 logger = get_logger()
 
-_SECRETS_ENV = Path.home() / ".secrets" / ".env"
+_SECRETS_DIR = Path.home() / ".secrets"
+_SECRETS_ENV  = _SECRETS_DIR / ".env"
+_SITES_JSON   = _SECRETS_DIR / "nyseo_sites.json"
 
 
-def _load_wp_credentials() -> tuple[str, str, str]:
-    """WP_URL / WP_USER / WP_APP_PASSWORD を .env から読み込む。"""
+def _load_wp_credentials(spreadsheet_id: str = "") -> tuple[str, str, str]:
+    """WP_URL / WP_USER / WP_APP_PASSWORD を取得する。
+
+    優先順位:
+    1. nyseo_sites.json の spreadsheet_id エントリ
+    2. 環境変数
+    3. ~/.secrets/.env
+    """
+    # 1. nyseo_sites.json から Spreadsheet ID で検索
+    if spreadsheet_id and _SITES_JSON.exists():
+        try:
+            sites = json.loads(_SITES_JSON.read_text(encoding="utf-8"))
+            if spreadsheet_id in sites:
+                entry = sites[spreadsheet_id]
+                url  = entry.get("wp_url", "")
+                user = entry.get("wp_user", "")
+                pwd  = entry.get("wp_app_password", "")
+                if url and user and pwd:
+                    logger.info(f"nyseo_sites.json からWP認証情報を取得: {url}")
+                    return url.rstrip("/"), user, pwd
+        except Exception as e:
+            logger.warning(f"nyseo_sites.json 読み込み失敗: {e}")
+
+    # 2. 環境変数 + .env フォールバック
     env = {}
     if _SECRETS_ENV.exists():
         for line in _SECRETS_ENV.read_text(encoding="utf-8").splitlines():
@@ -35,6 +61,7 @@ def _load_wp_credentials() -> tuple[str, str, str]:
     if not (url and user and pwd):
         raise RuntimeError(
             "WordPress認証情報が不足しています。"
+            "install.bat を再実行してWordPress設定を完了させるか、"
             "~/.secrets/.env に WP_URL / WP_USER / WP_APP_PASSWORD を設定してください。"
         )
     return url.rstrip("/"), user, pwd
@@ -43,8 +70,8 @@ def _load_wp_credentials() -> tuple[str, str, str]:
 class WPClient:
     """WordPress REST API クライアント。"""
 
-    def __init__(self):
-        self.base_url, user, pwd = _load_wp_credentials()
+    def __init__(self, spreadsheet_id: str = ""):
+        self.base_url, user, pwd = _load_wp_credentials(spreadsheet_id)
         token = base64.b64encode(f"{user}:{pwd}".encode()).decode()
         self.headers = {
             "Authorization": f"Basic {token}",

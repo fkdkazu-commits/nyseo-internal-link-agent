@@ -7,7 +7,7 @@
 # ============================================================
 
 $PROJECT_DIR = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-$STEP_TOTAL  = 11
+$STEP_TOTAL  = 12
 
 function Show-Header {
     param([string]$Step, [string]$Title, [string]$Mode = "auto")
@@ -35,10 +35,13 @@ function Show-Step { param([string]$msg) Write-Host "  $msg" -ForegroundColor Wh
 # ============================================================
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║      内部リンク構築エージェント インストーラー   ║" -ForegroundColor Cyan
+Write-Host "║  NYSEO Cowork自動化エージェント インストーラー   ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  このスクリプトがインストールの全工程を案内します。" -ForegroundColor Gray
+Write-Host "  以下の機能のインストールを開始します：" -ForegroundColor Cyan
+Write-Host "    ①  内部リンクエージェント（CSV解析・候補提案）" -ForegroundColor White
+Write-Host "    ②  WordPress 内部リンク自動挿入" -ForegroundColor White
+Write-Host ""
 Write-Host "  自動処理できる部分は自動で行い、手動操作が必要な" -ForegroundColor Gray
 Write-Host "  部分は画面の指示に従って操作し、完了したら Enter を" -ForegroundColor Gray
 Write-Host "  押してください。" -ForegroundColor Gray
@@ -318,11 +321,93 @@ if (Test-Path $saPath) {
 Show-Ok "GOOGLE_SERVICE_ACCOUNT を設定しました"
 
 
+# ============================================================
+# STEP 8: WordPress サイト情報の設定（手動）
+# ============================================================
+Show-Header "[$([string]8)/$STEP_TOTAL]" "WordPress サイト情報の設定" "manual"
+
+$sitesJsonPath = "$env:USERPROFILE\.secrets\nyseo_sites.json"
+$siteMap = @{}
+
+# 既存設定を読み込む
+if (Test-Path $sitesJsonPath) {
+    try {
+        $existing = Get-Content $sitesJsonPath -Raw | ConvertFrom-Json
+        foreach ($prop in $existing.PSObject.Properties) {
+            $siteMap[$prop.Name] = @{
+                wp_url          = $prop.Value.wp_url
+                wp_user         = $prop.Value.wp_user
+                wp_app_password = $prop.Value.wp_app_password
+            }
+        }
+        Show-Ok "既存の設定を読み込みました（$($siteMap.Count) サイト）"
+    } catch {
+        Show-Warn "既存の設定ファイルの読み込みに失敗しました。新規作成します。"
+    }
+}
+
+Write-Host ""
+Write-Host "  WordPress への自動挿入に使用する認証情報を設定します。" -ForegroundColor Yellow
+Write-Host "  スプレッドシートごとに対象の WordPress サイトを紐づけます。" -ForegroundColor Gray
+Write-Host "  複数メディアをお持ちの場合は、メディア数分入力してください。" -ForegroundColor Gray
+Write-Host ""
+
+$wpSetupDone = $false
+while (-not $wpSetupDone) {
+    Write-Host "  ─── スプレッドシート ↔ WordPress の紐づけ設定 ───" -ForegroundColor Cyan
+    Write-Host ""
+
+    # Spreadsheet URL
+    $ssUrl = ""
+    while (-not $ssUrl) {
+        $ssUrl = (Read-Host "  Spreadsheet URL を入力").Trim()
+    }
+
+    # Spreadsheet ID を抽出
+    if ($ssUrl -match "/spreadsheets/d/([a-zA-Z0-9_-]+)") {
+        $ssId = $Matches[1]
+        Show-Ok "Spreadsheet ID: $ssId"
+    } else {
+        Show-Warn "URL から ID を抽出できませんでした。URL を確認してください。"
+        continue
+    }
+
+    # WordPress 情報
+    $wpUrl  = (Read-Host "  WordPress サイト URL（例: https://example.com）").Trim().TrimEnd("/")
+    $wpUser = (Read-Host "  WordPress ユーザー名（管理者）").Trim()
+    Write-Host "  ※ WordPress管理画面 → ユーザー → プロフィール → アプリケーションパスワード" -ForegroundColor Gray
+    $wpPass = (Read-Host "  アプリケーションパスワード").Trim()
+
+    $siteMap[$ssId] = @{
+        wp_url          = $wpUrl
+        wp_user         = $wpUser
+        wp_app_password = $wpPass
+    }
+    Show-Ok "設定を追加しました: $wpUrl"
+    Write-Host ""
+
+    $moreAns = Read-Host "  別のスプレッドシート（メディア）を追加しますか？ [Y/N]"
+    if ($moreAns -ne "Y" -and $moreAns -ne "y") {
+        $wpSetupDone = $true
+    }
+}
+
+# JSON 保存
+if ($siteMap.Count -gt 0) {
+    $jsonObj = [ordered]@{}
+    foreach ($key in $siteMap.Keys) { $jsonObj[$key] = $siteMap[$key] }
+    $jsonStr = $jsonObj | ConvertTo-Json -Depth 3
+    [System.IO.File]::WriteAllText($sitesJsonPath, $jsonStr, [System.Text.Encoding]::UTF8)
+    Show-Ok "$($siteMap.Count) サイトの設定を保存しました: $sitesJsonPath"
+} else {
+    Show-Warn "サイト設定がありません。後で install.bat を再実行して設定してください。"
+}
+
 
 # ============================================================
-# STEP 8: ライブラリのインストール（自動）
+# STEP 9: ライブラリのインストール（自動）
 # ============================================================
-Show-Header "[$([string]8)/$STEP_TOTAL]" "Python ライブラリのインストール"
+Show-Header "[$([string]9)/$STEP_TOTAL]" "Python ライブラリのインストール"
 
 Write-Host ""
 Show-Info "pip install -r requirements.txt を実行しています..."
@@ -345,7 +430,7 @@ if ($LASTEXITCODE -eq 0) {
 # ============================================================
 # STEP 9: スタートアップ登録 + ランナーサーバー起動（自動）
 # ============================================================
-Show-Header "[$([string]9)/$STEP_TOTAL]" "ランナーサーバーの登録・起動"
+Show-Header "[$([string]10)/$STEP_TOTAL]" "ランナーサーバーの登録・起動"
 
 # スタートアップ登録
 $pyPath = (Get-Command $pyCmd -ErrorAction SilentlyContinue).Source
@@ -392,7 +477,7 @@ if (-not $serverOk) {
 # ============================================================
 # STEP 10: Cowork プロジェクトの作成（手動）
 # ============================================================
-Show-Header "[$([string]10)/$STEP_TOTAL]" "Cowork プロジェクトの作成" "manual"
+Show-Header "[$([string]11)/$STEP_TOTAL]" "Cowork プロジェクトの作成" "manual"
 
 $safeProjectDir = $PROJECT_DIR -replace '\\', '\\'
 
@@ -522,7 +607,7 @@ Wait-Enter "Cowork プロジェクトの作成・指示文の貼り付けが完�
 # ============================================================
 # STEP 11: Spreadsheet の準備（手動）
 # ============================================================
-Show-Header "[$([string]11)/$STEP_TOTAL]" "Google Spreadsheet の準備" "manual"
+Show-Header "[$([string]12)/$STEP_TOTAL]" "Google Spreadsheet の準備" "manual"
 
 # サービスアカウントのメールアドレスを JSON から取得
 $saEmail = ""
@@ -622,6 +707,7 @@ Write-Host "  ✔ Cowork                    インストール済み" -Foregroun
 Write-Host "  ✔ Claude CLI ログイン        確認済み" -ForegroundColor Green
 Write-Host "  ✔ Python ライブラリ          インストール済み" -ForegroundColor Green
 Write-Host "  ✔ 環境変数                  設定済み" -ForegroundColor Green
+Write-Host "  ✔ WordPress サイト設定       $($siteMap.Count)サイト登録済み" -ForegroundColor $(if ($siteMap.Count -gt 0) { 'Green' } else { 'Yellow' })
 Write-Host "  ✔ 自動起動                  登録済み" -ForegroundColor Green
 Write-Host "  ✔ ランナーサーバー           $(if ($serverOk) { '起動済み' } else { '要確認' })" -ForegroundColor $(if ($serverOk) { 'Green' } else { 'Yellow' })
 Write-Host "  ✔ Cowork プロジェクト        作成済み" -ForegroundColor Green

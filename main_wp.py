@@ -4,6 +4,7 @@ WordPress内部リンク挿入ツール（v1.3〜）
 WordPress記事に自動挿入する。
 """
 
+import re
 import sys
 from datetime import datetime
 
@@ -45,7 +46,9 @@ def main(
     sheets = SheetsClient(spreadsheet_url)
     _, data = sheets.load_data()
 
-    wp = WPClient()
+    _ss_id_m = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", spreadsheet_url)
+    _ss_id   = _ss_id_m.group(1) if _ss_id_m else ""
+    wp = WPClient(spreadsheet_id=_ss_id)
 
     # article_cacheからタイトルを取得するためのマップを構築
     title_cache = _build_title_cache(sheets)
