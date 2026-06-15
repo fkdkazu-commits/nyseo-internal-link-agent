@@ -16,7 +16,7 @@ from config import (
 from utils.logger import get_logger
 from utils.sheets_client import SheetsClient
 from utils.wp_client import WPClient
-from steps.step_wp_insert import insert_links, already_has_link
+from steps.step_wp_insert import insert_links, already_has_link, detect_editor
 
 logger = get_logger()
 
@@ -30,13 +30,16 @@ _LINK_PAIRS = [
 
 def main(
     spreadsheet_url: str,
-    editor: str = "classic",
+    editor: str = "auto",
     link_format: str = "url",
     force_row: "int | None" = None,
+    limit: "int | None" = None,
 ):
     logger.info("=" * 50)
     logger.info("WordPress内部リンク挿入ツール 開始")
-    logger.info(f"エディタ: {editor} / リンク形式: {link_format}")
+    logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {link_format}")
+    if limit:
+        logger.info(f"処理上限: No{limit}まで")
     logger.info("=" * 50)
 
     sheets = SheetsClient(spreadsheet_url)
@@ -53,6 +56,14 @@ def main(
             # NO列（A列=index0）で照合
             no_val = row[0].strip() if row else ""
             if no_val != str(force_row):
+                continue
+
+        if limit is not None:
+            no_val = row[0].strip() if row else ""
+            try:
+                if int(no_val) > limit:
+                    continue
+            except ValueError:
                 continue
 
         target_url = row[COL_URL].strip() if len(row) > COL_URL else ""
@@ -100,17 +111,23 @@ def main(
                 errors.append(f"記事取得失敗: {cand_url}")
                 continue
 
-            content = post.get("content", {}).get("rendered", "")
+            # context=edit で取得した raw（ブロックマークアップ）を使用
+            content = post.get("content", {}).get("raw", "") or post.get("content", {}).get("rendered", "")
+
+            # エディタ形式を自動判定（autoの場合）
+            actual_editor = detect_editor(content) if editor == "auto" else editor
+            if editor == "auto":
+                logger.debug(f"  エディタ自動判定: {actual_editor} ({cand_url})")
 
             if already_has_link(content, tgt_url):
                 logger.info(f"  すでにリンクあり: {cand_url}")
                 total_inserted += 1
                 continue
 
-            new_content, count = insert_links(
+            new_content, count, skipped = insert_links(
                 content,
                 [(cand_heading, tgt_url, tgt_title)],
-                editor=editor,
+                editor=actual_editor,
                 link_format=link_format,
             )
 
@@ -120,6 +137,8 @@ def main(
                     total_inserted += 1
                 else:
                     errors.append(f"更新失敗: {cand_url}")
+            elif skipped > 0:
+                logger.info(f"  セクション内既存リンクのためスキップ: {cand_url}")
             else:
                 errors.append(f"見出し未発見: {cand_heading[:30]}")
 
@@ -141,7 +160,7 @@ def main(
 def _build_title_cache(sheets: SheetsClient) -> dict[str, str]:
     """article_cacheタブからURL→タイトルのマップを作る。"""
     try:
-        ws = sheets.spreadsheet.worksheet("article_cache")
+        ws = sheets._ss.worksheet("article_cache")
         records = ws.get_all_values()
         cache = {}
         for row in records[1:]:
@@ -166,7 +185,7 @@ def _write_wp_status(
 ):
     """N/O/P列にステータスを書き込む。"""
     try:
-        ws = sheets.spreadsheet.worksheets()[0]
+        ws = sheets._ss.worksheets()[0]
         sheet_row = row_idx + 2  # ヘッダー行分+1
         ws.update(
             f"N{sheet_row}:P{sheet_row}",
@@ -183,13 +202,14 @@ def _write_wp_status(
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args:
-        print("使い方: py main_wp.py <SpreadsheetURL> [--editor classic|gutenberg] [--link url|atag] [--row N]")
+        print("使い方: py main_wp.py <SpreadsheetURL> [--editor auto|classic|gutenberg] [--link url|atag] [--row N] [--limit N]")
         sys.exit(1)
 
     _url     = args[0]
-    _editor  = "classic"
+    _editor  = "auto"
     _link    = "url"
     _row     = None
+    _limit   = None
 
     i = 1
     while i < len(args):
@@ -199,7 +219,9 @@ if __name__ == "__main__":
             _link = args[i + 1]; i += 2
         elif args[i] == "--row" and i + 1 < len(args):
             _row = int(args[i + 1]); i += 2
+        elif args[i] == "--limit" and i + 1 < len(args):
+            _limit = int(args[i + 1]); i += 2
         else:
             i += 1
 
-    main(_url, editor=_editor, link_format=_link, force_row=_row)
+    main(_url, editor=_editor, link_format=_link, force_row=_row, limit=_limit)

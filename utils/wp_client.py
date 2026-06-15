@@ -63,12 +63,12 @@ class WPClient:
             logger.warning(f"スラッグ抽出失敗: {article_url}")
             return None
 
-        # まずslugで検索
+        # まずslugで検索（context=edit で content.raw を取得）
         for post_type in ("posts", "pages"):
             r = requests.get(
                 f"{self._api}/{post_type}",
                 headers=self.headers,
-                params={"slug": slug, "_fields": "id,title,content,link,status"},
+                params={"slug": slug, "context": "edit", "_fields": "id,title,content,link,status"},
                 timeout=15,
             )
             if r.status_code == 200:
@@ -97,7 +97,7 @@ class WPClient:
             f"{self._api}/posts/{post_id}",
             headers=self.headers,
             json={"content": new_content},
-            timeout=15,
+            timeout=60,
         )
         if r.status_code == 200:
             logger.info(f"記事更新成功: ID={post_id}")

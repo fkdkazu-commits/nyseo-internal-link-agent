@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>内部リンク構築エージェント — 導入手順書</title>
+  <title>NYSEO Cowork自動化エージェント — 初期インストール手順書</title>
   <style>
     :root {
       --sidebar-width: 280px;
@@ -208,8 +208,8 @@
 ═══════════════════════════════ -->
 <nav class="sidebar">
   <div class="sidebar-header">
-    <div class="sidebar-label">内部リンクエージェント</div>
-    <div class="sidebar-title">導入手順書</div>
+    <div class="sidebar-label">NYSEO Cowork自動化エージェント</div>
+    <div class="sidebar-title">初期インストール手順書</div>
     <div class="sidebar-meta">クライアント向けセットアップガイド</div>
   </div>
   <div class="sidebar-nav">
@@ -229,18 +229,12 @@
     <a class="nav-item" href="#step7"><span class="nav-badge">7</span> 環境変数の設定</a>
     <a class="nav-item" href="#step8"><span class="nav-badge">8</span> ライブラリのインストール</a>
     <a class="nav-item" href="#step9"><span class="nav-badge">9</span> ランナーサーバー起動</a>
-    <a class="nav-item" href="#step10"><span class="nav-badge">10</span> Cowork プロジェクト作成</a>
-    <a class="nav-item" href="#step11"><span class="nav-badge">11</span> Spreadsheet の準備</a>
+    <a class="nav-item" href="#step10"><span class="nav-badge">10</span> Cowork 再起動</a>
     <a class="nav-item" href="#verify"><span class="nav-badge">✓</span> 動作確認</a>
 
-    <div class="nav-group">使い方</div>
-    <a class="nav-item" href="#usage"><span class="nav-badge">▶</span> 日常の使い方</a>
-    <a class="nav-item" href="#stop-resume"><span class="nav-badge">⏹</span> 中断・再開</a>
-    <a class="nav-item" href="#modes"><span class="nav-badge">⚙</span> 精度モードの選び方</a>
-    <a class="nav-item" href="#output"><span class="nav-badge">📋</span> 出力結果・採点基準</a>
-
-    <div class="nav-group">サポート</div>
-    <a class="nav-item" href="#trouble"><span class="nav-badge">?</span> トラブル対応</a>
+    <div class="nav-group">機能別 導入手順</div>
+    <a class="nav-item" href="guide-internal-link.html"><span class="nav-badge">①</span> 内部リンクエージェント</a>
+    <a class="nav-item" href="guide-wp-insert.html"><span class="nav-badge">②</span> WordPress 自動反映機能</a>
   </div>
 </nav>
 
@@ -250,10 +244,10 @@
 <main class="main">
   <div class="page-header">
     <div class="page-header-label">Installation Guide</div>
-    <h1>内部リンク構築エージェント<br>導入手順書</h1>
+    <h1>NYSEO Cowork自動化エージェント<br>初期インストール手順書</h1>
     <div class="page-header-desc">
-      Windows 11 環境への完全セットアップガイドです。<br>
-      順番通りに進めると約 15〜20 分で完了します。
+      Windows 11 環境への初期セットアップガイドです。<br>
+      順番通りに進めると約 15〜20 分で完了します。完了後は各機能の導入手順書をご参照ください。
     </div>
   </div>
 
@@ -271,27 +265,37 @@
 
       <div class="card">
         <h3>何をするツールか</h3>
-        <p>SEOツールから書き出した Google Spreadsheet を読み込み、<strong>被リンク数が少ない記事（E列 ≤ 1）</strong>に対して、サイト内の他記事から内部リンクを設置すべき候補を自動提案します。結果は Spreadsheet の H〜M 列に自動書き込みされます。</p>
+        <p>Cowork（Claude Desktop Pro）と連携し、SEO 改善作業を自動化するエージェント群です。<br>このインストール手順書では、全機能の共通基盤となる初期セットアップを行います。</p>
+        <table class="tbl" style="margin-top:12px;">
+          <thead><tr><th>機能</th><th>概要</th><th>手順書</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>内部リンクエージェント</strong></td>
+              <td>被リンク不足の記事に対して、サイト内の内部リンク候補を AI が自動提案。結果を Spreadsheet の H〜M 列に書き込む</td>
+              <td><a href="guide-internal-link.html" style="color:var(--accent);">guide-internal-link.html</a></td>
+            </tr>
+            <tr>
+              <td><strong>WordPress 自動反映機能</strong></td>
+              <td>Spreadsheet の承認済み候補を WordPress 記事へ自動挿入する</td>
+              <td><a href="guide-wp-insert.html" style="color:var(--accent);">guide-wp-insert.html</a></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="card">
-        <h3>実行の流れ</h3>
-        <p>Cowork（Claude Desktop Pro）のチャット欄に Spreadsheet の URL を貼り付けると、以下の順序で処理が進みます。</p>
+        <h3>システム構成</h3>
+        <p>各機能は Cowork からのチャット指示を起点に、以下のコンポーネントが連携して動作します。</p>
         <div class="flow">
-          <div class="flow-box blue"><span class="fb-icon">💬</span>Cowork<span class="fb-sub">URL を貼り付け</span></div>
+          <div class="flow-box blue"><span class="fb-icon">💬</span>Cowork<span class="fb-sub">指示・操作</span></div>
           <div class="flow-arrow">→</div>
           <div class="flow-box purple"><span class="fb-icon">🌐</span>Chrome<span class="fb-sub">自動操作</span></div>
           <div class="flow-arrow">→</div>
-          <div class="flow-box yellow"><span class="fb-icon">🖥️</span>ランナーサーバー<span class="fb-sub">バックグラウンド常駐</span></div>
+          <div class="flow-box yellow"><span class="fb-icon">🖥️</span>ランナーサーバー<span class="fb-sub">常駐・仲介</span></div>
           <div class="flow-arrow">→</div>
-          <div class="flow-box green"><span class="fb-icon">⚡</span>PowerShell<span class="fb-sub">処理実行・ログ表示</span></div>
+          <div class="flow-box green"><span class="fb-icon">⚡</span>PowerShell<span class="fb-sub">処理実行</span></div>
         </div>
-        <ol style="margin-top:14px;">
-          <li>Cowork のエージェントが精度モード・AI モードを選択するよう案内します</li>
-          <li>Cowork が Chrome を自動操作して処理を開始します</li>
-          <li><strong>PowerShell ウィンドウが自動で開き</strong>、リアルタイムでログが表示されます</li>
-          <li>処理完了後、Spreadsheet の H〜M 列に結果が書き込まれます</li>
-        </ol>
+        <p style="margin-top:12px; font-size:13px; color:var(--text-secondary);">このインストール手順（install.bat）では、上記すべてのコンポーネントが動作するための共通基盤をセットアップします。</p>
       </div>
     </section>
 
@@ -804,278 +808,58 @@
       </div>
     </section>
 
-    <!-- ═══ STEP 10: Cowork プロジェクト ═══ -->
+    <!-- ═══ STEP 10: Cowork 再起動 ═══ -->
     <section class="section" id="step10">
       <div class="section-header">
         <div class="step-circle">10</div>
         <div>
-          <h2>Cowork の再起動とプロジェクト作成</h2>
-          <div class="sub">設定を反映し、エージェント用プロジェクトを作成します</div>
+          <h2>Cowork の再起動</h2>
+          <div class="sub">環境変数の設定を反映させます</div>
         </div>
       </div>
 
       <div class="card">
-        <h3>① Cowork を再起動する</h3>
+        <h3>Cowork を再起動する</h3>
         <ol style="line-height:2.3;">
           <li>Cowork（Claude Desktop Pro）を<strong>完全に閉じる</strong><br>
             <span style="color:var(--text-secondary); font-size:12.5px;">タスクトレイ（画面右下の通知領域）にアイコンがある場合は右クリックして「終了」してください</span>
           </li>
           <li>Cowork を<strong>再起動</strong>する</li>
         </ol>
-      </div>
-
-      <div class="card">
-        <h3>② プロジェクトを新規作成する</h3>
-        <ol style="line-height:2.3;">
-          <li>左サイドバーの「<strong>Projects</strong>」を開き、「<strong>+ New project</strong>」をクリックする</li>
-          <li>プロジェクト名に <span class="ic">内部リンクエージェント</span> と入力して作成する</li>
-          <li>
-            プロジェクトが作成されたら、画面上部に表示される「<strong>Project instructions</strong>」の右にある
-            <strong>鉛筆アイコン（✏️）をクリック</strong>して編集欄を開く
-            <div class="callout info" style="margin-top:8px; margin-bottom:0;">
-              <span class="callout-icon">ℹ️</span>
-              <div>「Project instructions」が見当たらない場合は、プロジェクト名の下に薄く表示されているテキストエリアか、右上の設定アイコンから開けます。</div>
-            </div>
-          </li>
-          <li>下の手順③でコピーした指示文を<strong>貼り付ける</strong>（<kbd>Ctrl</kbd>+<kbd>V</kbd>）</li>
-          <li>「<strong>Save</strong>」または「<strong>保存</strong>」をクリックして完了</li>
-        </ol>
-        <div class="callout info" style="margin-top:12px;">
-          <span class="callout-icon">ℹ️</span>
-          <div>プロジェクトを作成しておくと、次回以降は左サイドバーから「内部リンクエージェント」を選ぶだけで同じ指示でエージェントが動作します。</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>③ プロジェクト指示文をコピーする</h3>
-        <div class="callout warn" style="margin-bottom:16px;">
-          <span class="callout-icon">⚠️</span>
-          <div>貼り付ける前に、指示文内の <span class="ic">PROJECT_DIR</span> のパスを<strong>自分のフォルダの実際の場所</strong>に書き換えてください。<br>
-          例：<span class="ic">C:\Users\<strong>yamada</strong>\Downloads\nyseo-internal-link-agent</span></div>
-        </div>
-        <div class="code-block">
-          <div class="code-header"><span class="code-lang">Cowork プロジェクト指示文（全文コピー → 貼り付け）</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-          <pre># 内部リンク構築AIエージェント — Cowork実行手順
-
-## プロジェクト設定（パスを変更する場合はここを編集）
-
-```
-PROJECT_DIR : C:\Users\&lt;ユーザー名&gt;\Downloads\nyseo-internal-link-agent
-RUNNER_URL  : http://127.0.0.1:8765
-```
-
-## このエージェントの目的
-SEOツールから出力したSpreadsheetを読み込み、被リンク不足記事（E列≤1）に対して
-関連性の高い他記事から内部リンクを設置する候補を自動提案する。
-
-## Coworkからの実行方法
-
-ユーザーがSpreadsheetのURLを伝えたら、以下の手順を上から順番に実行する。
-
----
-
-### STEP 1：精度モードの選択
-
-&gt; 精度モードを選択してください。
-&gt; - **高精度**（推奨）: KWをトークン単位で分割してスコアリング。候補記事を多く拾いやすい。
-&gt; - **中精度**: KW全体の文字列一致のみ。高速だが複合KWで候補が少なくなる場合がある。
-
----
-
-### STEP 2：ランナーサーバーの確認と実行
-
-**① サーバーの状態確認**
-
-Claude in Chrome を使って以下のURLを開く：
-```
-http://127.0.0.1:8765/status
-```
-
-- `{"status": "idle"}` → STEP 2② へ進む
-- `{"status": "running"}` → 「現在別の処理が実行中です。完了後に再度お試しください。」とユーザーに伝える
-- **接続できない場合** → 以下をユーザーに伝える：
-  &gt; 「ランナーサーバーが起動していません。PowerShellで以下を実行してください：」
-  &gt; ```powershell
-  &gt; py "C:\Users\&lt;ユーザー名&gt;\Downloads\nyseo-internal-link-agent\local_runner.py"
-  &gt; ```
-  &gt; 「起動後にもう一度URLを送ってください。」
-
-**② 実行リクエストを送信**
-
-精度モードの選択結果に応じて Claude in Chrome で以下のURLを開く：
-
-| 精度 | URL |
-|------|-----|
-| 高精度 | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=false&amp;api=false` |
-| 中精度 | `http://127.0.0.1:8765/run?url=&lt;URL&gt;&amp;mid=true&amp;api=false` |
-
-`&lt;URL&gt;` はユーザーから受け取ったSpreadsheetのURLをそのまま入れる。
-
-`{"status": "started"}` が返ってきたら：
-&gt; 「実行を開始しました。処理完了後にSpreadsheetをご確認ください。記事ごとに1件ずつ処理します。」
-
----
-
-### 処理の中断
-
-処理中にユーザーが「止めて」「中断して」などと伝えた場合：
-
-**① 中断リクエストを送信**
-
-Claude in Chrome で以下のURLを開く：
-```
-http://127.0.0.1:8765/stop
-```
-
-`{"status": "stop_requested"}` が返ってきたら：
-&gt; 「中断シグナルを送信しました。現在処理中の記事が完了した後に停止します。Spreadsheetで処理済み記事（H列にデータあり）を確認できます。」
-
-**② 中断後の状態**
-- 処理済み記事のH〜M列はそのまま保持される
-- 未処理記事のH列は空白のまま（次回実行時の再開ポイント）
-
----
-
-### 処理の再開
-
-中断後にユーザーが再開を希望した場合：
-- 通常通り STEP 1〜2 を実施してSpreadsheet URLを送信するだけでよい
-- H列が空白の記事だけが対象になるため、自動的に続きから処理される
-
-&gt; 「再開します。前回の続きから処理します（H列にデータがある記事は自動スキップされます）。」
-
----
-
-## Spreadsheet構成
-
-### データタブ（1枚目・既存）
-| 列 | 内容 |
-|---|---|
-| A | NO |
-| B | 記事URL |
-| C | メインKW |
-| D | 発リンク数 |
-| E | 被リンク数（≤1が処理対象） |
-| F | クリック数 |
-| G | 表示回数 |
-| H〜M | 出力（自動入力） |
-
-### article_cacheタブ（自動作成）
-初回実行時に自動作成される。取得済み記事のHTMLデータを保存し、
-2回目以降の実行時に再取得をスキップする。
-
-## 出力内容（H〜M列）
-| 列 | 内容 |
-|---|---|
-| H | 候補記事URL①（この記事から対象記事へリンクを設置する） |
-| I | リンク設置箇所の見出し① |
-| J | 候補記事URL② |
-| K | リンク設置箇所の見出し② |
-| L | 候補記事URL③（任意） |
-| M | リンク設置箇所の見出し③（任意） |
-
-## ルール
-- APIキー・認証情報はプロジェクトフォルダ外に保管すること
-- 外部サイトへのHTTPリクエストはGET取得のみ
-- エラーが発生した記事はスキップして処理を継続する
-- H列にすでにデータがある記事は処理済みとしてスキップする
-- ファイルやフォルダの作成・編集は絶対に行わない。コードの実行も行わない。ユーザーへの案内のみ行う
-- ランナーサーバーに接続できない場合は、ユーザーに手動起動を案内するだけでよい。自分でサーバーを構築しようとしてはならない
-- URLのパラメータ名は必ず mid と api を使うこと。mode や ai など別の名前に変えてはならない</pre>
+        <div class="callout ok" style="margin-top:12px;">
+          <span class="callout-icon">✅</span>
+          <div>これで初期インストールは完了です。続けて各機能の導入手順書でプロジェクトの作成と動作確認を行ってください。</div>
         </div>
       </div>
     </section>
 
-    <!-- ═══ STEP 11: Spreadsheet ═══ -->
-    <section class="section" id="step11">
+
+    <!-- ═══ 次のステップ ═══ -->
+    <section class="section" id="next">
       <div class="section-header">
-        <div class="step-circle">11</div>
+        <div class="step-circle" style="background:#16a34a; font-size:16px;">→</div>
         <div>
-          <h2>Spreadsheet の準備</h2>
-          <div class="sub">処理対象の Spreadsheet に必要な設定</div>
+          <h2>初期インストール完了 — 次のステップ</h2>
+          <div class="sub">各機能の導入手順書に進んでください</div>
         </div>
       </div>
-
       <div class="card">
-        <h3>① Google Spreadsheet を新規作成する</h3>
-        <ol>
-          <li>ブラウザで <span class="ic">drive.google.com</span> を開く</li>
-          <li>「＋ 新規」→「Google スプレッドシート」をクリック</li>
-          <li>シート名は任意でOK（例：内部リンク管理）</li>
-        </ol>
-      </div>
-
-      <div class="card">
-        <h3>② データを Spreadsheet に用意する</h3>
-        <div class="callout info">
-          <span class="callout-icon">ℹ️</span>
-          <div>記事データのインポート方法は管理者から別途案内があります。インポート後、以下の列構成になっているか確認してください。</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>サービスアカウントへの編集権限付与</h3>
-        <ol>
-          <li>Spreadsheet 右上の「共有」ボタンをクリック</li>
-          <li>install.bat の STEP 11 で表示されたサービスアカウントのメールアドレスを入力</li>
-          <li>権限を「<strong>編集者</strong>」に設定して「送信」</li>
-        </ol>
-        <div class="callout warn" style="margin-top:8px;">
-          <span class="callout-icon">⚠️</span>
-          <div>この設定をしないとツールが Spreadsheet を読み書きできません。必ず実施してください。</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>データタブ（1 枚目）の列構成</h3>
-        <p>Spreadsheet の 1 枚目のタブが以下の列構成になっている必要があります。</p>
-        <table class="tbl">
-          <thead><tr><th>列</th><th>内容</th><th>備考</th></tr></thead>
+        <p>初期インストールが完了しました。続けて使用する機能の導入手順書を参照してください。</p>
+        <table class="tbl" style="margin-top:12px;">
+          <thead><tr><th>機能</th><th>手順書</th><th>内容</th></tr></thead>
           <tbody>
-            <tr><td><strong>A</strong></td><td>NO</td><td>記事の通し番号</td></tr>
-            <tr><td><strong>B</strong></td><td>記事 URL</td><td>処理対象のサイト記事 URL</td></tr>
-            <tr><td><strong>C</strong></td><td>メイン KW</td><td>空の場合は AI が自動で抽出します</td></tr>
-            <tr><td><strong>D</strong></td><td>発リンク数</td><td>その記事から出ているリンクの数</td></tr>
-            <tr><td><strong>E</strong></td><td>被リンク数</td><td><strong>1 以下の記事が処理対象</strong>（内部リンクが少ない記事）</td></tr>
-            <tr><td><strong>F</strong></td><td>クリック数</td><td>Search Console のデータ</td></tr>
-            <tr><td><strong>G</strong></td><td>表示回数</td><td>Search Console のデータ</td></tr>
-            <tr><td><strong>H〜M</strong></td><td>出力列（自動入力）</td><td>エージェントが候補 URL と見出しを書き込む</td></tr>
+            <tr>
+              <td><strong>内部リンクエージェント</strong></td>
+              <td><a href="guide-internal-link.html" style="color:var(--accent);">guide-internal-link.html</a></td>
+              <td>Spreadsheet の準備・実行方法・出力結果の見方</td>
+            </tr>
+            <tr>
+              <td><strong>WordPress 自動反映機能</strong></td>
+              <td><a href="guide-wp-insert.html" style="color:var(--accent);">guide-wp-insert.html</a></td>
+              <td>WP 認証設定・リンク挿入の実行方法・結果確認</td>
+            </tr>
           </tbody>
         </table>
-      </div>
-
-      <div class="card">
-        <h3>出力内容（H〜M 列）</h3>
-        <p>エージェントが処理した記事には以下の内容が書き込まれます。</p>
-        <table class="tbl">
-          <thead><tr><th>列</th><th>内容</th><th>説明</th></tr></thead>
-          <tbody>
-            <tr><td><strong>H</strong></td><td>候補記事 URL ①</td><td>この記事から対象記事へ内部リンクを設置する</td></tr>
-            <tr><td><strong>I</strong></td><td>リンク設置箇所の見出し ①</td><td>H の記事のどの見出し下に設置するか</td></tr>
-            <tr><td><strong>J</strong></td><td>候補記事 URL ②</td><td>2 件目の候補</td></tr>
-            <tr><td><strong>K</strong></td><td>リンク設置箇所の見出し ②</td><td></td></tr>
-            <tr><td><strong>L</strong></td><td>候補記事 URL ③（任意）</td><td>3 件目の候補（見つかった場合のみ）</td></tr>
-            <tr><td><strong>M</strong></td><td>リンク設置箇所の見出し ③（任意）</td><td></td></tr>
-          </tbody>
-        </table>
-        <div class="callout info" style="margin-top:12px;">
-          <span class="callout-icon">ℹ️</span>
-          <div>
-            <strong>「該当なし」と表示される場合：</strong>スコア閾値（60 点）を超える候補が見つからなかった記事です。<br>
-            <strong>H 列が空白の場合（E 列 ≥ 2）：</strong>被リンク数が十分なため処理対象外です（正常）。対応不要です。<br>
-            <strong>H 列が空白の場合（E 列 ≤ 1）：</strong>AI 判定に技術的なエラーが発生した記事です。再実行すると再処理されます。<br>
-            <strong>H 列にデータがある記事：</strong>処理済みとして次回実行時はスキップされます。
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>article_cache タブ（自動作成）</h3>
-        <p>初回実行時に <strong>article_cache</strong> という名前のタブが自動作成されます。取得済み記事の HTML データを保存するキャッシュです。</p>
-        <ul>
-          <li>2 回目以降の実行では、キャッシュ済みの記事は再取得をスキップするため処理が高速になります</li>
-          <li>このタブは手動で編集しないでください</li>
-        </ul>
       </div>
     </section>
 
@@ -1101,7 +885,7 @@ http://127.0.0.1:8765/stop
         </div>
         <div class="callout warn">
           <span class="callout-icon">⚠️</span>
-          <div>「このサイトにアクセスできません」と表示される場合、ランナーサーバーが起動していません。「トラブル対応」を参照してください。</div>
+          <div>「このサイトにアクセスできません」と表示される場合、ランナーサーバーが起動していません。<a href="guide-internal-link.html#trouble" style="color:var(--accent);">トラブルシューティング（内部リンクエージェント手順書）</a>を参照してください。</div>
         </div>
       </div>
 
@@ -1118,411 +902,6 @@ http://127.0.0.1:8765/stop
       </div>
     </section>
 
-    <!-- ═══ 日常の使い方 ═══ -->
-    <section class="section" id="usage">
-      <div class="section-header">
-        <div class="step-circle" style="background:#16a34a; font-size:16px;">▶</div>
-        <div>
-          <h2>日常の使い方（セットアップ完了後）</h2>
-          <div class="sub">毎回の実行手順</div>
-        </div>
-      </div>
-
-      <div class="callout warn" style="margin-bottom:12px;">
-        <span class="callout-icon">⚠️</span>
-        <div>
-          <strong>CLIモードはClaudeのトークン（使用枠）を消費します</strong><br>
-          処理中は通常のClaude（Web・Cowork）が「使用上限に達しました」となり、他の作業ができなくなる場合があります。<br>
-          <strong>夜間・土日など、Claudeを使わない時間帯に実行することを推奨します。</strong><br>
-          <span style="font-size:12.5px;">トークンは約5時間ごとにリセットされます。上限に達して止まった場合も、リセット後に同じ手順で続きから再開できます。</span>
-          <table style="margin-top:10px; font-size:0.88em; border-collapse:collapse; width:100%;">
-            <tr style="background:#fff3cd;">
-              <th style="padding:4px 8px; text-align:left; border:1px solid #e8c94f;">プラン</th>
-              <th style="padding:4px 8px; text-align:left; border:1px solid #e8c94f;">5時間あたりの処理件数</th>
-              <th style="padding:4px 8px; text-align:left; border:1px solid #e8c94f;">200記事の目安</th>
-            </tr>
-            <tr>
-              <td style="padding:4px 8px; border:1px solid #e8c94f;"><strong>Claude Pro</strong></td>
-              <td style="padding:4px 8px; border:1px solid #e8c94f;">約 25 件</td>
-              <td style="padding:4px 8px; border:1px solid #e8c94f;">約 2 日（8 セッション）</td>
-            </tr>
-            <tr style="background:#f0fdf4;">
-              <td style="padding:4px 8px; border:1px solid #e8c94f;"><strong>Claude Max</strong></td>
-              <td style="padding:4px 8px; border:1px solid #e8c94f;">約 125 件（Pro の 5 倍）</td>
-              <td style="padding:4px 8px; border:1px solid #e8c94f;">数時間で完了</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>実行手順</h3>
-        <ol style="line-height:2.3; counter-reset: step;">
-
-          <li><strong>Cowork を開き、内部リンクエージェント プロジェクトを選択する</strong></li>
-
-          <li><strong>チャット欄に Spreadsheet の URL を貼り付けて送信する</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">例：<span class="ic">https://docs.google.com/spreadsheets/d/xxxxx/edit</span></span>
-          </li>
-
-          <li><strong>精度モードを選択する（エージェントが案内します）</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">「高精度」または「中精度」を返答してください（詳細は「モード選択の目安」参照）</span>
-          </li>
-
-          <li>
-            <strong>エージェントがサーバーの状態を自動確認する</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">Chrome が自動で <span class="ic">http://127.0.0.1:8765/status</span> を開き、サーバーの状態を確認します</span>
-            <div class="callout warn" style="margin-top:8px; margin-bottom:0; font-size:13px;">
-              <span class="callout-icon">⚠️</span>
-              <div><strong>Chrome が別ウィンドウで開いたタイミングで、Cowork 上に「許可（Allow）」ボタンが表示されます。</strong><br>
-              必ず <strong>「Allow」をクリック</strong>してください。クリックしないと処理が先に進みません。</div>
-            </div>
-          </li>
-
-          <li>
-            <strong>エージェントが処理を自動開始する</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">Chrome が自動で <span class="ic">http://127.0.0.1:8765/run?url=…</span> を開きます。<span class="ic">{"status": "started"}</span> が返ると処理開始です</span>
-            <div class="callout info" style="margin-top:8px; margin-bottom:0; font-size:13px;">
-              <span class="callout-icon">ℹ️</span>
-              <div>このタイミングでも「Allow」ボタンが表示される場合があります。同様にクリックしてください。</div>
-            </div>
-            <div class="callout info" style="margin-top:8px; margin-bottom:0; font-size:13px;">
-              <span class="callout-icon">ℹ️</span>
-              <div><strong>Chrome はここで役割が終わります。</strong>Chrome を閉じても処理は止まりません。実際の処理は次のステップで開く PowerShell ウィンドウで動作しています。</div>
-            </div>
-          </li>
-
-          <li><strong>PowerShell ウィンドウが自動で開き、リアルタイムのログが表示される</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">処理の進捗が 1 件ずつ表示されます。<strong>このウィンドウを閉じると処理が止まります</strong>。完了まで開いたままにしておいてください</span>
-          </li>
-
-          <li><strong>処理完了後、Spreadsheet を確認する</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">PowerShell ウィンドウに「全処理完了。Spreadsheet をご確認ください。」と表示されたら終了です。ウィンドウはそのまま開いておいて構いません。</span>
-          </li>
-
-        </ol>
-        <div class="callout warn" style="margin-top:16px;">
-          <span class="callout-icon">⚠️</span>
-          <div>
-            <strong>処理中は PC をスリープ・シャットダウンしないでください。</strong><br>
-            PowerShell ウィンドウを閉じると処理が強制終了されます。完了のメッセージが出るまで閉じないでください。<br>
-            途中で止めたい場合は下の「中断・再開」を使ってください。
-          </div>
-        </div>
-        <div class="callout info" style="margin-top:8px;">
-          <span class="callout-icon">ℹ️</span>
-          <div>
-            <strong>万が一 PC を落としてしまった場合も、いつでも途中から再開できます。</strong><br>
-            再開手順：Cowork を起動 → 「内部リンクエージェント」プロジェクトを選択 → 同じ Spreadsheet URL を送信するだけです。<br>
-            すでに処理済みの記事（H 列にデータあり）は自動的にスキップされ、未処理の続きから再開します。
-          </div>
-        </div>
-      </div>
-
-      <div class="card" id="stop-resume">
-        <h3>処理の中断・再開</h3>
-        <p style="margin-bottom:14px;">処理中に止める必要が生じた場合、以下の手順で安全に中断できます。<strong>処理済みのデータは保持され、再開時は続きから自動で再処理されます。</strong></p>
-
-        <h4 style="margin-bottom:8px; color:var(--red);">⏹ 中断する</h4>
-        <p style="font-size:13px; margin-bottom:10px;">以下の 3 つのいずれかの方法で止められます。</p>
-        <ol style="line-height:2.3; margin-bottom:16px;">
-          <li><strong>PowerShell ウィンドウを閉じる ← 最も簡単</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">ウィンドウを閉じると即停止します。処理中だった記事は H 列が空白のままになりますが、再開時に自動で再処理されるため問題ありません。</span>
-          </li>
-          <li><strong>Cowork で「止めて」または「中断して」と送信する</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">エージェントが自動で中断リクエストを送信します。現在処理中の記事が完了してから停止します（数分かかる場合があります）。</span>
-          </li>
-          <li><strong>ブラウザで直接アクセスする</strong><br>
-            <div class="code-block" style="margin:6px 0;">
-              <button class="copy-btn" onclick="copyCode(this)">コピー</button>
-              <pre>http://127.0.0.1:8765/stop</pre>
-            </div>
-            <span style="color:var(--text-secondary); font-size:12.5px;"><span class="ic">{"status": "stop_requested"}</span> が返れば中断シグナルが送信されました。現在処理中の記事が完了してから停止します。</span>
-          </li>
-        </ol>
-
-        <div class="callout info" style="margin-bottom:16px;">
-          <span class="callout-icon">ℹ️</span>
-          <div>どの方法で止めても、処理済み記事（H 列にデータあり）のデータはそのまま Spreadsheet に残ります。未処理記事（H 列空白）だけが次回の処理対象になります。</div>
-        </div>
-
-        <h4 style="margin-bottom:8px; color:var(--green);">▶ 再開する（中断後・PC 再起動後 どちらも同じ手順）</h4>
-        <ol style="line-height:2.3;">
-          <li><strong>Cowork を起動し、「内部リンクエージェント」プロジェクトを選択する</strong></li>
-          <li><strong>同じ Spreadsheet URL を送信するだけです</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">精度・AI モードの選択から通常どおり進めてください</span>
-          </li>
-          <li><strong>H 列が空白の記事だけが自動的に処理されます</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">処理済み記事は自動スキップされるため、続きから再開されます</span>
-          </li>
-        </ol>
-        <div class="callout ok" style="margin-top:10px;">
-          <span class="callout-icon">✅</span>
-          <div>PC をシャットダウン・スリープしてしまった場合も、再起動後に上記の手順で途中から再開できます。データが消えることはありません。</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>処理ログの見方（PowerShell ウィンドウ）</h3>
-        <div class="terminal">
-<span class="t-blue">==================================================</span>
-<span class="t-blue">内部リンク構築AIエージェント 開始</span>
-<span class="t-blue">精度モード: 高精度（トークン分割スコアリング）</span>
-<span class="t-blue">==================================================</span>
-インデックス構築完了: 213 件（キャッシュ済み 213 件）
-未キャッシュ 0 件をフェッチ中…<span class="t-dim">　← 初回は時間がかかります</span>
-KW未抽出 12 件 → main_kw を抽出中…
-
-<span class="t-white">[1/45] https://example.com/article-1</span>
-STEP2: 候補 20 件
-AI一括判定完了: 20 件
-→ 採用 3 件をSpreadsheetに書き込みました
-
-<span class="t-white">[2/45] https://example.com/article-2</span>
-STEP2: 候補 8 件
-...
-<span class="t-green">==================================================</span>
-<span class="t-green">全処理完了。Spreadsheetをご確認ください。</span>
-<span class="t-green">==================================================</span>
-</div>
-      </div>
-    </section>
-
-    <!-- ═══ モード選択 ═══ -->
-    <section class="section" id="modes">
-      <div class="section-header">
-        <div class="step-circle" style="background:#7c3aed; font-size:13px;">⚙</div>
-        <div>
-          <h2>精度モードの選び方</h2>
-          <div class="sub">処理開始時にエージェントが案内します</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>精度モード</h3>
-        <table class="tbl">
-          <thead><tr><th>モード</th><th>仕組み</th><th>向いているケース</th><th>推奨</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><strong>高精度</strong></td>
-              <td>KW をトークン（単語）に分割してスコアリング。部分一致でも候補を拾える</td>
-              <td>通常はこちらを使用。複合語 KW でも候補が多く見つかる</td>
-              <td><span class="badge b-green">推奨</span></td>
-            </tr>
-            <tr>
-              <td><strong>中精度</strong></td>
-              <td>KW 全体の文字列一致のみ。完全一致しないと候補に上がらない</td>
-              <td>処理を高速化したい場合・KW がシンプルな場合</td>
-              <td><span class="badge b-gray">状況次第</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </section>
-
-    <!-- ═══ 出力結果 ═══ -->
-    <section class="section" id="output">
-      <div class="section-header">
-        <div class="step-circle" style="background:#16a34a; font-size:13px;">📋</div>
-        <div>
-          <h2>出力結果の見方</h2>
-          <div class="sub">Spreadsheet に書き込まれた内容の解釈</div>
-        </div>
-      </div>
-      <div class="card">
-        <table class="tbl">
-          <thead><tr><th>H 列の内容</th><th>意味</th><th>対応</th></tr></thead>
-          <tbody>
-            <tr>
-              <td>URL が入っている</td>
-              <td>内部リンク候補が見つかった</td>
-              <td>H〜M 列の URL・見出しを確認して内部リンクを設置する</td>
-            </tr>
-            <tr>
-              <td>「該当なし」</td>
-              <td>スコア閾値（60 点）を超える候補がなかった</td>
-              <td>内部リンクの設置は不要と判断できます</td>
-            </tr>
-            <tr>
-              <td>空白（E 列 ≥ 2 の行）</td>
-              <td>被リンク数が十分なため処理対象外（正常）</td>
-              <td>対応不要。すでに十分な内部リンクが設置されています</td>
-            </tr>
-            <tr>
-              <td>空白（E 列 ≤ 1 の行）</td>
-              <td>AI 判定に技術的なエラーが発生した</td>
-              <td>同じ実行の完了後に<strong>自動で最大2回再処理</strong>されます（v1.2.1〜）。見出しの特殊文字が原因のJSON解析失敗も自動修復されます（v1.2.2〜）。それでも残る場合は再実行してください</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="callout info" style="margin-top:14px;">
-          <span class="callout-icon">ℹ️</span>
-          <div><strong>内部リンクの設置方法（H〜M 列の読み方）：</strong><br>
-          H 列の URL の記事を開き、I 列に記載された見出しのセクション内に、対象記事（B 列）へのリンクを追加してください。J〜M 列も同様です。</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>AI 採点基準（100点満点 / 60点以上を採用）</h3>
-        <p style="margin-bottom:14px;">以下の4項目を合計した点数が 60 点以上の候補記事のみ、内部リンク先として出力されます。</p>
-        <table class="tbl">
-          <thead><tr><th>採点項目</th><th>配点</th><th>判定内容</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><strong>読者層の一致</strong></td>
-              <td style="text-align:center; white-space:nowrap;">25点</td>
-              <td>候補記事と対象記事の想定読者が同じかを判定。「使う側・提供する側・管理する側」など立場が異なれば不一致とみなし、以降の評価も低スコアになる</td>
-            </tr>
-            <tr>
-              <td><strong>地理的一致</strong></td>
-              <td style="text-align:center; white-space:nowrap;">15点</td>
-              <td>どちらかの記事に地名（都道府県・エリア・駅名など）が含まれる場合、両記事が同じ地域を扱っているかを確認。異なる地域の記事同士は低スコア。地名がない場合は満点扱い</td>
-            </tr>
-            <tr>
-              <td><strong>読者にとっての自然さ</strong></td>
-              <td style="text-align:center; white-space:nowrap;">35点</td>
-              <td>候補記事を読んでいる読者が、対象記事へのリンクを見て「読みたい」と感じる文脈があるかを評価。無理やり挿入すると読者の流れを妨げる場合は低スコア</td>
-            </tr>
-            <tr>
-              <td><strong>トピックの深さと関連性</strong></td>
-              <td style="text-align:center; white-space:nowrap;">25点</td>
-              <td>キーワードが表面的に一致しているだけでなく、内容レベルで接点があるかを評価。同じ大カテゴリでも具体的なトピックに重なりがない場合は低スコア</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="callout warn" style="margin-top:14px;">
-          <span class="callout-icon">⚠️</span>
-          <div>AI の判定はあくまで自動評価です。出力された候補が実際のサイトの文脈に合わない場合は、担当者が判断して設置を見送ってください。</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ トラブル ═══ -->
-    <section class="section" id="trouble">
-      <div class="section-header">
-        <div class="step-circle" style="background:#dc2626; font-size:15px;">?</div>
-        <div>
-          <h2>トラブルシューティング</h2>
-          <div class="sub">よくある問題と対処法</div>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>「ランナーサーバーが起動していません」と Cowork に表示される</div>
-        <div class="trouble-a">
-          <p>PC 起動後にサーバーがまだ起動していないか、停止しています。PowerShell で手動起動してください。</p>
-          <div class="code-block">
-            <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-            <pre><code>py "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent\local_runner.py"</code></pre>
-          </div>
-          <p>「内部リンクエージェント Runner: http://127.0.0.1:8765」と表示されたらサーバーが起動しています。PowerShell は<strong>閉じずに</strong>、Cowork で再度 URL を送信してください。</p>
-          <div class="callout info">
-            <span class="callout-icon">ℹ️</span>
-            <div>このウィンドウを閉じるとサーバーも停止します。処理中は開いたままにしてください。次回からは PC 起動時に自動起動します（install.ps1 で登録済み）。</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>処理が途中で止まった / 手動で PowerShell ウィンドウを閉じた</div>
-        <div class="trouble-a">
-          <p><strong>そのまま再実行するだけで OK です。</strong></p>
-          <p>H 列にデータが書き込まれた記事は次回実行時に自動でスキップされ、続きから処理されます。Cowork に同じ Spreadsheet URL を送信し直してください。</p>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>⛔ Claude トークン上限のメッセージが表示された</div>
-        <div class="trouble-a">
-          <div class="terminal">
-<span class="t-red">⛔ Claudeトークン上限: You're out of extra usage · resets 6:40pm</span>
-<span class="t-yellow">⏳ 約5時間10分後（18:45）に自動再開します…</span>
-  再開まで残り 240 分…
-</div>
-          <p>Claude の利用上限に達した状態です。表示されたリセット時刻まで<strong>自動で待機</strong>し、同じ記事から処理が再開されます。</p>
-          <p>PowerShell ウィンドウをそのままにしておくか、閉じて後で手動で再実行してください（H 列が空白の記事だけ再処理されます）。</p>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>Spreadsheet に何も書き込まれない（エラーなし）</div>
-        <div class="trouble-a">
-          <p>以下を確認してください。</p>
-          <ul>
-            <li>Spreadsheet の B 列に記事 URL が入力されているか</li>
-            <li>E 列（被リンク数）が 1 以下の記事が存在するか（処理対象がない場合は何もしない）</li>
-            <li>H 列にすでにデータが入っている場合は処理済みとしてスキップされます</li>
-            <li>サービスアカウントに <strong>編集権限</strong>が付与されているか</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>「GOOGLE_SERVICE_ACCOUNT が設定されていません」と表示される</div>
-        <div class="trouble-a">
-          <p><span class="ic">install.bat</span> が未実行か、環境変数が正しく設定されていません。</p>
-          <p><strong>nyseo-internal-link-agent</strong> フォルダ内の <span class="ic">install.bat</span> をダブルクリックして再実行してください。</p>
-          <p>スクリプトを再実行して STEP 7-1 でサービスアカウント JSON のパスを再設定してください。設定後は <strong>PC を再起動</strong>するか、PowerShell を新しく開いて再実行してください。</p>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>Chrome が自動で開かない / Cowork が Chrome を操作しない</div>
-        <div class="trouble-a">
-          <p>以下を確認してください。</p>
-          <ul>
-            <li><strong>Claude Chrome 拡張機能</strong>が Chrome にインストールされているか（ステップ 2 参照）</li>
-            <li>Chrome が <strong>デフォルトブラウザ</strong>に設定されているか<br>
-              <span style="color:var(--text-secondary);">設定 → アプリ → 既定のアプリ → ブラウザ → Google Chrome</span></li>
-            <li>Cowork（Claude Desktop Pro）が最新バージョンか</li>
-            <li>Cowork（Claude Desktop Pro）が最新バージョンか</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>設定（JSON パス・API キーなど）を変更したい</div>
-        <div class="trouble-a">
-          <p><span class="ic">install.ps1</span> を再実行すれば、現在の設定を確認しながら変更できます。</p>
-          <div class="code-block">
-            <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-            <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
-PowerShell -ExecutionPolicy Bypass -File ".\install.ps1"</code></pre>
-          </div>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>アップデート版が届いた。どう適用すればよいか</div>
-        <div class="trouble-a">
-          <p>以下の手順で上書き適用できます。<span class="ic">secrets/</span> フォルダ・環境変数の再設定は不要です。</p>
-          <ol style="margin:8px 0 0 18px; line-height:2;">
-            <li>受け取った zip を展開する</li>
-            <li><span class="ic">nyseo-internal-link-agent\</span> フォルダの中身を既存フォルダに上書きコピー</li>
-            <li>PowerShell で以下を実行（新しいライブラリが追加されている場合に対応）</li>
-          </ol>
-          <div class="code-block" style="margin-top:8px;">
-            <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-            <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
-pip install -r requirements.txt</code></pre>
-          </div>
-          <p style="margin-top:8px;">4. 通常通り実行してください。</p>
-        </div>
-      </div>
-
-      <div class="trouble">
-        <div class="trouble-q"><span class="qi">Q</span>処理に非常に時間がかかっている</div>
-        <div class="trouble-a">
-          <ul>
-            <li><strong>初回実行時：</strong>全記事の HTML 取得とキャッシュ作成に時間がかかります（200 記事で 30〜60 分程度）。2 回目以降はキャッシュを使うため大幅に短縮されます</li>
-            <li>処理は途中で止めても続きから再開できるため、必要に応じて分割して実行してください</li>
-            <li>夜間・土日など Claude を使わない時間帯に実行するとトークンを消費せず効率的です</li>
-          </ul>
-        </div>
-      </div>
-
-    </section>
 
   </div><!-- /content -->
 </main>

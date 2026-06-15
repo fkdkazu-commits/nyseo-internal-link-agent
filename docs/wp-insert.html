@@ -559,6 +559,7 @@
                 <li>Gutenbergの場合：ブロックJSONの <code>core/heading</code> ブロックで文字列一致を確認する</li>
                 <li>見出しが見つからない場合はスキップ・警告ログを出力して次のセットへ進む</li>
                 <li>見出し発見後、そのセクションの「末尾」（次の同レベル以上の見出しの直前）を挿入位置とする</li>
+                <li><strong>セクション内リンク重複チェック：</strong>挿入対象セクション内にすでに <code>&lt;a href&gt;</code> タグまたは Gutenberg の <code>wp:embed</code> ブロックが存在する場合は挿入をスキップする（infoログを出力して次のセットへ進む）</li>
               </ul>
             </div>
           </div>
@@ -813,6 +814,7 @@ nyseo-internal-link-agent/
               <tr><td>WordPress認証失敗（401）</td><td>エラーログ出力・実行停止（認証情報を確認）</td><td>❌ 停止</td></tr>
               <tr><td>記事が見つからない（404）</td><td>該当行をスキップ・N列に「エラー: 記事が見つかりません」を記録</td><td>✅ 継続</td></tr>
               <tr><td>見出しが見つからない</td><td>該当セットをスキップ・警告ログ出力。他のセットは処理継続</td><td>✅ 継続</td></tr>
+              <tr><td>セクション内に既存リンクあり（<code>&lt;a href&gt;</code> or <code>wp:embed</code>）</td><td>該当セットをスキップ・infoログ出力。N列はエラー扱いしない。他のセットは処理継続</td><td>✅ 継続</td></tr>
               <tr><td>記事更新失敗（APIエラー）</td><td>N列に「エラー」・O列にエラー内容を記録してスキップ</td><td>✅ 継続</td></tr>
               <tr><td>Google Sheets接続失敗</td><td>エラーログ出力・実行停止</td><td>❌ 停止</td></tr>
               <tr><td>N列「済み」の行</td><td>スキップ（重複挿入防止）</td><td>✅ 継続</td></tr>
@@ -985,7 +987,8 @@ Body: {
 [STEP3] 見出しセクションを特定
     ├─ classic: BeautifulSoupでhタグ検索
     ├─ gutenberg: ブロックコメントで分割・heading検索
-    └─ 見つからない場合 → 該当セットをスキップ
+    ├─ 見つからない場合 → 該当セットをスキップ
+    └─ セクション内に既存リンクあり（&lt;a href&gt; / wp:embed）→ 該当セットをスキップ（エラー扱いなし）
     ↓
 [STEP4] ブログカードを挿入
     ├─ urlのみ: &lt;p&gt;URL&lt;/p&gt; を見出しセクション末尾に追加

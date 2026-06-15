@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書</title>
+  <style>
+    :root {
+      --sidebar-width: 280px;
+      --sidebar-bg: #0f172a;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: #60a5fa;
+      --header-bg: #065f46;
+      --content-bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --accent: #1d4ed8;
+      --accent-light: #dbeafe;
+      --border: #e2e8f0;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-border: #bbf7d0;
+      --yellow: #b45309;
+      --yellow-bg: #fffbeb;
+      --yellow-border: #fde68a;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --red-border: #fecaca;
+      --purple: #7c3aed;
+      --purple-bg: #f5f3ff;
+      --purple-border: #ddd6fe;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-primary);
+      background: var(--content-bg);
+    }
+    .wrapper { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      position: fixed; top: 0; left: 0;
+      height: 100vh; overflow-y: auto; z-index: 100;
+      scrollbar-width: thin; scrollbar-color: #334155 transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+    .sidebar-header { padding: 22px 20px 16px; border-bottom: 1px solid #1e293b; }
+    .sidebar-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #475569; margin-bottom: 6px; }
+    .sidebar-title { font-size: 13px; font-weight: 700; color: #e2e8f0; line-height: 1.5; }
+    .sidebar-meta { font-size: 11px; color: #475569; margin-top: 5px; }
+    .sidebar-nav { padding: 6px 0 24px; }
+    .nav-group { padding: 14px 20px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #475569; }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 20px; font-size: 12.5px; color: #94a3b8;
+      text-decoration: none; cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all .15s;
+    }
+    .nav-item:hover { background: var(--sidebar-hover); color: #e2e8f0; }
+    .nav-item.active { color: var(--sidebar-active); border-left-color: var(--sidebar-active); background: rgba(96,165,250,.08); }
+    .nav-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #1e293b; color: #60a5fa;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .nav-item.active .nav-badge { background: #1e3a8a; }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-width); flex: 1; min-width: 0; }
+    .page-header { background: var(--header-bg); padding: 40px 52px 36px; color: #fff; }
+    .page-header-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #6ee7b7; margin-bottom: 10px; }
+    .page-header h1 { font-size: 26px; font-weight: 800; line-height: 1.3; margin-bottom: 10px; }
+    .page-header-desc { font-size: 14px; color: #a7f3d0; max-width: 620px; line-height: 1.7; }
+    .content { padding: 44px 52px 80px; max-width: 940px; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 52px; scroll-margin-top: 20px; }
+    .section-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 2px solid var(--border); }
+    .step-circle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--green); color: #fff;
+      font-size: 15px; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+    }
+    .section-header h2 { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+    .section-header .sub { font-size: 12.5px; color: var(--text-secondary); }
+
+    /* ── Card ── */
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 24px 28px; margin-bottom: 16px; }
+    .card + .card { margin-top: -4px; }
+    .card h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary); }
+    .card h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
+    .card p { margin-bottom: 10px; }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* ── Code ── */
+    .code-block { background: var(--code-bg); border-radius: 8px; overflow: hidden; margin: 12px 0; }
+    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 7px 16px; background: #1e293b; border-bottom: 1px solid #334155; }
+    .code-lang { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .07em; }
+    .copy-btn { font-size: 11px; color: #64748b; background: none; border: 1px solid #334155; cursor: pointer; padding: 2px 9px; border-radius: 4px; transition: all .15s; }
+    .copy-btn:hover { color: #94a3b8; background: #334155; }
+    .copy-btn.copied { color: #34d399; border-color: #34d399; }
+    pre { padding: 16px 20px; overflow-x: auto; font-size: 13px; line-height: 1.75; color: var(--code-text); }
+    code { font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace; color: var(--code-text); }
+    .hi { color: #fbbf24; }
+    .ic { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 1px 6px; font-size: 12.5px; color: #1e40af; }
+
+    /* ── Terminal output ── */
+    .terminal { background: #0f172a; border-radius: 8px; padding: 16px 20px; margin: 10px 0; font-family: 'Cascadia Code','Fira Code',Consolas,monospace; font-size: 12.5px; line-height: 1.8; color: #94a3b8; }
+    .t-green { color: #34d399; }
+    .t-yellow { color: #fbbf24; }
+    .t-blue { color: #60a5fa; }
+    .t-red { color: #f87171; }
+    .t-dim { color: #475569; }
+    .t-white { color: #e2e8f0; }
+
+    /* ── Callout ── */
+    .callout { display: flex; gap: 12px; padding: 13px 17px; border-radius: 8px; margin: 12px 0; font-size: 13px; line-height: 1.75; }
+    .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+    .callout.ok   { background: var(--green-bg);   border: 1px solid var(--green-border);  color: #14532d; }
+    .callout.warn { background: var(--yellow-bg);  border: 1px solid var(--yellow-border); color: #78350f; }
+    .callout.info { background: var(--accent-light); border: 1px solid #bfdbfe;            color: #1e3a8a; }
+    .callout.note { background: var(--purple-bg);  border: 1px solid var(--purple-border); color: #4c1d95; }
+    .callout.danger { background: var(--red-bg);   border: 1px solid var(--red-border);    color: #7f1d1d; }
+
+    /* ── Table ── */
+    .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tbl th { background: #f8fafc; text-align: left; padding: 9px 14px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-secondary); border-bottom: 2px solid var(--border); }
+    .tbl td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .b-blue   { background: var(--accent-light); color: var(--accent); }
+    .b-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .b-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
+    .b-gray   { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+    /* ── Trouble ── */
+    .trouble { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+    .trouble-q { display: flex; align-items: flex-start; gap: 10px; padding: 13px 18px; background: #f8fafc; font-weight: 700; font-size: 13.5px; }
+    .trouble-q .qi { color: #dc2626; font-weight: 800; flex-shrink: 0; }
+    .trouble-a { padding: 16px 18px; font-size: 13px; line-height: 1.8; border-top: 1px solid var(--border); }
+
+    /* ── Misc ── */
+    p { margin-bottom: 10px; }
+    p:last-child { margin-bottom: 0; }
+    ul, ol { padding-left: 22px; margin-bottom: 10px; }
+    li { margin-bottom: 5px; }
+    strong { font-weight: 700; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    @media (max-width: 800px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .page-header, .content { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ═══════════════════════════════
+     Sidebar
+═══════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-label">内部リンクエージェント</div>
+    <div class="sidebar-title">WordPress 自動反映機能<br>導入・操作手順書</div>
+    <div class="sidebar-meta">初期インストール済み前提</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group">前提</div>
+    <a class="nav-item" href="install.html"><span class="nav-badge">←</span> 初期インストール手順書</a>
+    <a class="nav-item" href="guide-internal-link.html"><span class="nav-badge">①</span> 内部リンクエージェント手順書</a>
+
+    <div class="nav-group">初期設定</div>
+    <a class="nav-item" href="#wp-auth"><span class="nav-badge">1</span> WordPress 認証情報の設定</a>
+
+    <div class="nav-group">実行手順</div>
+    <a class="nav-item" href="#usage"><span class="nav-badge">2</span> 実行前の確認・操作</a>
+    <a class="nav-item" href="#link-format"><span class="nav-badge">3</span> リンク形式の選び方</a>
+
+    <div class="nav-group">結果の確認</div>
+    <a class="nav-item" href="#results"><span class="nav-badge">4</span> N/O/P 列の見方</a>
+    <a class="nav-item" href="#section-check"><span class="nav-badge">5</span> セクション内リンクチェック</a>
+
+    <div class="nav-group">サポート</div>
+    <a class="nav-item" href="#trouble"><span class="nav-badge">?</span> トラブルシューティング</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════
+     Main
+═══════════════════════════════ -->
+<main class="main">
+  <div class="page-header">
+    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.3)</div>
+    <h1>WordPress 自動反映機能<br>導入・操作手順書</h1>
+    <div class="page-header-desc">
+      内部リンクエージェントが提案した候補（H〜M 列）を、WordPress 記事に自動挿入する機能の手順書です。<br>
+      初期インストール（install.bat）と内部リンクエージェントの実行が完了していることが前提です。
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ WordPress 認証情報の設定 ═══ -->
+    <section class="section" id="wp-auth">
+      <div class="section-header">
+        <div class="step-circle" style="font-size:13px;">1</div>
+        <div>
+          <h2>WordPress 認証情報の設定</h2>
+          <div class="sub">初回のみ必要な設定です</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>設定が必要なもの</h3>
+        <p>WordPress REST API を使って記事を更新するため、以下の情報を環境変数に設定します。</p>
+        <table class="tbl" style="margin-top:10px;">
+          <thead><tr><th>環境変数名</th><th>内容</th><th>例</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>WP_URL</strong></td>
+              <td>WordPress サイトの URL</td>
+              <td><span class="ic">https://example.com</span></td>
+            </tr>
+            <tr>
+              <td><strong>WP_USER</strong></td>
+              <td>WordPress のユーザー名</td>
+              <td><span class="ic">admin</span></td>
+            </tr>
+            <tr>
+              <td><strong>WP_APP_PASSWORD</strong></td>
+              <td>WordPress のアプリケーションパスワード</td>
+              <td><span class="ic">xxxx xxxx xxxx xxxx xxxx xxxx</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>アプリケーションパスワードの発行手順</h3>
+        <ol style="line-height:2.3;">
+          <li>WordPress 管理画面 → 「ユーザー」→「プロフィール」を開く</li>
+          <li>ページ下部の「アプリケーションパスワード」セクションまでスクロール</li>
+          <li>「新しいアプリケーションパスワード名」に任意の名前を入力（例：<span class="ic">内部リンクツール</span>）</li>
+          <li>「新しいアプリケーションパスワードを追加」ボタンをクリック</li>
+          <li>表示されたパスワード（スペース区切り）をコピーして保存する</li>
+        </ol>
+        <div class="callout warn" style="margin-top:10px;">
+          <span class="callout-icon">⚠️</span>
+          <div>アプリケーションパスワードは発行時の1回しか表示されません。必ずコピーして安全な場所に保存してください。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>環境変数の設定方法</h3>
+        <p>PowerShell で以下を実行してください（一度設定すれば PC を再起動しても維持されます）。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">PowerShell（管理者不要）</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>[Environment]::SetEnvironmentVariable("WP_URL", "<span class="hi">https://your-site.com</span>", "User")
+[Environment]::SetEnvironmentVariable("WP_USER", "<span class="hi">ユーザー名</span>", "User")
+[Environment]::SetEnvironmentVariable("WP_APP_PASSWORD", "<span class="hi">xxxx xxxx xxxx xxxx xxxx xxxx</span>", "User")</code></pre>
+        </div>
+        <div class="callout info" style="margin-top:8px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>設定後は <strong>PowerShell を一度閉じて開き直す</strong>か、PC を再起動してから実行してください。設定直後は環境変数が反映されていない場合があります。</div>
+        </div>
+        <div class="callout ok" style="margin-top:8px;">
+          <span class="callout-icon">✅</span>
+          <div>設定確認：<span class="ic">$env:WP_URL</span> を PowerShell に入力して URL が表示されれば設定完了です。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 実行前の確認・操作 ═══ -->
+    <section class="section" id="usage">
+      <div class="section-header">
+        <div class="step-circle" style="font-size:13px;">2</div>
+        <div>
+          <h2>実行前の確認・操作手順</h2>
+          <div class="sub">Spreadsheet のレビュー後、Cowork から実行します</div>
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-bottom:16px;">
+        <span class="callout-icon">⚠️</span>
+        <div>
+          <strong>WordPress への挿入は取り消しが手間です。</strong><br>
+          実行前に必ず Spreadsheet の H〜M 列（内部リンク候補）を確認してください。おかしな候補があれば、H 列の値を削除（空白に戻す）してから実行してください。
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>実行手順</h3>
+        <ol style="line-height:2.3;">
+          <li><strong>Spreadsheet の H〜M 列を確認・承認する</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">AI が提案した候補 URL と見出しが適切かどうか確認してください。問題のある行は H 列を空白にしてスキップできます</span>
+          </li>
+          <li><strong>Cowork を開き、内部リンクエージェント プロジェクトを選択する</strong></li>
+          <li><strong>「WordPress に挿入してほしい」と送信し、Spreadsheet URL を伝える</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">エージェントがリンク形式（URL or aタグ）を確認してきます</span>
+          </li>
+          <li><strong>リンク形式を選択する</strong>（詳細は次のセクション参照）</li>
+          <li><strong>Chrome で「Allow」をクリックする</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">Chrome が自動で起動し、Cowork 上に「Allow」ボタンが表示されます。必ずクリックしてください</span>
+          </li>
+          <li><strong>PowerShell ウィンドウが開き、処理が進む</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">1 件ずつ処理結果がログ表示されます。完了まで PowerShell を閉じないでください</span>
+          </li>
+          <li><strong>Spreadsheet の N/O/P 列で結果を確認する</strong></li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>処理ログの見方（PowerShell ウィンドウ）</h3>
+        <div class="terminal">
+<span class="t-blue">==================================================</span>
+<span class="t-blue">WordPress 内部リンク自動挿入ツール 開始</span>
+<span class="t-blue">==================================================</span>
+データ読み込み完了: 20 件
+
+<span class="t-white">[1/20] https://example.com/article-1</span>
+  候補① https://example.com/article-10 → 見出し「見出しA」
+  → Gutenberg 記事 / リンク挿入: 1件 / スキップ: 0件
+  → 済み
+
+<span class="t-white">[2/20] https://example.com/article-2</span>
+  候補① https://example.com/article-5 → 見出し「見出しB」
+  → Classic 記事 / セクション内に既存リンクあり → スキップ
+  → 済み（スキップあり）
+
+<span class="t-green">==================================================</span>
+<span class="t-green">全処理完了。Spreadsheet の N/O/P 列をご確認ください。</span>
+<span class="t-green">==================================================</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ リンク形式の選び方 ═══ -->
+    <section class="section" id="link-format">
+      <div class="section-header">
+        <div class="step-circle" style="font-size:13px;">3</div>
+        <div>
+          <h2>リンク形式の選び方</h2>
+          <div class="sub">Cowork が確認してきます。どちらかを選んでください</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="tbl">
+          <thead><tr><th>形式</th><th>WordPress での見た目</th><th>向いているケース</th><th>推奨</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>URL のみ</strong><br><span class="ic">--link url</span></td>
+              <td>WordPress がブログカード（記事サムネ付きのカード）に自動展開する</td>
+              <td>ビジュアルに目立つ形式にしたい場合。WordPress テーマがブログカード対応している場合</td>
+              <td><span class="badge b-green">推奨</span></td>
+            </tr>
+            <tr>
+              <td><strong>aタグ</strong><br><span class="ic">--link atag</span></td>
+              <td><a href="#">記事タイトル</a> のようなテキストリンクとして挿入される</td>
+              <td>ブログカード展開が不要な場合。文章の流れに溶け込ませたい場合</td>
+              <td><span class="badge b-gray">状況次第</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout info" style="margin-top:12px;">
+          <span class="callout-icon">ℹ️</span>
+          <div><strong>エディタ形式（Gutenberg / クラシック）は自動判定されます。</strong>記事ごとにどちらのエディタで書かれているかを自動検出して挿入方法を切り替えるため、事前に指定する必要はありません。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ N/O/P 列の見方 ═══ -->
+    <section class="section" id="results">
+      <div class="section-header">
+        <div class="step-circle" style="font-size:13px;">4</div>
+        <div>
+          <h2>N/O/P 列の見方</h2>
+          <div class="sub">処理結果が Spreadsheet に記録されます</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="tbl">
+          <thead><tr><th>列</th><th>内容</th><th>説明</th></tr></thead>
+          <tbody>
+            <tr><td><strong>N</strong></td><td>処理ステータス</td><td>「済み」「スキップ」「エラー」など処理結果の概要</td></tr>
+            <tr><td><strong>O</strong></td><td>挿入件数</td><td>実際に WordPress へ挿入されたリンクの数</td></tr>
+            <tr><td><strong>P</strong></td><td>スキップ件数</td><td>セクション内リンクチェックなどでスキップされた数</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>N 列のステータス一覧</h3>
+        <table class="tbl">
+          <thead><tr><th>表示内容</th><th>意味</th><th>対応</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>済み</td>
+              <td>正常に処理完了。1 件以上が挿入された</td>
+              <td>対応不要</td>
+            </tr>
+            <tr>
+              <td>済み（スキップあり）</td>
+              <td>一部の候補がスキップされた（セクション内リンクチェックなど）</td>
+              <td>P 列のスキップ件数を確認。必要なら手動で確認</td>
+            </tr>
+            <tr>
+              <td>スキップ（重複）</td>
+              <td>対象記事の URL がすでに候補記事の本文に含まれていた</td>
+              <td>対応不要。すでにリンクが設置済みです</td>
+            </tr>
+            <tr>
+              <td>スキップ（見出し不一致）</td>
+              <td>I/K/M 列の見出しが WordPress 記事内に見つからなかった</td>
+              <td>Spreadsheet の I/K/M 列の見出し名が記事と一致しているか確認</td>
+            </tr>
+            <tr>
+              <td>エラー</td>
+              <td>接続エラーまたは API エラー</td>
+              <td>WP_URL / WP_USER / WP_APP_PASSWORD の設定を確認して再実行</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout info" style="margin-top:12px;">
+          <span class="callout-icon">ℹ️</span>
+          <div><strong>冪等性（重複防止）について：</strong>N 列に「済み」が記録されている行は再実行しても処理されません。誤って再実行しても2重挿入にはなりません。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ セクション内リンクチェック ═══ -->
+    <section class="section" id="section-check">
+      <div class="section-header">
+        <div class="step-circle" style="background:#7c3aed; font-size:13px;">5</div>
+        <div>
+          <h2>セクション内リンクチェック（v1.3〜）</h2>
+          <div class="sub">見出しセクション内に既存リンクがある場合は自動スキップ</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>仕様</h3>
+        <p>WordPress 記事に内部リンクを挿入する前に、対象の見出しセクション内に以下のいずれかが存在するかチェックします。</p>
+        <ul style="margin-top:10px;">
+          <li>アンカーリンク（<span class="ic">&lt;a href=</span> タグ）</li>
+          <li>ブログカード埋め込み（<span class="ic">wp:embed</span> ブロック）</li>
+        </ul>
+        <p style="margin-top:12px;">上記のいずれかが見つかった場合は、<strong>そのセクションへの挿入をスキップ</strong>し、スキップ件数（P 列）を増やします。</p>
+
+        <div class="callout ok" style="margin-top:12px;">
+          <span class="callout-icon">✅</span>
+          <div><strong>この仕様の目的：</strong>すでに手動でリンクを設置したセクションに重複して挿入されるのを防ぐためです。1つの見出しセクションに複数のリンクが集中することを回避します。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>スキップされた場合の対応</h3>
+        <p>N 列が「済み（スキップあり）」になっており、P 列にスキップ件数が記録されます。</p>
+        <ul>
+          <li>スキップされた候補は WordPress には挿入されていません</li>
+          <li>既存のリンクをそのままにしたい場合は対応不要です</li>
+          <li>どうしても挿入したい場合は、手動で WordPress 記事を編集してリンクを追加してください</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══ トラブルシューティング ═══ -->
+    <section class="section" id="trouble">
+      <div class="section-header">
+        <div class="step-circle" style="background:#dc2626; font-size:15px;">?</div>
+        <div>
+          <h2>トラブルシューティング</h2>
+          <div class="sub">よくある問題と対処法</div>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>「WP_URL が設定されていません」と表示される</div>
+        <div class="trouble-a">
+          <p>環境変数が設定されていないか、設定後に PowerShell を再起動していません。</p>
+          <ol>
+            <li>このページの「WordPress 認証情報の設定」手順で環境変数を設定する</li>
+            <li>PowerShell を一度閉じて新しく開く（または PC を再起動）</li>
+            <li>再度実行する</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>「401 Unauthorized」エラーが出る</div>
+        <div class="trouble-a">
+          <p>WordPress の認証情報が正しくありません。以下を確認してください。</p>
+          <ul>
+            <li><strong>WP_USER</strong> が WordPress のログインユーザー名（メールアドレスではなく）になっているか</li>
+            <li><strong>WP_APP_PASSWORD</strong> がアプリケーションパスワード（ログインパスワードではない）になっているか</li>
+            <li>アプリケーションパスワードが有効になっているか（WordPress 管理画面 → ユーザー → プロフィール で確認）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>N 列が「スキップ（見出し不一致）」になっている</div>
+        <div class="trouble-a">
+          <p>Spreadsheet の I / K / M 列に記録されている見出し名が、実際の WordPress 記事内の見出しと一致しませんでした。</p>
+          <p>以下を確認してください。</p>
+          <ul>
+            <li>WordPress 記事を開き、I / K / M 列の見出しが記事内に存在するか確認する</li>
+            <li>記事の見出しが後から変更されていないか確認する</li>
+            <li>見出しを修正した場合は、I / K / M 列の値も更新して N 列を空白にして再実行する</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>リンクが挿入されたが意図しない場所に入った</div>
+        <div class="trouble-a">
+          <p>WordPress 記事を直接編集して手動でリンクを削除してください。削除後は Spreadsheet の N / O / P 列を空白に戻し、H 列の候補も修正してから再実行してください。</p>
+          <div class="callout info" style="margin-top:8px;">
+            <span class="callout-icon">ℹ️</span>
+            <div>N 列が「済み」のまま再実行しても処理されません。N 列を空白にすることで再処理の対象になります。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>一部の記事だけ処理したい</div>
+        <div class="trouble-a">
+          <p>Cowork に以下のように伝えてください。</p>
+          <ul>
+            <li><strong>特定の行だけ処理：</strong>「No10 の行だけ WordPress に挿入して」→ <span class="ic">--row 11</span> オプションで実行されます</li>
+            <li><strong>先頭から N 件まで処理：</strong>「No1〜20 だけ挿入して」→ <span class="ic">--limit 20</span> オプションで実行されます</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="trouble">
+        <div class="trouble-q"><span class="qi">Q</span>アップデート版が届いた。どう適用すればよいか</div>
+        <div class="trouble-a">
+          <p>以下の手順で上書き適用できます。環境変数（WP_URL など）の再設定は不要です。</p>
+          <ol style="margin:8px 0 0 18px; line-height:2;">
+            <li>受け取った zip を展開する</li>
+            <li><span class="ic">nyseo-internal-link-agent\</span> フォルダの中身を既存フォルダに上書きコピー</li>
+            <li>PowerShell で以下を実行する</li>
+          </ol>
+          <div class="code-block" style="margin-top:8px;">
+            <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+            <pre><code>cd "C:\Users\<span class="hi">&lt;ユーザー名&gt;</span>\Downloads\nyseo-internal-link-agent"
+pip install -r requirements.txt</code></pre>
+          </div>
+          <p style="margin-top:8px;">4. 通常通り実行してください。</p>
+        </div>
+      </div>
+
+    </section>
+
+  </div><!-- /content -->
+</main>
+</div>
+
+<script>
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'コピー済！';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  const sections = document.querySelectorAll('section[id]');
+  const navItems = document.querySelectorAll('.nav-item[href^="#"]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) current = s.id; });
+    navItems.forEach(i => i.classList.toggle('active', i.getAttribute('href') === '#' + current));
+  }, { passive: true });
+  navItems.forEach(i => i.addEventListener('click', function() {
+    navItems.forEach(j => j.classList.remove('active'));
+    this.classList.add('active');
+  }));
+</script>
+</body>
+</html>
