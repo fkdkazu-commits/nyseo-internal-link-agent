@@ -181,8 +181,8 @@ def _section_has_link(section_content: str) -> bool:
         return True
     if re.search(r'<!--\s*wp:embed', section_content, re.IGNORECASE):
         return True
-    # Classic URL形式: <p>https://...</p>（URLのみの段落）
-    if re.search(r'<p>https?://[^\s<]+</p>', section_content, re.IGNORECASE):
+    # Classic URL形式: <p ...>https://...</p>（URLのみの段落）
+    if re.search(r'<p[^>]*>https?://[^\s<]+</p>', section_content, re.IGNORECASE):
         return True
     return False
 
