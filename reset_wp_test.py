@@ -34,15 +34,15 @@ def remove_inserted_links(content: str, target_url: str) -> tuple[str, int]:
     original = content
     url = re.escape(target_url)
 
-    # 1. Classic — URL形式: <p>URL</p>\n（\nは1〜2個）
-    content = re.sub(rf'<p>{url}</p>\n{{1,2}}', '', content)
+    # 1. Classic — URL形式: <p>URL</p> または <p style="...">URL</p>
+    content = re.sub(rf'<p(?:[^>]*)>{url}</p>\n{{1,2}}', '', content)
 
     # 2. Classic — atag形式: <p><a href="URL">任意テキスト</a></p>\n
     content = re.sub(rf'<p><a href="{url}">[^<]*</a></p>\n{{1,2}}', '', content)
 
     # 3. Gutenberg — URL形式 (wp:embed)
     content = re.sub(
-        rf'\n<!-- wp:embed \{{"url":"{url}"[^}}]*\}} -->\n'
+        rf'\n<!-- wp:embed \{{[^}}]*"url":"{url}"[^}}]*\}} -->\n'
         rf'<figure[^>]*><div[^>]*>\n{url}\n</div></figure>\n'
         rf'<!-- /wp:embed -->',
         '', content,
@@ -50,8 +50,8 @@ def remove_inserted_links(content: str, target_url: str) -> tuple[str, int]:
 
     # 4. Gutenberg — atag形式 (wp:paragraph)
     content = re.sub(
-        rf'\n<!-- wp:paragraph -->\n'
-        rf'<p><a href="{url}">[^<]*</a></p>\n'
+        rf'\n<!-- wp:paragraph[^>]*-->\n'
+        rf'<p[^>]*><a href="{url}">[^<]*</a></p>\n'
         rf'<!-- /wp:paragraph -->',
         '', content,
     )

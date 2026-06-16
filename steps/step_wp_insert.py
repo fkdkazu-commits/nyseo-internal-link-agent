@@ -176,10 +176,13 @@ def _insert_gutenberg(
 # ------------------------------------------------------------------ #
 
 def _section_has_link(section_content: str) -> bool:
-    """セクション内にリンク（aタグ・wp:embed）が存在するか確認する。"""
+    """セクション内にリンク（aタグ・wp:embed・URL段落）が存在するか確認する。"""
     if re.search(r'<a\s[^>]*href=', section_content, re.IGNORECASE):
         return True
     if re.search(r'<!--\s*wp:embed', section_content, re.IGNORECASE):
+        return True
+    # Classic URL形式: <p>https://...</p>（URLのみの段落）
+    if re.search(r'<p>https?://[^\s<]+</p>', section_content, re.IGNORECASE):
         return True
     return False
 
@@ -211,14 +214,14 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
     if link_format == "atag":
         safe_text = link_text or url
         return (
-            f'<!-- wp:paragraph -->\n'
-            f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
+            f'<!-- wp:paragraph {{"align":"center"}} -->\n'
+            f'<p class="has-text-align-center"><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
             f'<!-- /wp:paragraph -->'
         )
     else:
         return (
-            f'<!-- wp:embed {{"url":"{url}"}} -->\n'
-            f'<figure class="wp-block-embed"><div class="wp-block-embed__wrapper">\n'
+            f'<!-- wp:embed {{"url":"{url}","align":"center"}} -->\n'
+            f'<figure class="wp-block-embed aligncenter"><div class="wp-block-embed__wrapper">\n'
             f'{url}\n'
             f'</div></figure>\n'
             f'<!-- /wp:embed -->'
@@ -229,6 +232,6 @@ def _build_link_html(url: str, link_text: str, link_format: str) -> str:
     """クラシックエディタ用HTMLを生成する。<p>タグで囲み記事枠内に収める。"""
     if link_format == "atag":
         safe_text = link_text or url
-        return f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
+        return f'<p style="text-align:center"><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
     else:
-        return f'<p>{url}</p>\n'
+        return f'<p style="text-align:center">{url}</p>\n'
