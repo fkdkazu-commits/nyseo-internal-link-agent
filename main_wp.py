@@ -4,6 +4,7 @@ WordPress内部リンク挿入ツール（v1.3〜）
 WordPress記事に自動挿入する。
 """
 
+import random
 import re
 import sys
 from datetime import datetime
@@ -38,7 +39,7 @@ def main(
 ):
     logger.info("=" * 50)
     logger.info("WordPress内部リンク挿入ツール 開始")
-    logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {link_format}")
+    logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {link_format}{'（行ごとランダム）' if link_format == 'random' else ''}")
     if limit:
         logger.info(f"処理上限: No{limit}まで")
     logger.info("=" * 50)
@@ -105,6 +106,11 @@ def main(
                 continue
             insertions.append((cand_url, cand_head, target_url, target_title))
 
+        # ランダムモードの場合は行ごとに形式を決定
+        actual_link_format = random.choice(["url", "atag"]) if link_format == "random" else link_format
+        if link_format == "random":
+            logger.info(f"  リンク形式（ランダム選択）: {actual_link_format}")
+
         total_inserted = 0
         total_skipped  = 0
         errors = []
@@ -132,7 +138,7 @@ def main(
                 content,
                 [(cand_heading, tgt_url, tgt_title)],
                 editor=actual_editor,
-                link_format=link_format,
+                link_format=actual_link_format,
             )
 
             if count > 0:
