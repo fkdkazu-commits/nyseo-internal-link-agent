@@ -177,6 +177,11 @@ if (-not $claudeExe) {
         Select-Object -First 1 -ExpandProperty FullName
 }
 
+# PATH上のclaude.exeをフォールバックとして検索
+if (-not $claudeExe) {
+    $claudeExe = (Get-Command claude -ErrorAction SilentlyContinue).Source
+}
+
 if (-not $claudeExe) {
     Show-Warn "claude.exe が見つかりませんでした。Cowork（Claude Desktop）が正しくインストールされているか確認してください。"
     Wait-Enter "確認後 Enter を押してください"
