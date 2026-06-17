@@ -47,6 +47,10 @@ def insert_links(
     for heading_text, target_url, link_text in headings_and_targets:
         if editor == "gutenberg":
             new_content, status = _insert_gutenberg(content, heading_text, target_url, link_text, link_format)
+            # Gutenbergで見つからない場合、生HTML見出しにフォールバック
+            if status == _NOT_FOUND:
+                logger.debug(f"  Gutenbergパターン未発見、Classicパターンで再試行: 「{heading_text[:30]}」")
+                new_content, status = _insert_classic(content, heading_text, target_url, link_text, link_format)
         else:
             new_content, status = _insert_classic(content, heading_text, target_url, link_text, link_format)
 
@@ -59,6 +63,7 @@ def insert_links(
             logger.info(f"セクション内に既存リンクあり、挿入スキップ: 「{heading_text[:30]}」")
         else:
             logger.warning(f"見出しが見つからず挿入スキップ: 「{heading_text[:30]}」")
+            _log_available_headings(content, editor)
 
     return content, inserted, skipped
 
@@ -103,10 +108,23 @@ def _insert_classic(
     if next_boundary:
         insert_pos = heading_end + next_boundary.start()
     else:
-        insert_pos = len(content)
+        # 最後の見出し: セクション内の最後の </p> の後に挿入
+        after_heading = content[heading_end:]
+        last_p = None
+        for m in re.finditer(r'</p>', after_heading, re.IGNORECASE):
+            last_p = m
+        insert_pos = heading_end + last_p.end() if last_p else len(content)
 
-    # セクション内に既存リンクがあればスキップ
+    # 挿入位置直前エリア（最後の子見出し以降）のみチェック
+    # 子見出しセクションへの別行挿入は別箇所とみなし、ブロックしない
     section_content = content[heading_end:insert_pos]
+    child_levels = ''.join(str(l) for l in range(level + 1, 6))
+    if child_levels:
+        last_child = None
+        for m in re.finditer(rf'<h[{child_levels}][^>]*>', section_content, re.IGNORECASE):
+            last_child = m
+        if last_child:
+            section_content = section_content[last_child.start():]
     if _section_has_link(section_content):
         return content, _SECTION_HAS_LINK
 
@@ -129,7 +147,7 @@ def _insert_gutenberg(
     """Gutenberg用: 見出しブロック直後の段落の後にリンクブロックを挿入する。"""
     # wp:headingブロックを検索（<!-- wp:heading ... --> の中に > が含まれる場合に対応）
     pattern = re.compile(
-        r'(<!-- wp:heading.*?-->[ \t]*\r?\n?<h[2-4][^>]*>)(.*?)(</h[2-4]>[ \t]*\r?\n?<!-- /wp:heading -->)',
+        r'(<!-- wp:heading.*?-->\s*<h[2-4][^>]*>)(.*?)(</h[2-4]>\s*<!-- /wp:heading -->)',
         re.IGNORECASE | re.DOTALL,
     )
 
@@ -175,13 +193,22 @@ def _insert_gutenberg(
 # 共通ユーティリティ
 # ------------------------------------------------------------------ #
 
+def _log_available_headings(content: str, editor: str) -> None:
+    """見出し未発見時に記事内の見出し一覧をログ出力する（デバッグ用）。"""
+    if editor == "gutenberg":
+        headings = re.findall(r'<h[2-6][^>]*>(.*?)</h[2-6]>', content, re.IGNORECASE | re.DOTALL)
+    else:
+        headings = re.findall(r'<h[2-6][^>]*>(.*?)</h[2-6]>', content, re.IGNORECASE | re.DOTALL)
+    clean = [_normalize(h) for h in headings]
+    logger.warning(f"  記事内の見出し一覧（{len(clean)}件）: {clean[:10]}")
+
+
 def _section_has_link(section_content: str) -> bool:
     """セクション内にリンク（aタグ・wp:embed・URL段落）が存在するか確認する。"""
     if re.search(r'<a\s[^>]*href=', section_content, re.IGNORECASE):
         return True
     if re.search(r'<!--\s*wp:embed', section_content, re.IGNORECASE):
         return True
-    # Classic URL形式: <p ...>https://...</p>（URLのみの段落）
     if re.search(r'<p[^>]*>https?://[^\s<]+</p>', section_content, re.IGNORECASE):
         return True
     return False
@@ -214,8 +241,8 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
     if link_format == "atag":
         safe_text = link_text or url
         return (
-            f'<!-- wp:paragraph {{"align":"center"}} -->\n'
-            f'<p class="has-text-align-center"><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
+            f'<!-- wp:paragraph -->\n'
+            f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
             f'<!-- /wp:paragraph -->'
         )
     else:
@@ -232,6 +259,6 @@ def _build_link_html(url: str, link_text: str, link_format: str) -> str:
     """クラシックエディタ用HTMLを生成する。<p>タグで囲み記事枠内に収める。"""
     if link_format == "atag":
         safe_text = link_text or url
-        return f'<p style="text-align:center"><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
+        return f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
     else:
         return f'<p style="text-align:center">{url}</p>\n'
