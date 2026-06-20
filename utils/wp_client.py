@@ -96,7 +96,7 @@ class WPClient:
                 f"{self._api}/{post_type}",
                 headers=self.headers,
                 params={"slug": slug, "context": "edit", "_fields": "id,title,content,link,status"},
-                timeout=15,
+                timeout=60,
             )
             if r.status_code == 200:
                 posts = r.json()

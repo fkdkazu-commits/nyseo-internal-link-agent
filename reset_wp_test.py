@@ -40,11 +40,11 @@ def remove_inserted_links(content: str, target_url: str) -> tuple[str, int]:
     # 2. Classic — atag形式: <p ...><a href="URL" ...>任意テキスト</a></p>\n
     content = re.sub(rf'<p[^>]*><a href="{url}"[^>]*>[^<]*</a></p>\n{{1,2}}', '', content)
 
-    # 3. Gutenberg — URL形式 (wp:embed)
+    # 3. Gutenberg — URL形式 (wp:paragraph with URL)
     content = re.sub(
-        rf'\n<!-- wp:embed \{{[^}}]*"url":"{url}"[^}}]*\}} -->\n'
-        rf'<figure[^>]*><div[^>]*>\n{url}\n</div></figure>\n'
-        rf'<!-- /wp:embed -->',
+        rf'\n<!-- wp:paragraph[^>]*-->\n'
+        rf'<p[^>]*>{url}</p>\n'
+        rf'<!-- /wp:paragraph -->',
         '', content,
     )
 

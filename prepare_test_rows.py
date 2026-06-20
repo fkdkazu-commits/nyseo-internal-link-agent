@@ -75,14 +75,17 @@ def _url_to_slug(url: str) -> str:
 def get_local_post_by_slug(api_base: str, headers: dict, slug: str) -> dict | None:
     """ローカルWPからスラッグで記事を取得する。"""
     for post_type in ("posts", "pages"):
-        r = requests.get(
-            f"{api_base}/{post_type}",
-            headers=headers,
-            params={"slug": slug, "context": "edit", "_fields": "id,title,link,status"},
-            timeout=15,
-        )
-        if r.status_code == 200 and r.json():
-            return r.json()[0]
+        try:
+            r = requests.get(
+                f"{api_base}/{post_type}",
+                headers=headers,
+                params={"slug": slug, "context": "edit", "_fields": "id,title,link,status"},
+                timeout=30,
+            )
+            if r.status_code == 200 and r.json():
+                return r.json()[0]
+        except Exception as e:
+            logger.warning(f"  ローカルWP確認失敗（{post_type}）: {e}")
     return None
 
 
@@ -94,20 +97,63 @@ def create_local_post(api_base: str, headers: dict, title: str, content: str, sl
         "slug":    slug,
         "status":  "publish",
     }
-    r = requests.post(f"{api_base}/posts", headers=headers, json=body, timeout=60)
-    if r.status_code in (200, 201):
-        post = r.json()
-        logger.info(f"  ✓ WP作成: [{post['id']}] {title[:40]} → {post['link']}")
-        return post
-    logger.warning(f"  ✗ WP作成失敗: {r.status_code} {r.text[:200]}")
-    return None
+    try:
+        r = requests.post(f"{api_base}/posts", headers=headers, json=body, timeout=90)
+        if r.status_code in (200, 201):
+            post = r.json()
+            logger.info(f"  ✓ WP作成: [{post['id']}] {title[:40]} → {post['link']}")
+            return post
+        logger.warning(f"  ✗ WP作成失敗: {r.status_code} {r.text[:200]}")
+        return None
+    except Exception as e:
+        logger.warning(f"  ✗ WP作成エラー: {e}")
+        return None
 
 
 # ------------------------------------------------------------------ #
 # mensheaven.jp コンテンツ取得
 # ------------------------------------------------------------------ #
 
-def fetch_mensheaven_article(url: str) -> tuple[str, str] | None:
+def _extract_clean_html(content_div) -> str:
+    """h2〜h6・pタグのみ抽出してクリーンなHTMLを返す。CTA・広告・関連記事等を除去する。"""
+    import html as html_module
+    parts = []
+    for el in content_div.find_all(["h2", "h3", "h4", "h5", "h6", "p"], recursive=True):
+        text = el.get_text(strip=True)
+        if not text or len(text) < 2:
+            continue
+        escaped = html_module.escape(text)
+        parts.append(f"<{el.name}>{escaped}</{el.name}>")
+    return "\n".join(parts)
+
+
+def _extract_gutenberg_html(content_div) -> str:
+    """h2〜h6・pタグをGutenbergブロック形式で抽出する（テスト用）。"""
+    import html as html_module
+    parts = []
+    for el in content_div.find_all(["h2", "h3", "h4", "h5", "h6", "p"], recursive=True):
+        text = el.get_text(strip=True)
+        if not text or len(text) < 2:
+            continue
+        escaped = html_module.escape(text)
+        if el.name.startswith("h"):
+            level = int(el.name[1])
+            level_attr = f' {{"level":{level}}}' if level != 2 else ""
+            parts.append(
+                f'<!-- wp:heading{level_attr} -->\n'
+                f'<{el.name} class="wp-block-heading">{escaped}</{el.name}>\n'
+                f'<!-- /wp:heading -->'
+            )
+        else:
+            parts.append(
+                f'<!-- wp:paragraph -->\n'
+                f'<p>{escaped}</p>\n'
+                f'<!-- /wp:paragraph -->'
+            )
+    return "\n\n".join(parts)
+
+
+def fetch_mensheaven_article(url: str, content_format: str = "classic") -> tuple[str, str] | None:
     """mensheaven.jpから (タイトル, HTMLコンテンツ) を取得する。"""
     try:
         r = requests.get(
@@ -132,11 +178,10 @@ def fetch_mensheaven_article(url: str) -> tuple[str, str] | None:
         if not content_div:
             logger.warning(f"  本文エリアが見つかりません: {url}")
             content_html = "<p>コンテンツを取得できませんでした</p>"
+        elif content_format == "gutenberg":
+            content_html = _extract_gutenberg_html(content_div)
         else:
-            # script/style/広告を除去
-            for tag in content_div(["script", "style", "ins", "noscript"]):
-                tag.decompose()
-            content_html = content_div.decode_contents()
+            content_html = _extract_clean_html(content_div)
 
         return title, content_html
 
@@ -157,10 +202,12 @@ def main(
     start_no: int = 21,
     end_no: int | None = None,
     dry_run: bool = False,
+    content_format: str = "classic",
+    overwrite: bool = False,
 ):
     logger.info("=" * 60)
     logger.info(f"テスト準備スクリプト 開始（No{start_no}〜{end_no or '最後'}）")
-    logger.info(f"dry_run={dry_run}")
+    logger.info(f"dry_run={dry_run} / content_format={content_format} / overwrite={overwrite}")
     logger.info("=" * 60)
 
     # WP認証情報ロード
@@ -190,12 +237,17 @@ def main(
     logger.info(f"対象行: {len(rows_to_process)} 行")
 
     # 全ユニーク mensheaven.jp URL を収集
+    # overwrite時はローカルURLからmensheaven URLを逆算して追加
     url_set: set[str] = set()
     for _, row, _ in rows_to_process:
         for col in URL_COLS:
             val = row[col].strip() if len(row) > col else ""
-            if val and MENSHEAVEN_DOMAIN in val and val not in ("該当なし",):
+            if not val or val in ("該当なし",):
+                continue
+            if MENSHEAVEN_DOMAIN in val:
                 url_set.add(val)
+            elif overwrite and LOCAL_DOMAIN in val:
+                url_set.add(val.replace(LOCAL_DOMAIN, MENSHEAVEN_DOMAIN))
 
     logger.info(f"ユニーク mensheaven.jp URL: {len(url_set)} 件")
 
@@ -210,29 +262,56 @@ def main(
 
         # ローカルに存在するか確認
         existing = get_local_post_by_slug(wp_api, wp_headers, slug)
-        if existing:
-            logger.info(f"  既存: {existing['link']}")
-            url_map[mensheaven_url] = target_local_url
+        if existing and not overwrite:
+            logger.info(f"  既存（スキップ）: {existing['link']}")
+            url_map[mensheaven_url] = existing['link']
             continue
 
-        # mensheaven.jpから取得
+        # mensheaven.jpから取得（失敗時は3秒待ってリトライ×2）
         logger.info(f"  mensheaven.jpから取得中: {mensheaven_url}")
-        result = fetch_mensheaven_article(mensheaven_url)
+        result = None
+        for attempt in range(3):
+            result = fetch_mensheaven_article(mensheaven_url, content_format=content_format)
+            if result:
+                break
+            if attempt < 2:
+                logger.warning(f"  取得失敗（{attempt + 1}回目）、3秒後にリトライ...")
+                time.sleep(3)
+
         if not result:
-            logger.warning(f"  スキップ（取得失敗）")
+            logger.warning(f"  スキップ（3回とも取得失敗）")
+            time.sleep(3)
             continue
 
         title, content_html = result
         logger.info(f"  タイトル: {title[:60]}")
 
         if dry_run:
-            logger.info(f"  [dry-run] WP作成スキップ")
+            logger.info(f"  [dry-run] WP作成/更新スキップ")
             url_map[mensheaven_url] = target_local_url
+        elif existing and overwrite:
+            # 既存記事のコンテンツを上書き
+            post_id = existing["id"]
+            try:
+                r = requests.post(
+                    f"{wp_api}/posts/{post_id}",
+                    headers=_wp_headers(wp_user, wp_pwd) | {"Content-Type": "application/json"},
+                    json={"content": content_html},
+                    timeout=90,
+                )
+                if r.status_code == 200:
+                    logger.info(f"  ✓ WP更新: [{post_id}] {title[:40]}")
+                    url_map[mensheaven_url] = existing['link']
+                else:
+                    logger.warning(f"  ✗ WP更新失敗: {r.status_code} {r.text[:200]}")
+            except Exception as e:
+                logger.warning(f"  ✗ WP更新エラー: {e}")
+            time.sleep(4)
         else:
             post = create_local_post(wp_api, wp_headers, title, content_html, slug)
             if post:
-                url_map[mensheaven_url] = target_local_url
-            time.sleep(1)  # WP負荷対策
+                url_map[mensheaven_url] = post['link']
+            time.sleep(4)  # ローカルWPの負荷対策（記事数が多いため長めに待機）
 
     logger.info(f"\n\nURL変換マップ: {len(url_map)} 件確定")
 
@@ -288,10 +367,12 @@ if __name__ == "__main__":
         print(__doc__)
         sys.exit(1)
 
-    _url     = args[0]
-    _start   = 21
-    _end     = None
-    _dry_run = False
+    _url       = args[0]
+    _start     = 21
+    _end       = None
+    _dry_run   = False
+    _format    = "classic"
+    _overwrite = False
 
     i = 1
     while i < len(args):
@@ -299,9 +380,13 @@ if __name__ == "__main__":
             _start = int(args[i + 1]); i += 2
         elif args[i] == "--end" and i + 1 < len(args):
             _end = int(args[i + 1]); i += 2
+        elif args[i] == "--format" and i + 1 < len(args):
+            _format = args[i + 1]; i += 2
         elif args[i] == "--dry-run":
             _dry_run = True; i += 1
+        elif args[i] == "--overwrite":
+            _overwrite = True; i += 1
         else:
             i += 1
 
-    main(_url, start_no=_start, end_no=_end, dry_run=_dry_run)
+    main(_url, start_no=_start, end_no=_end, dry_run=_dry_run, content_format=_format, overwrite=_overwrite)

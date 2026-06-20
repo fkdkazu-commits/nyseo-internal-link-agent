@@ -237,7 +237,7 @@ def _normalize(text: str) -> str:
 
 
 def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
-    """Gutenberg用ブロックを生成する。URLのみ→embedブロック、aタグ→paragraphブロック。"""
+    """Gutenberg用ブロックを生成する。URLのみ→paragraphブロック（Classic同様にフロントエンドでブログカード展開）、aタグ→paragraphブロック。"""
     if link_format == "atag":
         safe_text = link_text or url
         return (
@@ -246,12 +246,12 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
             f'<!-- /wp:paragraph -->'
         )
     else:
+        # wp:embedは同一サイトURLで全文展開する問題があるため、
+        # Classic同様にURLのみのparagraphブロックを使用する
         return (
-            f'<!-- wp:embed {{"url":"{url}","align":"center"}} -->\n'
-            f'<figure class="wp-block-embed aligncenter"><div class="wp-block-embed__wrapper">\n'
-            f'{url}\n'
-            f'</div></figure>\n'
-            f'<!-- /wp:embed -->'
+            f'<!-- wp:paragraph {{"align":"center"}} -->\n'
+            f'<p class="has-text-align-center">{url}</p>\n'
+            f'<!-- /wp:paragraph -->'
         )
 
 

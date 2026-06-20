@@ -1,7 +1,23 @@
 """
-WordPress内部リンク挿入ツール（v1.3〜）
-スプレッドシートのH〜M列（承認済み内部リンク候補）を読み込み、
-WordPress記事に自動挿入する。
+WPテスト用行範囲実行スクリプト
+
+指定行範囲（--from / --limit）のみ処理するテスト専用スクリプト。
+本番用 main_wp.py には手を加えない。
+
+使い方:
+    py test_wp_range.py <SpreadsheetURL> [--from N] [--limit N] [--link url|atag]
+
+オプション:
+    --from N    : No N 以降を処理（デフォルト: 1）
+    --limit N   : No N まで処理（デフォルト: 最後まで）
+    --link url|atag : リンク形式（デフォルト: url）
+
+例:
+    # Classic × URL（No1〜10）
+    py test_wp_range.py <URL> --from 1 --limit 10 --link url
+
+    # Gutenberg × aタグ（No11〜20）
+    py test_wp_range.py <URL> --from 11 --limit 20 --link atag
 """
 
 import re
@@ -18,56 +34,42 @@ from utils.logger import get_logger
 from utils.sheets_client import SheetsClient
 from utils.wp_client import WPClient
 from steps.step_wp_insert import insert_links, already_has_link, detect_editor
+from main_wp import _build_title_cache, _write_wp_status, _LINK_PAIRS
 
 logger = get_logger()
-
-# H/I, J/K, L/M 列のペア定義
-_LINK_PAIRS = [
-    (COL_OUT_URL1, COL_OUT_H1),
-    (COL_OUT_URL2, COL_OUT_H2),
-    (COL_OUT_URL3, COL_OUT_H3),
-]
 
 
 def main(
     spreadsheet_url: str,
-    editor: str = "auto",
-    link_format: str = "url",
-    force_row: "int | None" = None,
+    from_row: int = 1,
     limit: "int | None" = None,
+    link_format: str = "url",
 ):
-    logger.info("=" * 50)
-    logger.info("WordPress内部リンク挿入ツール 開始")
-    logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {link_format}")
-    if limit:
-        logger.info(f"処理上限: No{limit}まで")
-    logger.info("=" * 50)
+    logger.info("=" * 55)
+    logger.info("WPテスト行範囲実行スクリプト")
+    logger.info(f"行範囲: No{from_row}〜{limit or '最後'} / リンク形式: {link_format}")
+    logger.info("=" * 55)
 
     sheets = SheetsClient(spreadsheet_url)
     _, data = sheets.load_data()
 
     _ss_id_m = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", spreadsheet_url)
-    _ss_id   = _ss_id_m.group(1) if _ss_id_m else ""
+    _ss_id = _ss_id_m.group(1) if _ss_id_m else ""
     wp = WPClient(spreadsheet_id=_ss_id)
 
-    # article_cacheからタイトルを取得するためのマップを構築
     title_cache = _build_title_cache(sheets)
 
     rows_to_process = []
     for row_idx, row in enumerate(data):
-        if force_row is not None:
-            # NO列（A列=index0）で照合
-            no_val = row[0].strip() if row else ""
-            if no_val != str(force_row):
-                continue
-
-        if limit is not None:
-            no_val = row[0].strip() if row else ""
-            try:
-                if int(no_val) > limit:
-                    continue
-            except ValueError:
-                continue
+        no_val = row[0].strip() if row else ""
+        try:
+            no = int(no_val)
+        except ValueError:
+            continue
+        if no < from_row:
+            continue
+        if limit is not None and no > limit:
+            continue
 
         target_url = row[COL_URL].strip() if len(row) > COL_URL else ""
         if not target_url:
@@ -77,7 +79,6 @@ def main(
         if not h_val or h_val == "該当なし":
             continue
 
-        # N列（挿入済み）チェック
         status = row[COL_WP_STATUS].strip() if len(row) > COL_WP_STATUS else ""
         if status == "済み":
             logger.debug(f"行{row_idx + 2}: 挿入済みのためスキップ")
@@ -96,11 +97,10 @@ def main(
         if not target_title:
             target_title = wp.get_post_title(target_url)
 
-        # 挿入する (見出し, リンク先URL, リンクテキスト) のリスト
-        insertions: list[tuple[str, str, str]] = []
+        insertions: list[tuple[str, str, str, str]] = []
         for col_url, col_heading in _LINK_PAIRS:
-            cand_url  = row[col_url].strip()     if len(row) > col_url     else ""
-            cand_head = row[col_heading].strip()  if len(row) > col_heading else ""
+            cand_url  = row[col_url].strip()    if len(row) > col_url    else ""
+            cand_head = row[col_heading].strip() if len(row) > col_heading else ""
             if not cand_url or not cand_head:
                 continue
             insertions.append((cand_url, cand_head, target_url, target_title))
@@ -115,13 +115,9 @@ def main(
                 errors.append(f"記事取得失敗: {cand_url}")
                 continue
 
-            # context=edit で取得した raw（ブロックマークアップ）を使用
             content = post.get("content", {}).get("raw", "") or post.get("content", {}).get("rendered", "")
-
-            # エディタ形式を自動判定（autoの場合）
-            actual_editor = detect_editor(content) if editor == "auto" else editor
-            if editor == "auto":
-                logger.debug(f"  エディタ自動判定: {actual_editor} ({cand_url})")
+            actual_editor = detect_editor(content)
+            logger.debug(f"  エディタ自動判定: {actual_editor} ({cand_url})")
 
             if already_has_link(content, tgt_url):
                 logger.info(f"  すでにリンクあり: {cand_url}")
@@ -147,7 +143,6 @@ def main(
             else:
                 errors.append(f"見出し未発見: {cand_heading[:30]}")
 
-        # N/O/P列を更新
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
         if errors:
             status_val = "エラー"
@@ -162,45 +157,7 @@ def main(
         _write_wp_status(sheets, row_idx, status_val, date_val, total_inserted)
         logger.info(f"  → ステータス: {status_val} / 挿入: {total_inserted}件")
 
-    logger.info("\nWordPress内部リンク挿入ツール 完了")
-
-
-def _build_title_cache(sheets: SheetsClient) -> dict[str, str]:
-    """article_cacheタブからURL→タイトルのマップを作る。"""
-    try:
-        ws = sheets._ss.worksheet("article_cache")
-        records = ws.get_all_values()
-        cache = {}
-        for row in records[1:]:
-            if len(row) >= 2:
-                url   = row[0].strip()
-                title = row[1].strip()
-                if url and title:
-                    cache[url] = title
-        logger.info(f"article_cacheからタイトル {len(cache)} 件を読み込み")
-        return cache
-    except Exception as e:
-        logger.warning(f"article_cache読み込み失敗: {e}")
-        return {}
-
-
-def _write_wp_status(
-    sheets: SheetsClient,
-    row_idx: int,
-    status: str,
-    date_str: str,
-    count: int,
-):
-    """N/O/P列にステータスを書き込む。"""
-    try:
-        ws = sheets._ss.worksheets()[0]
-        sheet_row = row_idx + 2  # ヘッダー行分+1
-        ws.update(
-            f"N{sheet_row}:P{sheet_row}",
-            [[status, date_str, str(count)]],
-        )
-    except Exception as e:
-        logger.warning(f"ステータス書き込み失敗 行{row_idx + 2}: {e}")
+    logger.info("\nWPテスト行範囲実行スクリプト 完了")
 
 
 # ------------------------------------------------------------------ #
@@ -210,26 +167,23 @@ def _write_wp_status(
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args:
-        print("使い方: py main_wp.py <SpreadsheetURL> [--editor auto|classic|gutenberg] [--link url|atag] [--row N] [--limit N]")
+        print(__doc__)
         sys.exit(1)
 
-    _url     = args[0]
-    _editor  = "auto"
-    _link    = "url"
-    _row     = None
-    _limit   = None
+    _url      = args[0]
+    _from     = 1
+    _limit    = None
+    _link     = "url"
 
     i = 1
     while i < len(args):
-        if args[i] == "--editor" and i + 1 < len(args):
-            _editor = args[i + 1]; i += 2
-        elif args[i] == "--link" and i + 1 < len(args):
-            _link = args[i + 1]; i += 2
-        elif args[i] == "--row" and i + 1 < len(args):
-            _row = int(args[i + 1]); i += 2
+        if args[i] == "--from" and i + 1 < len(args):
+            _from = int(args[i + 1]); i += 2
         elif args[i] == "--limit" and i + 1 < len(args):
             _limit = int(args[i + 1]); i += 2
+        elif args[i] == "--link" and i + 1 < len(args):
+            _link = args[i + 1]; i += 2
         else:
             i += 1
 
-    main(_url, editor=_editor, link_format=_link, force_row=_row, limit=_limit)
+    main(_url, from_row=_from, limit=_limit, link_format=_link)
