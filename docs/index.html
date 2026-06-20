@@ -412,7 +412,7 @@
     <div class="sidebar-header">
       <div class="sidebar-label">System Specification</div>
       <div class="sidebar-title">内部リンク構築AIエージェント</div>
-      <div class="sidebar-meta">Ver 2.3 &nbsp;|&nbsp; 2026-06-13</div>
+      <div class="sidebar-meta">Ver 2.4 &nbsp;|&nbsp; 2026-06-21</div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-group-label">関連ドキュメント</div>
@@ -455,8 +455,8 @@
       <div class="page-header-label">System Specification Document</div>
       <div class="page-header-title">内部リンク構築AIエージェント<br>技術仕様書</div>
       <div class="page-header-badges">
-        <span class="ph-badge">📅 更新日: 2026-06-13</span>
-        <span class="ph-badge">🏷 Ver 2.3 — Google Sheets方式</span>
+        <span class="ph-badge">📅 更新日: 2026-06-21</span>
+        <span class="ph-badge">🏷 Ver 2.4 — WP自動反映対応（v1.3.1）</span>
         <span class="ph-badge">⚙️ ステータス: 本番稼働中</span>
       </div>
     </div>
@@ -477,7 +477,7 @@
           <h4>目的</h4>
           <p>SEOツールから出力したGoogle Spreadsheetを読み込み、被リンク不足記事（被リンク数E列≤1）に対して、関連性の高い他記事から内部リンクを設置する候補を自動提案し、SEO内部リンク構築業務を半自動化する。</p>
           <div class="alert alert-info">
-            💡 最終的な内部リンク設置はクライアント担当者様が確認・判断することを想定しています。WordPressへの自動反映は本フェーズでは対象外となります。
+            💡 最終的な内部リンク設置はクライアント担当者様が確認・判断することを想定しています。v1.3からはWordPress自動反映機能（<code>main_wp.py</code>）により、承認済みの内部リンク候補をWordPress記事へ自動挿入できます。
           </div>
           <h4>主要機能</h4>
           <ul>
@@ -500,8 +500,8 @@
               <tr>
                 <td><strong>システム運用者</strong><br><span class="badge badge-blue">エージェント実行者</span></td>
                 <td>Cowork上でエージェントを起動する</td>
-                <td>エージェント実行・再実行・ログ確認</td>
-                <td>WordPress自動投稿（本フェーズ対象外）</td>
+                <td>エージェント実行・再実行・ログ確認・WordPress自動反映（v1.3〜）</td>
+                <td>—</td>
               </tr>
               <tr>
                 <td><strong>クライアント担当者</strong><br><span class="badge badge-green">レビュアー</span></td>
@@ -642,7 +642,7 @@
               <tr><td>AI</td><td>Cowork内蔵 Claude AI（APIキー不要）</td></tr>
               <tr><td>データ基盤</td><td>Google Spreadsheet（記事一覧データ＋article_cacheタブ）</td></tr>
               <tr><td>認証情報管理</td><td>サービスアカウントJSONはプロジェクトフォルダ外の専用フォルダに保管。環境変数 <code>GOOGLE_SERVICE_ACCOUNT</code> で参照</td></tr>
-              <tr><td>WordPress自動投稿</td><td>本フェーズ対象外</td></tr>
+              <tr><td>WordPress自動反映</td><td>v1.3で実装済み（<code>main_wp.py</code> — WordPress REST API経由でH〜M列の候補を自動挿入）</td></tr>
               <tr><td>アンカーテキスト自動生成</td><td>本フェーズ対象外</td></tr>
               <tr><td>Embedding活用</td><td>本フェーズ対象外</td></tr>
             </table>
@@ -688,7 +688,7 @@
 
         <div class="card" id="req-install">
           <div class="card-title">1.8 他PCへの展開手順</div>
-          <p style="margin-bottom:12px;">別のPCでエージェントを動かす場合は、zipを展開して <code>install.bat</code> をダブルクリックするだけです。インストーラーが全11ステップを自動で案内します。詳細は <a href="install.html">導入手順書</a> を参照してください。</p>
+          <p style="margin-bottom:12px;">別のPCでエージェントを動かす場合は、zipを展開して <code>install.bat</code> をダブルクリックするだけです。インストーラーが全12ステップを自動で案内します。詳細は <a href="install.html">導入手順書</a> を参照してください。</p>
           <div class="table-wrap">
             <table>
               <tr><th>#</th><th>手順</th><th>内容</th><th>自動/手動</th></tr>
@@ -736,24 +736,30 @@
               </tr>
               <tr>
                 <td>8</td>
+                <td>WordPress サイト情報の設定</td>
+                <td>WordPress 自動反映機能を使う場合に <code>~\.secrets\nyseo_sites.json</code> へサイト情報（URL・ユーザー名・パスワード）を設定する手順を案内（v1.3.1〜）</td>
+                <td>手動</td>
+              </tr>
+              <tr>
+                <td>9</td>
                 <td>pip パッケージインストール</td>
                 <td><code>pip install -r requirements.txt</code> を自動実行</td>
                 <td>自動</td>
               </tr>
               <tr>
-                <td>9</td>
+                <td>10</td>
                 <td>スタートアップ登録 + ランナーサーバー起動</td>
                 <td>PC 起動時の自動起動登録・ランナーサーバーの即時起動確認</td>
                 <td>自動</td>
               </tr>
               <tr>
-                <td>10</td>
+                <td>11</td>
                 <td>Cowork プロジェクト作成</td>
                 <td>Cowork（Claude Desktop Pro）に内部リンクエージェント プロジェクトを作成する手順を案内</td>
                 <td>手動</td>
               </tr>
               <tr>
-                <td>11</td>
+                <td>12</td>
                 <td>Spreadsheet の準備</td>
                 <td>新規作成・CSV インポート・サービスアカウントへの編集権限付与・URL のコピー</td>
                 <td>手動</td>
@@ -810,6 +816,8 @@
     └─ article_cache: URL・title・h1・h2_json・h3_json・body_text・fetched_at
          ↓
 [クライアント担当者が全員でSpreadsheetを確認・最終判断]
+[WordPress自動反映ツール（py main_wp.py）でH〜M列の候補を自動挿入（v1.3〜）]
+  または
 [担当者がWordPressに手動で内部リンクを設置]</pre>
         </div>
 
@@ -818,6 +826,8 @@
           <pre>
 nyseo-internal-link-agent/
 ├── main.py                    # エントリーポイント: py main.py &lt;SpreadsheetURL&gt;
+├── main_wp.py                 # WordPress自動反映ツール（v1.3〜）: py main_wp.py &lt;SpreadsheetURL&gt;
+├── local_runner.py            # ローカルランナーサーバー（ポート8765）
 ├── config.py                  # 設定値（閾値・列番号定義）
 ├── CLAUDE.md                  # Cowork起動指示書
 ├── requirements.txt           # gspread・google-auth・requests・beautifulsoup4
@@ -828,7 +838,8 @@ nyseo-internal-link-agent/
 │   ├── step2_search.py        # STEP2: KW一致・上位概念展開での候補探索
 │   ├── step3_fetch.py         # STEP3: HTTP取得・BeautifulSoup解析
 │   ├── step4_judge.py         # STEP4: AI関連性判定（上位→下位特化）
-│   └── step5_output.py        # STEP5: Sheets書き込み用データ整形
+│   ├── step5_output.py        # STEP5: Sheets書き込み用データ整形
+│   └── step_wp_insert.py      # WordPress記事へのリンク挿入処理（v1.3〜）
 │
 ├── utils/
 │   ├── sheets_client.py       # Google Sheets読み書き・article_cacheタブ管理
@@ -1202,7 +1213,7 @@ flowchart TD
           <div class="table-wrap">
             <table>
               <tr><th>機能</th><th>概要</th><th>追加コスト（目安）</th></tr>
-              <tr><td>WordPressへの自動反映</td><td>承認済みの内部リンクをWordPress REST APIで自動設置</td><td>＋5〜8万円</td></tr>
+              <tr><td><strong>WordPressへの自動反映</strong> <span class="badge badge-green">v1.3 実装済み</span></td><td>承認済みの内部リンクをWordPress REST APIで自動設置。Classic/Gutenbergエディタ自動判定対応</td><td>実装済み</td></tr>
               <tr><td>アンカーテキスト自動生成</td><td>AIがリンクアンカーテキストまで自動提案する</td><td>＋1万円</td></tr>
               <tr><td>Embedding活用</td><td>テキストEmbeddingによる高精度な意味的関連性判定</td><td>＋3〜5万円</td></tr>
               <tr><td>Search Console連携</td><td>GSCデータと連携してリンク効果を計測・フィードバック</td><td>＋3〜5万円</td></tr>
@@ -1304,6 +1315,16 @@ flowchart TD
             <thead><tr><th>バージョン</th><th>リリース日</th><th>主な変更内容</th></tr></thead>
             <tbody>
               <tr>
+                <td><strong>v1.3.1</strong></td>
+                <td>2026-06-21</td>
+                <td>nyseo_sites.json方式によるWordPressサイト情報管理を導入。install.bat STEP 8（WordPress設定）追加で12ステップ化。リンク形式選択時の注意文追加</td>
+              </tr>
+              <tr>
+                <td><strong>v1.3</strong></td>
+                <td>2026-06-17</td>
+                <td>WordPress自動反映機能（main_wp.py）を追加。Classic/Gutenbergエディタ自動判定・aタグ/URL形式選択・N/O/P列への結果記録・ローカルランナー対応</td>
+              </tr>
+              <tr>
                 <td><strong>v1.2.2</strong></td>
                 <td>2026-06-13</td>
                 <td>記事見出しの特殊文字（ダブルクォート・バックスラッシュ）によるAI出力のJSON破損を修正。json_repairによる自動修復フォールバックを追加</td>
@@ -1333,7 +1354,7 @@ flowchart TD
         </div>
 
         <div class="footer">
-          <p>内部リンク構築AIエージェント 技術仕様書 v2.3 — 更新日: 2026-06-13</p>
+          <p>内部リンク構築AIエージェント 技術仕様書 v2.4 — 更新日: 2026-06-21</p>
           <p>本ドキュメントは GitHub Pages で公開されています。内容は開発進捗に応じて更新されます。</p>
         </div>
       </div>

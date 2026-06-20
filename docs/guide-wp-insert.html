@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書</title>
+  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書 (v1.3.1)</title>
   <style>
     :root {
       --sidebar-width: 280px;
@@ -204,7 +204,7 @@
 ═══════════════════════════════ -->
 <main class="main">
   <div class="page-header">
-    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.3)</div>
+    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.3.1)</div>
     <h1>WordPress 自動反映機能<br>導入・操作手順書</h1>
     <div class="page-header-desc">
       内部リンクエージェントが提案した候補（H〜M 列）を、WordPress 記事に自動挿入する機能の手順書です。<br>
@@ -226,27 +226,42 @@
 
       <div class="card">
         <h3>設定が必要なもの</h3>
-        <p>WordPress REST API を使って記事を更新するため、以下の情報を環境変数に設定します。</p>
+        <p>WordPress REST API を使って記事を更新するため、以下の3つの情報が必要です。</p>
         <table class="tbl" style="margin-top:10px;">
-          <thead><tr><th>環境変数名</th><th>内容</th><th>例</th></tr></thead>
+          <thead><tr><th>項目</th><th>内容</th><th>例</th></tr></thead>
           <tbody>
             <tr>
-              <td><strong>WP_URL</strong></td>
+              <td><strong>WP URL</strong></td>
               <td>WordPress サイトの URL</td>
               <td><span class="ic">https://example.com</span></td>
             </tr>
             <tr>
-              <td><strong>WP_USER</strong></td>
-              <td>WordPress のユーザー名</td>
+              <td><strong>WP ユーザー名</strong></td>
+              <td>WordPress のログインユーザー名</td>
               <td><span class="ic">admin</span></td>
             </tr>
             <tr>
-              <td><strong>WP_APP_PASSWORD</strong></td>
+              <td><strong>アプリケーションパスワード</strong></td>
               <td>WordPress のアプリケーションパスワード</td>
               <td><span class="ic">xxxx xxxx xxxx xxxx xxxx xxxx</span></td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="card">
+        <h3>設定手順（install.bat で行います）</h3>
+        <p>初期インストール時に実行した <span class="ic">install.bat</span> を再実行すると、STEP 8「WordPress サイト設定」で以下を入力できます。</p>
+        <ol style="line-height:2.3;">
+          <li><strong>Spreadsheet URL</strong> を入力する（対象サイトと紐づけるため）</li>
+          <li><strong>WordPress サイト URL</strong> を入力する</li>
+          <li><strong>ユーザー名・アプリケーションパスワード</strong> を入力する</li>
+          <li>設定が <span class="ic">~/.secrets/nyseo_sites.json</span> に保存される</li>
+        </ol>
+        <div class="callout info" style="margin-top:10px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>複数の WordPress サイトを運用する場合は、Spreadsheet URL ごとに繰り返し追加できます。</div>
+        </div>
       </div>
 
       <div class="card">
@@ -256,30 +271,11 @@
           <li>ページ下部の「アプリケーションパスワード」セクションまでスクロール</li>
           <li>「新しいアプリケーションパスワード名」に任意の名前を入力（例：<span class="ic">内部リンクツール</span>）</li>
           <li>「新しいアプリケーションパスワードを追加」ボタンをクリック</li>
-          <li>表示されたパスワード（スペース区切り）をコピーして保存する</li>
+          <li>表示されたパスワード（スペース区切り）をコピーして <span class="ic">install.bat</span> に入力する</li>
         </ol>
         <div class="callout warn" style="margin-top:10px;">
           <span class="callout-icon">⚠️</span>
-          <div>アプリケーションパスワードは発行時の1回しか表示されません。必ずコピーして安全な場所に保存してください。</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>環境変数の設定方法</h3>
-        <p>PowerShell で以下を実行してください（一度設定すれば PC を再起動しても維持されます）。</p>
-        <div class="code-block">
-          <div class="code-header"><span class="code-lang">PowerShell（管理者不要）</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-          <pre><code>[Environment]::SetEnvironmentVariable("WP_URL", "<span class="hi">https://your-site.com</span>", "User")
-[Environment]::SetEnvironmentVariable("WP_USER", "<span class="hi">ユーザー名</span>", "User")
-[Environment]::SetEnvironmentVariable("WP_APP_PASSWORD", "<span class="hi">xxxx xxxx xxxx xxxx xxxx xxxx</span>", "User")</code></pre>
-        </div>
-        <div class="callout info" style="margin-top:8px;">
-          <span class="callout-icon">ℹ️</span>
-          <div>設定後は <strong>PowerShell を一度閉じて開き直す</strong>か、PC を再起動してから実行してください。設定直後は環境変数が反映されていない場合があります。</div>
-        </div>
-        <div class="callout ok" style="margin-top:8px;">
-          <span class="callout-icon">✅</span>
-          <div>設定確認：<span class="ic">$env:WP_URL</span> を PowerShell に入力して URL が表示されれば設定完了です。</div>
+          <div>アプリケーションパスワードは発行時の1回しか表示されません。必ずコピーしてから入力してください。</div>
         </div>
       </div>
     </section>
@@ -364,19 +360,27 @@
           <tbody>
             <tr>
               <td><strong>URL のみ</strong><br><span class="ic">--link url</span></td>
-              <td>WordPress がブログカード（記事サムネ付きのカード）に自動展開する</td>
-              <td>ビジュアルに目立つ形式にしたい場合。WordPress テーマがブログカード対応している場合</td>
-              <td><span class="badge b-green">推奨</span></td>
+              <td>サイトのテーマ・プラグイン設定によって異なる。ブログカードにならない場合あり</td>
+              <td>事前に1記事でテスト表示を確認してから使用する</td>
+              <td><span class="badge b-yellow">要確認</span></td>
             </tr>
             <tr>
               <td><strong>aタグ</strong><br><span class="ic">--link atag</span></td>
               <td><a href="#">記事タイトル</a> のようなテキストリンクとして挿入される</td>
-              <td>ブログカード展開が不要な場合。文章の流れに溶け込ませたい場合</td>
-              <td><span class="badge b-gray">状況次第</span></td>
+              <td>表示結果を確実にしたい場合。サイトのテーマに依存しない</td>
+              <td><span class="badge b-green">推奨</span></td>
             </tr>
           </tbody>
         </table>
-        <div class="callout info" style="margin-top:12px;">
+        <div class="callout warn" style="margin-top:12px;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>URL のみ形式を選択する前に必ず確認してください。</strong><br>
+            ブログカードとして表示されるかどうかは WordPress のテーマ・プラグイン設定に依存します。サイトが独自のブログカード実装を持っている場合、カードにならないことがあります。クラシック / Gutenberg のどちらのエディタでも同様の不確実性があります。<br>
+            <strong>本番環境で1記事テストしてから全件実行してください。</strong>
+          </div>
+        </div>
+        <div class="callout info" style="margin-top:8px;">
           <span class="callout-icon">ℹ️</span>
           <div><strong>エディタ形式（Gutenberg / クラシック）は自動判定されます。</strong>記事ごとにどちらのエディタで書かれているかを自動検出して挿入方法を切り替えるため、事前に指定する必要はありません。</div>
         </div>
@@ -397,9 +401,9 @@
         <table class="tbl">
           <thead><tr><th>列</th><th>内容</th><th>説明</th></tr></thead>
           <tbody>
-            <tr><td><strong>N</strong></td><td>処理ステータス</td><td>「済み」「スキップ」「エラー」など処理結果の概要</td></tr>
-            <tr><td><strong>O</strong></td><td>挿入件数</td><td>実際に WordPress へ挿入されたリンクの数</td></tr>
-            <tr><td><strong>P</strong></td><td>スキップ件数</td><td>セクション内リンクチェックなどでスキップされた数</td></tr>
+            <tr><td><strong>N</strong></td><td>処理ステータス</td><td>「済み」「済み（スキップあり）」「エラー」など処理結果の概要</td></tr>
+            <tr><td><strong>O</strong></td><td>処理日時 / エラー内容</td><td>処理が完了した日時。エラー時はエラー内容が記録される</td></tr>
+            <tr><td><strong>P</strong></td><td>挿入件数</td><td>実際に WordPress へ挿入されたリンクの数（0〜3）</td></tr>
           </tbody>
         </table>
       </div>
@@ -459,6 +463,7 @@
         <ul style="margin-top:10px;">
           <li>アンカーリンク（<span class="ic">&lt;a href=</span> タグ）</li>
           <li>ブログカード埋め込み（<span class="ic">wp:embed</span> ブロック）</li>
+          <li>URL のみの段落（<span class="ic">&lt;p&gt;https://...&lt;/p&gt;</span> 形式。URL 形式で挿入済みの場合）</li>
         </ul>
         <p style="margin-top:12px;">上記のいずれかが見つかった場合は、<strong>そのセクションへの挿入をスキップ</strong>し、スキップ件数（P 列）を増やします。</p>
 

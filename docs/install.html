@@ -217,9 +217,9 @@
     <a class="nav-item" href="#overview"><span class="nav-badge">0</span> 仕組みと概要</a>
     <a class="nav-item" href="#prereq"><span class="nav-badge">★</span> 必要なもの一覧</a>
 
-    <div class="nav-group">インストール（install.bat の 11 ステップ）</div>
+    <div class="nav-group">インストール（install.bat の 12 ステップ）</div>
     <a class="nav-item" href="#start"><span class="nav-badge">▶</span> セットアップ開始（install.bat）</a>
-    <a class="nav-item" href="#flow-overview"><span class="nav-badge">≡</span> 11 ステップ概要</a>
+    <a class="nav-item" href="#flow-overview"><span class="nav-badge">≡</span> 12 ステップ概要</a>
     <a class="nav-item" href="#step1"><span class="nav-badge">1</span> Python の確認</a>
     <a class="nav-item" href="#step2"><span class="nav-badge">2</span> Chrome + 拡張機能</a>
     <a class="nav-item" href="#step3"><span class="nav-badge">3</span> Cowork の確認</a>
@@ -227,9 +227,10 @@
     <a class="nav-item" href="#step5"><span class="nav-badge">5</span> フォルダの確認</a>
     <a class="nav-item" href="#step6"><span class="nav-badge">6</span> JSON 自動配置</a>
     <a class="nav-item" href="#step7"><span class="nav-badge">7</span> 環境変数の設定</a>
-    <a class="nav-item" href="#step8"><span class="nav-badge">8</span> ライブラリのインストール</a>
-    <a class="nav-item" href="#step9"><span class="nav-badge">9</span> ランナーサーバー起動</a>
-    <a class="nav-item" href="#step10"><span class="nav-badge">10</span> Cowork 再起動</a>
+    <a class="nav-item" href="#step8"><span class="nav-badge">8</span> WordPress サイト設定</a>
+    <a class="nav-item" href="#step9"><span class="nav-badge">9</span> ライブラリのインストール</a>
+    <a class="nav-item" href="#step10"><span class="nav-badge">10</span> ランナーサーバー起動</a>
+    <a class="nav-item" href="#step11"><span class="nav-badge">11</span> Cowork 再起動</a>
     <a class="nav-item" href="#verify"><span class="nav-badge">✓</span> 動作確認</a>
 
     <div class="nav-group">機能別 導入手順</div>
@@ -380,9 +381,9 @@
         <p><span class="ic">install.bat</span> は、このツールのセットアップに必要な全 11 ステップを自動で案内する<strong>インストーラー</strong>です。</p>
         <p>ダブルクリックするだけで PowerShell が開き、順番に処理が進みます。所要時間の目安は <strong>15〜20 分</strong>です。</p>
         <ul style="margin-top:8px; margin-bottom:0;">
-          <li>STEP 1〜6・8・9 はすべて<strong>自動処理</strong>（待つだけ）</li>
+          <li>STEP 1〜7・9・10 はすべて<strong>自動処理</strong>（待つだけ）</li>
           <li>STEP 7 のみ <kbd>Enter</kbd> を 2 回押す操作が必要</li>
-          <li>STEP 10・11 は画面の案内に従って手動で設定</li>
+          <li>STEP 8・11・12 は画面の案内に従って手動で設定</li>
         </ul>
         <p style="margin-top:10px; margin-bottom:0;">このページでは、zip 展開から各ステップの詳細まで順番に説明します。</p>
       </div>
@@ -434,12 +435,12 @@
       <div class="section-header">
         <div class="step-circle" style="background:#475569; font-size:12px;">流れ</div>
         <div>
-          <h2>install.bat の 11 ステップ概要</h2>
+          <h2>install.bat の 12 ステップ概要</h2>
           <div class="sub">install.bat を起動すると、以下の順番で自動的に進みます</div>
         </div>
       </div>
       <div class="card">
-        <p>操作が必要なのは <strong>STEP 7 の 2 箇所（Enter を押すだけ）</strong>と、<strong>STEP 10・11 の手動作業</strong>のみです。それ以外はすべて自動で完了します。</p>
+        <p>操作が必要なのは <strong>STEP 7 の操作（Enter キー）</strong>と、<strong>STEP 8・11・12 の手動入力</strong>のみです。それ以外はすべて自動で完了します。</p>
         <table class="tbl" style="margin-top:12px;">
           <thead>
             <tr>
@@ -456,10 +457,11 @@
             <tr><td><strong>5</strong></td><td>プロジェクトフォルダの確認・登録</td><td><span class="badge b-blue">自動確認</span></td></tr>
             <tr><td><strong>6</strong></td><td>Google サービスアカウント JSON の自動配置</td><td><span class="badge b-blue">自動実行</span></td></tr>
             <tr><td><strong>7</strong></td><td>環境変数の設定（JSON パス・API キー）</td><td><span class="badge b-yellow">Enter 2 回</span></td></tr>
-            <tr><td><strong>8</strong></td><td>必要なライブラリのインストール（pip）</td><td><span class="badge b-blue">自動実行</span></td></tr>
-            <tr><td><strong>9</strong></td><td>ランナーサーバーのスタートアップ登録・起動</td><td><span class="badge b-blue">自動実行</span></td></tr>
-            <tr><td><strong>10</strong></td><td>Cowork プロジェクト作成（案内に従い手動）</td><td><span class="badge b-green">手動</span></td></tr>
-            <tr><td><strong>11</strong></td><td>Spreadsheet の新規作成・共有設定</td><td><span class="badge b-green">手動</span></td></tr>
+            <tr><td><strong>8</strong></td><td>WordPress サイト情報の設定（URL・ユーザー名・パスワード）</td><td><span class="badge b-green">手動入力</span></td></tr>
+            <tr><td><strong>9</strong></td><td>必要なライブラリのインストール（pip）</td><td><span class="badge b-blue">自動実行</span></td></tr>
+            <tr><td><strong>10</strong></td><td>ランナーサーバーのスタートアップ登録・起動</td><td><span class="badge b-blue">自動実行</span></td></tr>
+            <tr><td><strong>11</strong></td><td>Cowork プロジェクト作成（案内に従い手動）</td><td><span class="badge b-green">手動</span></td></tr>
+            <tr><td><strong>12</strong></td><td>Spreadsheet の新規作成・共有設定</td><td><span class="badge b-green">手動</span></td></tr>
           </tbody>
         </table>
         <div class="callout info" style="margin-top:14px;">
@@ -743,10 +745,48 @@
       </div>
     </section>
 
-    <!-- ═══ STEP 8: pip ═══ -->
+    <!-- ═══ STEP 8: WordPress 設定 ═══ -->
     <section class="section" id="step8">
       <div class="section-header">
         <div class="step-circle">8</div>
+        <div>
+          <h2>WordPress サイト情報の設定</h2>
+          <div class="sub">WordPress 自動反映機能を使う場合に設定します（スキップ可）</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>WordPress REST API で記事を更新するため、サイトの URL・ユーザー名・アプリケーションパスワードを入力します。入力した情報は <span class="ic">~/.secrets/nyseo_sites.json</span> に安全に保存されます。</p>
+        <ol style="line-height:2.3;">
+          <li><strong>Spreadsheet URL</strong> を入力する（どのサイトと紐づけるか識別するため）</li>
+          <li><strong>WordPress サイト URL</strong> を入力する（例：<span class="ic">https://example.com</span>）</li>
+          <li><strong>WordPress ユーザー名</strong> を入力する（ログイン名）</li>
+          <li><strong>アプリケーションパスワード</strong> を入力する（スペース区切りの文字列）</li>
+          <li>複数サイトを登録する場合は「Y」を入力して繰り返す</li>
+        </ol>
+        <div class="callout info" style="margin-top:10px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>WordPress を使わない場合は <kbd>N</kbd> を入力してスキップできます。後から <span class="ic">install.bat</span> を再実行して追加することも可能です。</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>アプリケーションパスワードの発行手順</h3>
+        <ol style="line-height:2.3;">
+          <li>WordPress 管理画面 → 「ユーザー」→「プロフィール」を開く</li>
+          <li>ページ下部の「アプリケーションパスワード」セクションまでスクロール</li>
+          <li>任意の名前を入力して「新しいアプリケーションパスワードを追加」をクリック</li>
+          <li>表示されたパスワード（スペース区切り）をコピーして入力する</li>
+        </ol>
+        <div class="callout warn" style="margin-top:10px;">
+          <span class="callout-icon">⚠️</span>
+          <div>アプリケーションパスワードは発行時の1回しか表示されません。必ずコピーしてから入力してください。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STEP 9: pip ═══ -->
+    <section class="section" id="step9">
+      <div class="section-header">
+        <div class="step-circle">9</div>
         <div>
           <h2>必要なライブラリのインストール</h2>
           <div class="sub">install.bat が自動で実行します（約 2〜5 分）</div>
@@ -772,10 +812,10 @@
       </div>
     </section>
 
-    <!-- ═══ STEP 9: ランナーサーバー ═══ -->
-    <section class="section" id="step9">
+    <!-- ═══ STEP 10: ランナーサーバー ═══ -->
+    <section class="section" id="step10">
       <div class="section-header">
-        <div class="step-circle">9</div>
+        <div class="step-circle">10</div>
         <div>
           <h2>ランナーサーバーの登録と起動</h2>
           <div class="sub">install.bat が自動で登録・起動します</div>
@@ -808,10 +848,10 @@
       </div>
     </section>
 
-    <!-- ═══ STEP 10: Cowork 再起動 ═══ -->
-    <section class="section" id="step10">
+    <!-- ═══ STEP 11: Cowork 再起動 ═══ -->
+    <section class="section" id="step11">
       <div class="section-header">
-        <div class="step-circle">10</div>
+        <div class="step-circle">11</div>
         <div>
           <h2>Cowork の再起動</h2>
           <div class="sub">環境変数の設定を反映させます</div>
@@ -896,6 +936,7 @@
           <li><span class="ck-icon">✅</span><div><div class="ck-title">Chrome に Claude 拡張機能がインストールされている</div><div class="ck-desc">ブラウザ右上に Claude アイコン（橙色）が表示されている</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">Cowork が起動している</div><div class="ck-desc">内部リンクエージェント プロジェクトが開ける</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">JSON ファイルが正しい場所にある</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo-agent-…json</span> が存在する</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">WordPress サイト情報が設定済み</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo_sites.json</span> にサイト情報が保存されている（WordPress 自動反映機能を使う場合）</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">pip install が完了している</div><div class="ck-desc">requirements.txt のライブラリがすべて入っている</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">ランナーサーバーが起動している</div><div class="ck-desc"><span class="ic">http://127.0.0.1:8765/status</span> で <span class="ic">{"status": "idle"}</span> が返る</div></div></li>
         </ul>
