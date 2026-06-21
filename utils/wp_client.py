@@ -33,7 +33,7 @@ def _load_wp_credentials(spreadsheet_id: str = "") -> tuple[str, str, str]:
     # 1. nyseo_sites.json から Spreadsheet ID で検索
     if spreadsheet_id and _SITES_JSON.exists():
         try:
-            sites = json.loads(_SITES_JSON.read_text(encoding="utf-8"))
+            sites = json.loads(_SITES_JSON.read_text(encoding="utf-8-sig"))
             if spreadsheet_id in sites:
                 entry = sites[spreadsheet_id]
                 url  = entry.get("wp_url", "")
