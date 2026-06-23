@@ -287,18 +287,20 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
             targets = targets[:limit]
             logger.info(f"--limit {limit} 指定: 先頭 {limit} 件のみ処理します")
     elif force_rows:
-        # --rows 指定: 複数NO行を強制処理
+        # --rows 指定: A列NO.値でマッチングして強制処理
         targets = []
         for rno in force_rows:
-            row_idx = rno - 1
-            if row_idx >= len(data):
-                logger.warning(f"--rows: NO={rno} は存在しません（スキップ）")
+            found_idx, found_row = next(
+                ((i, r) for i, r in enumerate(data) if r[0].strip() == str(rno)),
+                (None, None),
+            )
+            if found_idx is None:
+                logger.warning(f"--rows: NO={rno} は見つかりません（スキップ）")
                 continue
-            row = data[row_idx]
-            url = row[COL_URL].strip() if len(row) > COL_URL else ""
-            kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
+            url = found_row[COL_URL].strip() if len(found_row) > COL_URL else ""
+            kw  = found_row[COL_KW].strip()  if len(found_row) > COL_KW  else ""
             targets.append({
-                "row_idx": row_idx,
+                "row_idx": found_idx,
                 "url": url,
                 "kw": kw,
                 "kw_source": "manual" if kw else "auto_detect",
@@ -308,16 +310,18 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
             logger.info("処理対象がありません。終了します。")
             return
     elif force_row > 0:
-        # --row 指定: H列スキップ判定を無視して指定NO行を強制処理
-        row_idx = force_row - 1  # NO は1始まり、data は0始まり
-        if row_idx >= len(data):
-            logger.info(f"--row {force_row}: データが存在しません。終了します。")
+        # --row 指定: A列NO.値でマッチングして強制処理
+        found_idx, found_row = next(
+            ((i, r) for i, r in enumerate(data) if r[0].strip() == str(force_row)),
+            (None, None),
+        )
+        if found_idx is None:
+            logger.info(f"--row {force_row}: NO.{force_row} が見つかりません。終了します。")
             return
-        row = data[row_idx]
-        url = row[COL_URL].strip() if len(row) > COL_URL else ""
-        kw  = row[COL_KW].strip()  if len(row) > COL_KW  else ""
+        url = found_row[COL_URL].strip() if len(found_row) > COL_URL else ""
+        kw  = found_row[COL_KW].strip()  if len(found_row) > COL_KW  else ""
         targets = [{
-            "row_idx": row_idx,
+            "row_idx": found_idx,
             "url": url,
             "kw": kw,
             "kw_source": "manual" if kw else "auto_detect",

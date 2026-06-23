@@ -1,7 +1,12 @@
+import re
+
 from config import SCORE_THRESHOLD, MIN_CANDIDATES
 from utils.logger import get_logger
 
 logger = get_logger()
+
+# 日付のみの見出しパターン（例: 「1/1（木・元日）」「12/23（月）」「8/9（土）」）
+_DATE_HEADING_RE = re.compile(r"^\d{1,2}/\d{1,2}[（(]")
 
 
 def judge_candidates(
@@ -22,17 +27,35 @@ def judge_candidates(
 
     # urlをキーにしてスコアを引けるようにする
     score_map = {r["url"]: r for r in results}
+    # URLをキーに候補記事の実際の見出しリストを保持
+    actual_headings_map = {
+        c["url"]: c.get("h2_list", []) + c.get("h3_list", [])
+        for c in candidates
+    }
 
     scored: list[dict] = []
     for candidate in candidates:
         r = score_map.get(candidate["url"])
         if r is None:
             continue
+        heading = r["recommended_heading"]
+
+        # ① 見出しバリデーション：AIが返した見出しが実際の見出しリストに存在するか確認
+        actual = actual_headings_map.get(candidate["url"], [])
+        if heading and actual and heading not in actual:
+            logger.debug(f"見出し「{heading[:40]}」は実際の見出しリストにないため除外: {candidate['url'][:60]}")
+            heading = ""
+
+        # ③ 日付のみの見出しを除外（例: 「12/23（月）」「8/9（土）」）
+        if heading and _DATE_HEADING_RE.match(heading):
+            logger.debug(f"日付見出し「{heading}」を除外: {candidate['url'][:60]}")
+            heading = ""
+
         scored.append({
             "url": candidate["url"],
             "score": r["score"],
             "reason": r["reason"],
-            "heading": r["recommended_heading"],
+            "heading": heading,
         })
 
     scored.sort(key=lambda x: x["score"], reverse=True)

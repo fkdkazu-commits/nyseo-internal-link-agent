@@ -63,14 +63,27 @@ def fetch_and_parse(url: str) -> "dict | None":
     return None
 
 
+def _is_link_heading(tag) -> bool:
+    """h2/h3が関連記事リンク等のタイトルかどうかを判定する。
+    <h2><a href="https://...">記事タイトル</a></h2> のように
+    h2/h3のテキスト全体がリンクになっている場合はコンテンツ見出しではない。
+    """
+    a = tag.find("a")
+    if a and a.get("href", "").startswith(("http", "/")):
+        return tag.get_text(strip=True) == a.get_text(strip=True)
+    return False
+
+
 def _parse_html(url: str, html: str) -> dict:
     """HTMLからtitle/h1/h2/h3/本文を抽出して返す。"""
     soup = BeautifulSoup(html, PARSER)
 
     title = soup.title.string.strip() if soup.title and soup.title.string else ""
     h1 = soup.find("h1").get_text(strip=True) if soup.find("h1") else ""
-    h2_list = [tag.get_text(strip=True) for tag in soup.find_all("h2")]
-    h3_list = [tag.get_text(strip=True) for tag in soup.find_all("h3")]
+
+    # リンクタイトル（関連記事ウィジェット等）を除いた見出しのみ抽出
+    h2_list = [tag.get_text(strip=True) for tag in soup.find_all("h2") if not _is_link_heading(tag)]
+    h3_list = [tag.get_text(strip=True) for tag in soup.find_all("h3") if not _is_link_heading(tag)]
 
     # 本文テキスト（先頭800文字）
     for tag in soup(["script", "style", "nav", "header", "footer"]):

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書 (v1.3.1)</title>
+  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書 (v1.3.2)</title>
   <style>
     :root {
       --sidebar-width: 280px;
@@ -204,7 +204,7 @@
 ═══════════════════════════════ -->
 <main class="main">
   <div class="page-header">
-    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.3.1)</div>
+    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.3.2)</div>
     <h1>WordPress 自動反映機能<br>導入・操作手順書</h1>
     <div class="page-header-desc">
       内部リンクエージェントが提案した候補（H〜M 列）を、WordPress 記事に自動挿入する機能の手順書です。<br>
@@ -299,22 +299,36 @@
       </div>
 
       <div class="card">
-        <h3>実行手順</h3>
+        <h3>WordPress 挿入の開始方法</h3>
+        <p style="margin-bottom:12px;">WordPress 挿入は以下の <strong>2 通りの方法</strong>で開始できます。</p>
+
+        <div style="padding:12px 14px; background:#f8fafc; border:1px solid var(--border); border-radius:6px; font-size:13px; line-height:1.9; margin-bottom:10px;">
+          <strong>方法① 内部リンクエージェント完了後に PowerShell から続けて開始する</strong><br>
+          内部リンクエージェントが完了すると、PowerShell ウィンドウに自動でプロンプトが表示されます。Spreadsheet の H〜M 列を事前に確認する余裕がない場合を除き、<strong>一度「N」で終了して H〜M 列を確認してから方法②で実行することを推奨します</strong>。
+          <ol style="margin: 6px 0 0 16px; line-height:2;">
+            <li>「続けてWP挿入を開始しますか？ <span class="ic">[Y/N]</span>」→ <strong>Y</strong> を入力して Enter</li>
+            <li>リンク形式を選択：<strong>1</strong>（URLのみ）または <strong>2</strong>（aタグ形式）を入力して Enter</li>
+            <li>自動的に WordPress 挿入が開始されます</li>
+          </ol>
+        </div>
+
+        <div style="padding:12px 14px; background:#f8fafc; border:1px solid var(--border); border-radius:6px; font-size:13px; line-height:1.9;">
+          <strong>方法② Cowork から個別に依頼して開始する</strong><br>
+          Spreadsheet の H〜M 列を確認・承認してから実行する場合はこちらを使います。
+          <ol style="margin: 6px 0 0 16px; line-height:2;">
+            <li>Spreadsheet の H〜M 列を確認・承認する（問題のある行は H 列を空白にしてスキップ）</li>
+            <li>Cowork を開き、内部リンクエージェント プロジェクトを選択する</li>
+            <li>「WordPress に挿入してほしい」と送信し、Spreadsheet URL を伝える</li>
+            <li>エージェントがリンク形式（URL or aタグ）を確認してくるので選択する（詳細は次のセクション参照）</li>
+            <li>Chrome が自動で起動し、Cowork 上に「Allow」ボタンが表示されたらクリックする</li>
+            <li>PowerShell ウィンドウが開き、処理が進む（完了まで閉じないでください）</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>処理完了後の確認</h3>
         <ol style="line-height:2.3;">
-          <li><strong>Spreadsheet の H〜M 列を確認・承認する</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">AI が提案した候補 URL と見出しが適切かどうか確認してください。問題のある行は H 列を空白にしてスキップできます</span>
-          </li>
-          <li><strong>Cowork を開き、内部リンクエージェント プロジェクトを選択する</strong></li>
-          <li><strong>「WordPress に挿入してほしい」と送信し、Spreadsheet URL を伝える</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">エージェントがリンク形式（URL or aタグ）を確認してきます</span>
-          </li>
-          <li><strong>リンク形式を選択する</strong>（詳細は次のセクション参照）</li>
-          <li><strong>Chrome で「Allow」をクリックする</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">Chrome が自動で起動し、Cowork 上に「Allow」ボタンが表示されます。必ずクリックしてください</span>
-          </li>
-          <li><strong>PowerShell ウィンドウが開き、処理が進む</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">1 件ずつ処理結果がログ表示されます。完了まで PowerShell を閉じないでください</span>
-          </li>
           <li><strong>Spreadsheet の N/O/P 列で結果を確認する</strong></li>
         </ol>
       </div>

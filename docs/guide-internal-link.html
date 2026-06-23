@@ -568,6 +568,14 @@ http://127.0.0.1:8765/stop
             <span style="color:var(--text-secondary); font-size:12.5px;">PowerShell ウィンドウに「全処理完了。Spreadsheet をご確認ください。」と表示されたら終了です。ウィンドウはそのまま開いておいて構いません。</span>
           </li>
 
+          <li><strong>WordPress 挿入を続けるか確認が届く</strong><br>
+            <span style="color:var(--text-secondary); font-size:12.5px;">PowerShell ウィンドウまたは Cowork チャット上で、続けて WordPress に挿入するかどうか確認が届きます。</span>
+            <div class="callout info" style="margin-top:8px; margin-bottom:0; font-size:13px;">
+              <span class="callout-icon">ℹ️</span>
+              <div>WordPress 挿入の操作手順・注意事項は <a href="guide-wp-insert.html" style="color:var(--accent);">WordPress 自動反映機能 手順書</a> を参照してください。</div>
+            </div>
+          </li>
+
         </ol>
         <div class="callout warn" style="margin-top:16px;">
           <span class="callout-icon">⚠️</span>
@@ -782,6 +790,18 @@ STEP2: 候補 8 件
           <span class="callout-icon">ℹ️</span>
           <div><strong>リンク設置見出しの選択ルール：H4 優先（v1.2.2 改〜）</strong><br>
           I / K / M 列に出力される「リンクを設置する見出し」は、対象記事のテーマに最も具体的に一致する <strong>H4 見出しを最優先</strong>で選びます。H4 に適切な見出しがない場合に H3、さらにない場合のみ H2 を選びます。</div>
+        </div>
+        <div class="callout info" style="margin-top:10px;">
+          <span class="callout-icon">ℹ️</span>
+          <div><strong>判定精度の向上（v1.3.2 改〜）</strong><br>
+          以下の改善が加わり、より正確な候補のみが出力されるようになりました。<br>
+          <ul style="margin:6px 0 0 16px; line-height:1.9;">
+            <li><strong>読者層判定の強化：</strong>記事の本文冒頭テキストも参照して読者層を判定するため、ターゲットが異なる記事（求人サイト向けと求職者向けなど）が除外されやすくなりました。</li>
+            <li><strong>見出しの精度向上：</strong>AI が提案した見出しが対象記事に実際に存在するかを確認するバリデーションを追加。存在しない見出しは候補から除外されます。</li>
+            <li><strong>重複見出しの排除：</strong>同一行に同じ見出しが複数候補にわたって重複している場合、2 件目以降をスキップします。</li>
+            <li><strong>日付のみの見出しを除外：</strong>「1/1（木・元日）」など日付のみで構成された見出しは、内部リンクの挿入位置として不適切なため自動的に除外されます。</li>
+          </ul>
+          </div>
         </div>
         <div class="callout warn" style="margin-top:10px;">
           <span class="callout-icon">⚠️</span>

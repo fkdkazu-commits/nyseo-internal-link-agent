@@ -14,8 +14,11 @@ Cowork (Claude in Chrome) から main.py / main_wp.py を起動するための�
   GET /stop                            実行中の処理を停止する
 """
 
+import os
+import platform
 import subprocess
 import sys
+import tempfile
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -25,6 +28,21 @@ PROJECT_DIR = Path(__file__).parent
 LOG_FILE    = PROJECT_DIR / "logs" / "latest.log"
 STOP_FLAG   = PROJECT_DIR / "stop.flag"
 PORT = 8765
+
+IS_MAC = platform.system() == "Darwin"
+PYTHON_CMD = "python3" if IS_MAC else "py"
+
+
+def _open_terminal_mac(bash_script: str) -> None:
+    """macOS: 一時bashスクリプトをTerminal.appで実行する"""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False, encoding="utf-8") as f:
+        f.write(bash_script)
+        tmp_path = f.name
+    os.chmod(tmp_path, 0o755)
+    subprocess.Popen([
+        "osascript", "-e",
+        f'tell application "Terminal" to activate\ntell application "Terminal" to do script "bash {tmp_path}"'
+    ])
 
 _running = False
 _lock = threading.Lock()
@@ -111,15 +129,26 @@ class Handler(BaseHTTPRequestHandler):
     def _execute_wp(self, url: str, editor: str, link: str):
         global _running
         try:
-            ps_cmd = (
-                f'cd "{PROJECT_DIR}"; '
-                f'py main_wp.py "{url}" --editor {editor} --link {link}; '
-                f'Write-Host ""; Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green; '
-                f'pause'
-            )
-            subprocess.Popen(
-                ["cmd", "/c", "start", "powershell", "-NoExit", "-Command", ps_cmd],
-            )
+            if IS_MAC:
+                bash_script = (
+                    f'#!/bin/bash\n'
+                    f'cd "{PROJECT_DIR}"\n'
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link {link}\n'
+                    f'echo ""\n'
+                    f'echo "WP挿入完了。このウィンドウを閉じてください。"\n'
+                    f'read -p "Enterキーを押して終了..." dummy\n'
+                )
+                _open_terminal_mac(bash_script)
+            else:
+                ps_cmd = (
+                    f'cd "{PROJECT_DIR}"; '
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link {link}; '
+                    f'Write-Host ""; Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green; '
+                    f'pause'
+                )
+                subprocess.Popen(
+                    ["cmd", "/c", "start", "powershell", "-NoExit", "-Command", ps_cmd],
+                )
         finally:
             with _lock:
                 _running = False
@@ -141,39 +170,73 @@ class Handler(BaseHTTPRequestHandler):
             if api:
                 args.append("--api")
             args_str = " ".join(f'"{a}"' for a in args)
-            ps_cmd = (
-                f'cd "{PROJECT_DIR}"; '
-                f'py main.py {args_str}; '
-                f'Write-Host ""; '
-                f'Write-Host "内部リンクエージェントの処理は完了しました。" -ForegroundColor Green; '
-                f'Write-Host ""; '
-                f'$wpAns = Read-Host "続けてWP挿入を開始しますか？ [Y/N]"; '
-                f'if ($wpAns -eq "Y" -or $wpAns -eq "y") {{ '
-                f'Write-Host ""; '
-                f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
-                f'Write-Host "  1. URLのみ"; '
-                f'Write-Host "  2. aタグ形式（テキストリンク）"; '
-                f'Write-Host ""; '
-                f'Write-Host "⚠ URLのみを選択する場合の注意：" -ForegroundColor Yellow; '
-                f'Write-Host "  サイトのテーマ・プラグイン設定によって表示が変わります。" -ForegroundColor Yellow; '
-                f'Write-Host "  ブログカードにならない場合があります。" -ForegroundColor Yellow; '
-                f'Write-Host "  事前に1記事で表示確認してから選択してください。" -ForegroundColor Yellow; '
-                f'Write-Host ""; '
-                f'$linkAns = Read-Host "番号を入力 [1/2]"; '
-                f'if ($linkAns -eq "2") {{ $linkMode = "atag" }} else {{ $linkMode = "url" }}; '
-                f'Write-Host ""; '
-                f'Write-Host "WP挿入を開始します..." -ForegroundColor Cyan; '
-                f'py main_wp.py "{url}" --link $linkMode; '
-                f'Write-Host ""; '
-                f'Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green '
-                f'}} else {{ '
-                f'Write-Host "完了しました。このウィンドウを閉じてください。" -ForegroundColor Green '
-                f'}}; '
-                f'pause'
-            )
-            subprocess.Popen(
-                ["cmd", "/c", "start", "powershell", "-NoExit", "-Command", ps_cmd],
-            )
+            if IS_MAC:
+                bash_script = (
+                    f'#!/bin/bash\n'
+                    f'cd "{PROJECT_DIR}"\n'
+                    f'{PYTHON_CMD} main.py {args_str}\n'
+                    f'echo ""\n'
+                    f'echo "内部リンクエージェントの処理は完了しました。"\n'
+                    f'echo ""\n'
+                    f'read -p "続けてWP挿入を開始しますか？ [Y/N]: " wpAns\n'
+                    f'if [ "$wpAns" = "Y" ] || [ "$wpAns" = "y" ]; then\n'
+                    f'  echo ""\n'
+                    f'  echo "リンク形式を選択してください："\n'
+                    f'  echo "  1. URLのみ"\n'
+                    f'  echo "  2. aタグ形式（テキストリンク）"\n'
+                    f'  echo ""\n'
+                    f'  echo "⚠ URLのみを選択する場合の注意："\n'
+                    f'  echo "  サイトのテーマ・プラグイン設定によって表示が変わります。"\n'
+                    f'  echo "  ブログカードにならない場合があります。"\n'
+                    f'  echo "  事前に1記事で表示確認してから選択してください。"\n'
+                    f'  echo ""\n'
+                    f'  read -p "番号を入力 [1/2]: " linkAns\n'
+                    f'  if [ "$linkAns" = "2" ]; then linkMode="atag"; else linkMode="url"; fi\n'
+                    f'  echo ""\n'
+                    f'  echo "WP挿入を開始します..."\n'
+                    f'  {PYTHON_CMD} main_wp.py "{url}" --link $linkMode\n'
+                    f'  echo ""\n'
+                    f'  echo "WP挿入完了。このウィンドウを閉じてください。"\n'
+                    f'else\n'
+                    f'  echo "完了しました。このウィンドウを閉じてください。"\n'
+                    f'fi\n'
+                    f'read -p "Enterキーを押して終了..." dummy\n'
+                )
+                _open_terminal_mac(bash_script)
+            else:
+                ps_cmd = (
+                    f'cd "{PROJECT_DIR}"; '
+                    f'{PYTHON_CMD} main.py {args_str}; '
+                    f'Write-Host ""; '
+                    f'Write-Host "内部リンクエージェントの処理は完了しました。" -ForegroundColor Green; '
+                    f'Write-Host ""; '
+                    f'$wpAns = Read-Host "続けてWP挿入を開始しますか？ [Y/N]"; '
+                    f'if ($wpAns -eq "Y" -or $wpAns -eq "y") {{ '
+                    f'Write-Host ""; '
+                    f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
+                    f'Write-Host "  1. URLのみ"; '
+                    f'Write-Host "  2. aタグ形式（テキストリンク）"; '
+                    f'Write-Host ""; '
+                    f'Write-Host "⚠ URLのみを選択する場合の注意：" -ForegroundColor Yellow; '
+                    f'Write-Host "  サイトのテーマ・プラグイン設定によって表示が変わります。" -ForegroundColor Yellow; '
+                    f'Write-Host "  ブログカードにならない場合があります。" -ForegroundColor Yellow; '
+                    f'Write-Host "  事前に1記事で表示確認してから選択してください。" -ForegroundColor Yellow; '
+                    f'Write-Host ""; '
+                    f'$linkAns = Read-Host "番号を入力 [1/2]"; '
+                    f'if ($linkAns -eq "2") {{ $linkMode = "atag" }} else {{ $linkMode = "url" }}; '
+                    f'Write-Host ""; '
+                    f'Write-Host "WP挿入を開始します..." -ForegroundColor Cyan; '
+                    f'{PYTHON_CMD} main_wp.py "{url}" --link $linkMode; '
+                    f'Write-Host ""; '
+                    f'Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green '
+                    f'}} else {{ '
+                    f'Write-Host "完了しました。このウィンドウを閉じてください。" -ForegroundColor Green '
+                    f'}}; '
+                    f'pause'
+                )
+                subprocess.Popen(
+                    ["cmd", "/c", "start", "powershell", "-NoExit", "-Command", ps_cmd],
+                )
         finally:
             with _lock:
                 _running = False

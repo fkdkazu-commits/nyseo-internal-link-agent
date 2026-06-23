@@ -63,6 +63,7 @@ _NOT_LOGGED_IN_PATTERNS = ("Not logged in", "Please run /login", "not logged")
 
 def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "str | None":
     """claude CLIをサブプロセスで呼び出し、レスポンステキストを返す。"""
+    global _CLAUDE_CMD
     for attempt in range(1, retries + 2):
         try:
             cli_env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
@@ -109,8 +110,14 @@ def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "st
         except subprocess.TimeoutExpired:
             logger.warning(f"claude CLI タイムアウト（試行{attempt}）")
         except FileNotFoundError:
-            logger.error(f"claude コマンドが見つかりません（試行パス: {_CLAUDE_CMD}）。Claude Desktop がインストールされているか確認してください。")
-            return None
+            new_cmd = _find_claude()
+            if new_cmd and new_cmd != _CLAUDE_CMD and Path(new_cmd).exists():
+                logger.warning(f"claude パスを再検索しました（試行{attempt}）: {_CLAUDE_CMD} → {new_cmd}")
+                _CLAUDE_CMD = new_cmd
+                # 新パスでリトライ（sleepしてから次のループへ）
+            else:
+                logger.error(f"claude コマンドが見つかりません（試行パス: {_CLAUDE_CMD}）。Claude Desktop がインストールされているか確認してください。")
+                return None
         except Exception as e:
             err_msg = str(e)
             if any(p in err_msg for p in (
@@ -156,9 +163,17 @@ def extract_main_kw(title: str, h2_list: list) -> str:
 
     kw = response.strip().splitlines()[0].strip()
 
-    # エラーメッセージが混入していないか検証
+    # トークン切れ・エラー文字列を検出
     if any(p in kw for p in ("out of", "hit your limit", "resets ", "usage")):
         logger.warning(f"KW抽出: エラー文字列を検出したためスキップ（{kw[:40]}）")
+        return ""
+
+    # キーワードとして不適切な長さ・説明文パターンを除外
+    if len(kw) > 50:
+        logger.warning(f"KW抽出: 応答が長すぎるためスキップ（{kw[:40]}…）")
+        return ""
+    if any(p in kw for p in ("情報では", "申し訳", "できません", "ください")):
+        logger.warning(f"KW抽出: 説明文と判定したためスキップ（{kw[:40]}）")
         return ""
 
     logger.info(f"KW抽出完了: 「{kw}」（タイトル: {title}）")

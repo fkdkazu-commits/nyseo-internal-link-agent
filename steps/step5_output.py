@@ -32,13 +32,25 @@ def write_output(
         logger.info("STEP5完了: 該当なし を出力")
         return row
 
+    seen_headings: set[str] = set()
     for i, (col_url, col_heading) in enumerate(_COL_PAIRS):
         if i < len(top):
-            row[col_url] = top[i].get("url", "")
-            row[col_heading] = top[i].get("heading", "")
+            heading = top[i].get("heading", "")
+            # ② 同じ見出しが既に採用済みならスキップ
+            if heading and heading in seen_headings:
+                logger.debug(f"重複見出し「{heading[:40]}」をスキップ: {top[i].get('url', '')[:60]}")
+                row[col_url] = ""
+                row[col_heading] = ""
+            else:
+                if heading:
+                    seen_headings.add(heading)
+                row[col_url] = top[i].get("url", "")
+                row[col_heading] = heading
         else:
             row[col_url] = ""
             row[col_heading] = ""
 
     logger.info(f"STEP5完了: {len(top)} 件を出力")
+    for i, c in enumerate(top, 1):
+        logger.info(f"  [{i}] {c.get('url', '')} → 見出し: 「{c.get('heading', '')}」")
     return row
