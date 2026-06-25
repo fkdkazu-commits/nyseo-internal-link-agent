@@ -117,6 +117,29 @@ class SheetsClient:
         self._cache[url] = {**article, "_row": self._next_cache_row}
         self._next_cache_row += 1
 
+    def batch_save_cache(self, articles: list) -> None:
+        """複数記事を一括でキャッシュタブに保存する（append_rows 1回でAPI上限回避）。"""
+        rows = []
+        for article in articles:
+            url = article.get("url", "").strip()
+            if not url or url in self._cache:
+                continue
+            rows.append([
+                url,
+                article.get("title", ""),
+                article.get("h1", ""),
+                json.dumps(article.get("h2_list", []), ensure_ascii=False),
+                json.dumps(article.get("h3_list", []), ensure_ascii=False),
+                article.get("body_text", "")[:1500],
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                article.get("main_kw", ""),
+            ])
+            self._cache[url] = {**article, "_row": self._next_cache_row}
+            self._next_cache_row += 1
+        if rows:
+            self._cache_ws.append_rows(rows)
+            logger.info(f"キャッシュ一括保存: {len(rows)} 件")
+
     def batch_save_kw(self, url_kw_pairs: list) -> None:
         """複数URLのmain_kwをまとめて一括更新する（API呼び出し1回）。"""
         col_letter = chr(64 + self._main_kw_col)

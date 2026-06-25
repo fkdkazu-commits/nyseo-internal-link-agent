@@ -371,13 +371,16 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
     to_fetch = [a for a in all_articles if not a.get("title")]
     if to_fetch:
         logger.info(f"未キャッシュ {len(to_fetch)} 件をフェッチ中…")
+        fetched_articles = []
         for i, a in enumerate(to_fetch, 1):
             fetched = fetch_and_parse(a["url"])
             if fetched:
-                client.save_cache(fetched)
+                fetched_articles.append(fetched)
                 a.update({**fetched, "kw": a.get("kw", "")})
             print(f"  フェッチ: {i}/{len(to_fetch)}", end="\r", flush=True)
         print()
+        if fetched_articles:
+            client.batch_save_cache(fetched_articles)
         logger.info("フェッチ完了")
 
     # フェーズ2: A〜G取得済み・H列(main_kw)が空の記事はKWのみ抽出してH列を更新
