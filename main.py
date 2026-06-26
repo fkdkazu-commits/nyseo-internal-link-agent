@@ -369,8 +369,8 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
     cached_count = sum(1 for a in all_articles if a.get("title"))
     logger.info(f"インデックス構築完了: {len(all_articles)} 件（キャッシュ済み {cached_count} 件）")
 
-    # フェーズ1: 未キャッシュ記事のHTML全件フェッチ（CLIモードも全件取得して候補漏れを防ぐ）
-    # KW抽出はフェーズ2（CLI）またはPre-phase B（API）で実施
+    # フェーズ1: 未キャッシュ記事のHTML全件フェッチ → KW抽出 → article_cache一括保存
+    # KW込みで保存することで初回保存時からarticle_cache H列が空欄にならない
     to_fetch = [a for a in all_articles if not a.get("title")]
     if to_fetch:
         logger.info(f"未キャッシュ {len(to_fetch)} 件をフェッチ中…")
@@ -378,22 +378,46 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
         for i, a in enumerate(to_fetch, 1):
             fetched = fetch_and_parse(a["url"])
             if fetched:
+                fetched["main_kw"] = a.get("kw", "")  # C列KWがある場合は引き継ぐ
                 fetched_articles.append(fetched)
-                a.update({**fetched, "kw": a.get("kw", "")})
+                a.update({**fetched, "kw": fetched["main_kw"]})
             print(f"  フェッチ: {i}/{len(to_fetch)}", end="\r", flush=True)
         print()
+
+        # CLIモード: KW未抽出の記事をKW抽出してからarticle_cacheに保存
+        if not api:
+            kw_unfilled = [fa for fa in fetched_articles if not fa.get("main_kw")]
+            if kw_unfilled:
+                logger.info(f"KW抽出中（フェッチ済み {len(kw_unfilled)} 件）…")
+                for i, fa in enumerate(kw_unfilled, 1):
+                    title = fa.get("title", "") or fa.get("h1", "")
+                    extracted = extract_main_kw(title, fa.get("h2_list", []))
+                    if not extracted:
+                        extracted = extract_main_kw(title, fa.get("h2_list", []))
+                    if extracted:
+                        fa["main_kw"] = extracted
+                        for a in all_articles:
+                            if a["url"] == fa["url"]:
+                                a["kw"] = extracted
+                                break
+                    print(f"  KW抽出: {i}/{len(kw_unfilled)}", end="\r", flush=True)
+                print()
+
         if fetched_articles:
             client.batch_save_cache(fetched_articles)
         logger.info("フェッチ完了")
 
-    # フェーズ2: A〜G取得済み・H列(main_kw)が空の記事はKWのみ抽出してH列を更新
+    # フェーズ2: キャッシュ済み（以前からの）でKWが空の記事のみKW抽出・更新
+    # ※ フェーズ1でフェッチした記事はKW抽出済みのため対象外
     # --api モード: Pre-phase Bで並列実施するためスキップ
-    kw_missing = [a for a in all_articles if a.get("title") and not a["kw"]]
+    kw_missing = [a for a in all_articles if a.get("title") and not a.get("kw")]
     if kw_missing and not api:
         logger.info(f"KW未抽出 {len(kw_missing)} 件 → main_kw を抽出中…")
         for i, a in enumerate(kw_missing, 1):
             title = a.get("title", "") or a.get("h1", "")
             extracted = extract_main_kw(title, a.get("h2_list", []))
+            if not extracted:
+                extracted = extract_main_kw(title, a.get("h2_list", []))
             if extracted:
                 client.update_cache_kw(a["url"], extracted)
                 a["kw"] = extracted
