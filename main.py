@@ -134,13 +134,16 @@ def _run_api_mode(
     uncached = [a for a in all_articles if not a.get("title")]
     if uncached:
         logger.info(f"Pre-phase A: 未キャッシュ {len(uncached)} 件をフェッチ中…")
+        fetched_articles = []
         for i, a in enumerate(uncached, 1):
             fetched = fetch_and_parse(a["url"])
             if fetched:
-                client.save_cache(fetched)
+                fetched_articles.append(fetched)
                 a.update({**fetched, "kw": a.get("kw", "")})
             print(f"  フェッチ: {i}/{len(uncached)}", end="\r", flush=True)
         print()
+        if fetched_articles:
+            client.batch_save_cache(fetched_articles)
         logger.info("Pre-phase A完了")
 
     # Pre-phase B: KW未設定記事のKW抽出（直列・レート制限対応）
