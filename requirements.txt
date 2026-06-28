@@ -4,3 +4,4 @@ gspread>=6.0.0
 google-auth>=2.0.0
 anthropic>=0.40.0
 json-repair>=0.30.0
+cryptography>=38.0.0,<49.0.0

@@ -129,9 +129,15 @@ Show-Step "2. 「Claude」（Anthropic 製）を探して「Chrome に追加」�
 Show-Step "3. 確認ダイアログで「拡張機能を追加」をクリック"
 Show-Step "4. Chrome の右上に Claude のアイコン（橙色）が表示されれば完了です"
 Write-Host ""
+Write-Host "  ⚠  【重要】インストール後に以下の設定を必ず行ってください" -ForegroundColor Yellow
+Show-Step "1. Cowork 画面の左下のユーザー名をクリック →「設定」を開く"
+Show-Step "2. 「Claude in Chrome」の設定内容を開く"
+Show-Step "3. 「すべてのサイト」のデフォルト項目で「拡張機能を許可」を選択する"
+Show-Warn "この設定をしないと内部リンクエージェント実行時に接続エラーになります"
+Write-Host ""
 Start-Process "https://chromewebstore.google.com/search/Claude"
 
-Wait-Enter "Claude 拡張機能のインストールが完了したら Enter を押してください"
+Wait-Enter "Claude 拡張機能のインストールと設定が完了したら Enter を押してください"
 
 
 # ============================================================
@@ -380,7 +386,15 @@ while (-not $wpSetupDone) {
     # WordPress 情報
     $wpUrl  = (Read-Host "  WordPress サイト URL（例: https://example.com）").Trim().TrimEnd("/")
     $wpUser = (Read-Host "  WordPress ユーザー名（管理者）").Trim()
-    Write-Host "  ※ WordPress管理画面 → ユーザー → プロフィール → アプリケーションパスワード" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  【アプリケーションパスワードの取得手順】" -ForegroundColor Cyan
+    Write-Host "  1. WordPress 管理画面にログイン" -ForegroundColor Gray
+    Write-Host "  2. 左メニュー「ユーザー」→「プロフィール」をクリック" -ForegroundColor Gray
+    Write-Host "  3. ページ下部「アプリケーションパスワード」セクションまでスクロール" -ForegroundColor Gray
+    Write-Host "  4. 名前を入力（例：内部リンクエージェント）して「追加」をクリック" -ForegroundColor Gray
+    Write-Host "  5. 表示されたパスワード（xxxx xxxx xxxx の形式）をコピー" -ForegroundColor Gray
+    Write-Host "  ※ パスワードは作成時に一度しか表示されません" -ForegroundColor Yellow
+    Write-Host ""
     $wpPass = (Read-Host "  アプリケーションパスワード").Trim()
 
     $siteMap[$ssId] = @{
@@ -415,19 +429,22 @@ if ($siteMap.Count -gt 0) {
 Show-Header "[$([string]9)/$STEP_TOTAL]" "Python ライブラリのインストール"
 
 Write-Host ""
-Show-Info "pip install -r requirements.txt を実行しています..."
+Show-Info "ライブラリをインストールしています。完了まで数分かかる場合があります..."
+Show-Info "画面が止まっているように見えても処理中ですので、そのままお待ちください。"
 Write-Host ""
 
 $reqFile = Join-Path $PROJECT_DIR "requirements.txt"
-& $pyCmd -m pip install -r $reqFile
+& $pyCmd -m pip install --upgrade pip --quiet 2>$null
+& $pyCmd -m pip install -r $reqFile --no-warn-script-location -q
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Show-Ok "ライブラリのインストールが完了しました"
 } else {
     Write-Host ""
-    Show-Warn "インストール中にエラーが発生した可能性があります。"
-    Show-Warn "上記のエラーメッセージを確認してください。"
+    Show-Warn "インストール中にエラーが発生しました。"
+    Show-Warn "ログを確認するには以下を実行してください："
+    Write-Host "  $pyCmd -m pip install -r `"$reqFile`"" -ForegroundColor Gray
     Wait-Enter "確認したら Enter を押して続けてください"
 }
 

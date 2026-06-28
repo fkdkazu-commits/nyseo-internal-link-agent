@@ -25,9 +25,30 @@ def _find_claude() -> str:
     if found:
         return found
 
+    home = Path.home()
+
+    # 2. Mac: Cowork（Claude Desktop）インストール先
+    cowork_dir = home / "Library" / "Application Support" / "Claude" / "claude-code"
+    if cowork_dir.exists():
+        matches = sorted(cowork_dir.glob("*/claude.app/Contents/MacOS/claude"))
+        if matches:
+            logger.info(f"claude をMac Coworkパスで発見: {matches[-1]}")
+            return str(matches[-1])
+
+    # 3. Mac: 一般的なパス
+    for p in [
+        home / ".claude" / "local" / "claude",
+        Path("/usr/local/bin/claude"),
+        Path("/opt/homebrew/bin/claude"),
+        home / ".local" / "bin" / "claude",
+    ]:
+        if p.exists():
+            logger.info(f"claude をフォールバックパスで発見: {p}")
+            return str(p)
+
     local_app = Path(os.environ.get("LOCALAPPDATA", ""))
 
-    # 2. 通常インストール版
+    # 4. Windows: 通常インストール版
     for p in [
         local_app / "AnthropicClaude" / "claude.exe",
         Path(os.environ.get("USERPROFILE", "")) / "AppData" / "Local" / "AnthropicClaude" / "claude.exe",
@@ -36,7 +57,7 @@ def _find_claude() -> str:
             logger.info(f"claude をフォールバックパスで発見: {p}")
             return str(p)
 
-    # 3. Windows ストア版（パッケージ名・バージョンが可変なのでglobで検索）
+    # 5. Windows: ストア版（パッケージ名・バージョンが可変なのでglobで検索）
     packages_dir = local_app / "Packages"
     if packages_dir.exists():
         for exe in packages_dir.glob("Claude_*/LocalCache/Roaming/Claude/claude-code/*/claude.exe"):

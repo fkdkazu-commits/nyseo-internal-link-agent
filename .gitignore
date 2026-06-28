@@ -36,3 +36,8 @@ input/*.csv
 output/*.csv
 *.xlsx
 *.XLSX
+
+# 一時ファイル・デバッグ用
+_debug_titles.txt
+wp_raw_content.txt
+_check_blank_h.py
