@@ -253,15 +253,19 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
     # 候補記事ブロックを組み立て
     lines = []
     for c in candidates:
-        h2 = [_sanitize(h) for h in c.get("h2_list", [])[:15]]
-        h3 = [_sanitize(h) for h in c.get("h3_list", [])[:20]]
-        h2_text = "H2: " + " / ".join(h2) if h2 else ""
-        h3_text = "H3: " + " / ".join(h3) if h3 else ""
-        headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
+        h_ctx = [_sanitize(h) for h in c.get("h_context_list", [])[:30]]
+        if h_ctx:
+            headings = "\n".join(f"    - {h}" for h in h_ctx)
+        else:
+            h2 = [_sanitize(h) for h in c.get("h2_list", [])[:15]]
+            h3 = [_sanitize(h) for h in c.get("h3_list", [])[:20]]
+            h2_text = "H2: " + " / ".join(h2) if h2 else ""
+            h3_text = "H3: " + " / ".join(h3) if h3 else ""
+            headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
         lines.append(
             f"- URL: {c.get('url', '')}\n"
             f"  タイトル: {_sanitize(c.get('title', ''))}\n"
-            f"  見出し: {headings}\n"
+            f"  見出し（見出し｜直後150文字）:\n{headings}\n"
             f"  本文冒頭: {_sanitize(c.get('body_text', '')[:body_chars])}"
         )
     candidates_block = "\n\n".join(lines)
@@ -466,15 +470,19 @@ async def judge_relevance_batch_api_async(
     template = (PROMPTS_DIR / "relevance_judge_batch.txt").read_text(encoding="utf-8")
     lines = []
     for c in candidates:
-        h2 = c.get("h2_list", [])[:15]
-        h3 = c.get("h3_list", [])[:20]
-        h2_text = "H2: " + " / ".join(h2) if h2 else ""
-        h3_text = "H3: " + " / ".join(h3) if h3 else ""
-        headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
+        h_ctx = c.get("h_context_list", [])[:30]
+        if h_ctx:
+            headings = "\n".join(f"    - {h}" for h in h_ctx)
+        else:
+            h2 = c.get("h2_list", [])[:15]
+            h3 = c.get("h3_list", [])[:20]
+            h2_text = "H2: " + " / ".join(h2) if h2 else ""
+            h3_text = "H3: " + " / ".join(h3) if h3 else ""
+            headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
         lines.append(
             f"- URL: {c.get('url', '')}\n"
             f"  タイトル: {c.get('title', '')}\n"
-            f"  見出し: {headings}\n"
+            f"  見出し（見出し｜直後150文字）:\n{headings}\n"
             f"  本文冒頭: {c.get('body_text', '')[:body_chars]}"
         )
     t_h2 = target.get("h2_list", [])[:4]

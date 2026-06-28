@@ -85,7 +85,26 @@ def _parse_html(url: str, html: str) -> dict:
     h2_list = [tag.get_text(strip=True) for tag in soup.find_all("h2") if not _is_link_heading(tag)]
     h3_list = [tag.get_text(strip=True) for tag in soup.find_all("h3") if not _is_link_heading(tag)]
 
-    # 本文テキスト（先頭800文字）
+    # 見出し（h2/h3/h4）＋直後150文字のリスト（decompose前に取得）
+    h_context_list = []
+    for tag in soup.find_all(["h2", "h3", "h4"]):
+        if _is_link_heading(tag):
+            continue
+        heading_text = tag.get_text(strip=True)
+        if not heading_text:
+            continue
+        context_parts = []
+        for sibling in tag.next_siblings:
+            if hasattr(sibling, "name") and sibling.name in ["h2", "h3", "h4"]:
+                break
+            if hasattr(sibling, "get_text"):
+                text = sibling.get_text(strip=True)
+                if text:
+                    context_parts.append(text)
+        context = " ".join(context_parts)[:150]
+        h_context_list.append(f"{heading_text}｜{context}" if context else heading_text)
+
+    # 本文テキスト（先頭1500文字）
     for tag in soup(["script", "style", "nav", "header", "footer"]):
         tag.decompose()
     body_text = soup.get_text(separator=" ", strip=True)[:1500]
@@ -96,5 +115,6 @@ def _parse_html(url: str, html: str) -> dict:
         "h1": h1,
         "h2_list": h2_list,
         "h3_list": h3_list,
+        "h_context_list": h_context_list,
         "body_text": body_text,
     }
