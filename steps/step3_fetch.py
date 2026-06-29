@@ -41,6 +41,68 @@ def fetch_article(url: str) -> "dict | None":
     return fetch_and_parse(url)
 
 
+def fetch_headings_with_context(url: str) -> "dict | None":
+    """
+    採用記事向け：h2/h3/h4の見出し＋直後300文字を取得して返す。
+    戻り値: {"h2_list", "h3_list", "h4_list", "h_context_map"}
+    h_context_map: {見出しテキスト: 直後300文字}
+    """
+    for attempt in range(1, HTTP_RETRY + 2):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=HTTP_TIMEOUT)
+            resp.raise_for_status()
+            return _parse_headings_with_context(resp.text)
+        except requests.exceptions.Timeout:
+            logger.warning(f"タイムアウト（試行{attempt}）: {url}")
+        except requests.exceptions.HTTPError as e:
+            logger.warning(f"HTTPエラー {e.response.status_code}（試行{attempt}）: {url}")
+            break
+        except Exception as e:
+            logger.warning(f"取得エラー（試行{attempt}）: {url} — {e}")
+        if attempt <= HTTP_RETRY:
+            time.sleep(1)
+    logger.warning(f"スキップ（最大リトライ超過）: {url}")
+    return None
+
+
+def _parse_headings_with_context(html: str) -> dict:
+    """HTMLからh2/h3/h4の見出し＋直後300文字を抽出して返す。"""
+    soup = BeautifulSoup(html, PARSER)
+    h2_list, h3_list, h4_list = [], [], []
+    h_context_map = {}
+
+    for tag in soup.find_all(["h2", "h3", "h4"]):
+        if _is_link_heading(tag):
+            continue
+        heading_text = tag.get_text(strip=True)
+        if not heading_text:
+            continue
+        context_parts = []
+        for sibling in tag.next_siblings:
+            if hasattr(sibling, "name") and sibling.name in ["h2", "h3", "h4"]:
+                break
+            if hasattr(sibling, "get_text"):
+                text = sibling.get_text(strip=True)
+                if text:
+                    context_parts.append(text)
+        context = " ".join(context_parts)[:300]
+        if context:
+            h_context_map[heading_text] = context
+        if tag.name == "h2":
+            h2_list.append(heading_text)
+        elif tag.name == "h3":
+            h3_list.append(heading_text)
+        elif tag.name == "h4":
+            h4_list.append(heading_text)
+
+    return {
+        "h2_list": h2_list,
+        "h3_list": h3_list,
+        "h4_list": h4_list,
+        "h_context_map": h_context_map,
+    }
+
+
 def fetch_and_parse(url: str) -> "dict | None":
     """HTTPリクエストを送信し、BeautifulSoupで解析した結果を返す。"""
     for attempt in range(1, HTTP_RETRY + 2):
@@ -85,25 +147,6 @@ def _parse_html(url: str, html: str) -> dict:
     h2_list = [tag.get_text(strip=True) for tag in soup.find_all("h2") if not _is_link_heading(tag)]
     h3_list = [tag.get_text(strip=True) for tag in soup.find_all("h3") if not _is_link_heading(tag)]
 
-    # 見出し（h2/h3/h4）＋直後150文字のリスト（decompose前に取得）
-    h_context_list = []
-    for tag in soup.find_all(["h2", "h3", "h4"]):
-        if _is_link_heading(tag):
-            continue
-        heading_text = tag.get_text(strip=True)
-        if not heading_text:
-            continue
-        context_parts = []
-        for sibling in tag.next_siblings:
-            if hasattr(sibling, "name") and sibling.name in ["h2", "h3", "h4"]:
-                break
-            if hasattr(sibling, "get_text"):
-                text = sibling.get_text(strip=True)
-                if text:
-                    context_parts.append(text)
-        context = " ".join(context_parts)[:150]
-        h_context_list.append(f"{heading_text}｜{context}" if context else heading_text)
-
     # 本文テキスト（先頭1500文字）
     for tag in soup(["script", "style", "nav", "header", "footer"]):
         tag.decompose()
@@ -115,6 +158,5 @@ def _parse_html(url: str, html: str) -> dict:
         "h1": h1,
         "h2_list": h2_list,
         "h3_list": h3_list,
-        "h_context_list": h_context_list,
         "body_text": body_text,
     }

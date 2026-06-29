@@ -32,6 +32,7 @@ from utils.ai_client import (
     expand_keywords, expand_keywords_sync_api,
     extract_main_kw, extract_main_kw_api_async,
     judge_relevance_batch, judge_relevance_batch_api_async,
+    select_heading,
     TokenExhaustedError, NotLoggedInError,
 )
 from utils.logger import get_logger
@@ -195,6 +196,13 @@ def _run_api_mode(
                 fetched["kw"] = target["kw"]
                 client.save_cache(fetched)
 
+        # select_heading用: target dictにtitle・body_textを補完
+        if "title" not in target:
+            art = next((a for a in all_articles if a["url"] == target["url"]), None)
+            if art:
+                target["title"] = art.get("title", "") or art.get("h1", "")
+                target["body_text"] = art.get("body_text", "")
+
         candidates = _build_candidates(target, all_articles, min_score, max_candidates, use_token_scoring=use_token_scoring)
         for c in candidates:
             if not client.get_cache(c["url"]):
@@ -229,7 +237,7 @@ def _run_api_mode(
             except Exception as e:
                 logger.warning(f"AI判定例外: {e}")
                 continue
-            scored = judge_candidates(target, candidates, lambda t, c: result)
+            scored = judge_candidates(target, candidates, lambda t, c: result, lambda t, c, r="": select_heading(t, c, r))
             if scored is None:
                 # 技術的失敗（JSON破損・トークン切れ）→ H列に書き込まず再処理可能にする
                 done_count[0] += 1
@@ -477,6 +485,13 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
                             a.update(fetched)
                             break
 
+            # select_heading用: target dictにtitle・body_textを補完
+            if "title" not in target:
+                art = next((a for a in all_articles if a["url"] == target["url"]), None)
+                if art:
+                    target["title"] = art.get("title", "") or art.get("h1", "")
+                    target["body_text"] = art.get("body_text", "")
+
             search_kws: list[str] = []
             skip_article = False
 
@@ -550,10 +565,11 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
                     if fetch_count:
                         logger.info(f"候補記事のHTML取得: {fetch_count} 件")
 
-                    # STEP4: AI一括判定（全候補を1回の呼び出しで判定）
+                    # STEP4: AI一括スコアリング → 採用記事のみheading選定
                     adopted = judge_candidates(
                         target, candidates,
                         lambda t, c: judge_relevance_batch(t, c, body_chars=body_chars),
+                        lambda t, c, r="": select_heading(t, c, r),
                     )
 
                     if adopted is None:
@@ -561,7 +577,7 @@ def main(spreadsheet_url: str, limit: int = 0, force_row: int = 0, force_rows: l
                         break
 
                     if len(adopted) < MIN_CANDIDATES:
-                        logger.warning(f"採用 {len(adopted)} 件（閾値未満）")
+                        logger.warning(f"採用 {len(adopted)} 件（最低提案件数 {MIN_CANDIDATES} 件未満）")
 
                     # STEP5: Sheetsに書き込み
                     result_row = write_output(data[target["row_idx"]], adopted, max_cols)

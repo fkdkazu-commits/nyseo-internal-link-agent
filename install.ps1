@@ -365,26 +365,22 @@ Write-Host ""
 
 $wpSetupDone = $false
 while (-not $wpSetupDone) {
-    Write-Host "  ─── スプレッドシート ↔ WordPress の紐づけ設定 ───" -ForegroundColor Cyan
+    Write-Host "  ─── WordPress サイト登録 ───" -ForegroundColor Cyan
     Write-Host ""
-
-    # Spreadsheet URL
-    $ssUrl = ""
-    while (-not $ssUrl) {
-        $ssUrl = (Read-Host "  Spreadsheet URL を入力").Trim()
-    }
-
-    # Spreadsheet ID を抽出
-    if ($ssUrl -match "/spreadsheets/d/([a-zA-Z0-9_-]+)") {
-        $ssId = $Matches[1]
-        Show-Ok "Spreadsheet ID: $ssId"
-    } else {
-        Show-Warn "URL から ID を抽出できませんでした。URL を確認してください。"
-        continue
-    }
 
     # WordPress 情報
     $wpUrl  = (Read-Host "  WordPress サイト URL（例: https://example.com）").Trim().TrimEnd("/")
+    if (-not $wpUrl) { continue }
+
+    # サイトキー（ドメイン名）を抽出
+    try {
+        $parsed = [System.Uri]$wpUrl
+        $siteKey = $parsed.Host
+    } catch {
+        $siteKey = $wpUrl -replace "https?://", "" -replace "/.*", ""
+    }
+    Show-Ok "サイトキー（識別名）: $siteKey"
+
     $wpUser = (Read-Host "  WordPress ユーザー名（管理者）").Trim()
     Write-Host ""
     Write-Host "  【アプリケーションパスワードの取得手順】" -ForegroundColor Cyan
@@ -397,7 +393,7 @@ while (-not $wpSetupDone) {
     Write-Host ""
     $wpPass = (Read-Host "  アプリケーションパスワード").Trim()
 
-    $siteMap[$ssId] = @{
+    $siteMap[$siteKey] = @{
         wp_url          = $wpUrl
         wp_user         = $wpUser
         wp_app_password = $wpPass
@@ -405,7 +401,7 @@ while (-not $wpSetupDone) {
     Show-Ok "設定を追加しました: $wpUrl"
     Write-Host ""
 
-    $moreAns = Read-Host "  別のスプレッドシート（メディア）を追加しますか？ [Y/N]"
+    $moreAns = Read-Host "  別のWordPressサイトを追加しますか？ [Y/N]"
     if ($moreAns -ne "Y" -and $moreAns -ne "y") {
         $wpSetupDone = $true
     }
@@ -706,16 +702,11 @@ Write-Host ""
 Wait-Enter "Spreadsheet を作成したら Enter を押してください"
 
 Write-Host ""
-Write-Host "  【手順 2】CSV データをインポートする" -ForegroundColor Yellow
-Show-Step "1. メニューの「ファイル」→「インポート」をクリック"
-Show-Step "2. 「アップロード」タブで CSV ファイルを選択"
-Show-Step "3. インポート設定："
-Write-Host "     ・インポート場所  →「現在のシートを置換する」" -ForegroundColor White
-Write-Host "     ・区切り文字     →「カンマ」" -ForegroundColor White
-Write-Host "     ・テキストを数値・日付に変換する → オン" -ForegroundColor White
-Show-Step "4. 「データをインポート」をクリック"
+Write-Host "  【手順 2】データを Spreadsheet に用意する" -ForegroundColor Yellow
+Show-Info "記事データのインポート方法は管理者から別途案内があります。"
+Show-Info "インポート後、以下の列構成になっているか確認してください。"
 Write-Host ""
-Write-Host "  【列構成の確認】インポート後、以下の列順になっているか確認してください" -ForegroundColor Yellow
+Write-Host "  【列構成の確認】以下の列順になっているか確認してください" -ForegroundColor Yellow
 Write-Host "  ┌────┬──────────────┬──────────────────────────────────┐" -ForegroundColor DarkGray
 Write-Host "  │ 列 │ 内容         │ 備考                             │" -ForegroundColor DarkGray
 Write-Host "  ├────┼──────────────┼──────────────────────────────────┤" -ForegroundColor DarkGray
@@ -732,7 +723,7 @@ Write-Host ""
 Show-Warn "列の順番が違う場合は列を並び替えてから次へ進んでください"
 Write-Host ""
 
-Wait-Enter "CSV のインポートと列確認が完了したら Enter を押してください"
+Wait-Enter "列構成の確認が完了したら Enter を押してください"
 
 Write-Host ""
 Write-Host "  【手順 3】サービスアカウントに編集権限を付与する" -ForegroundColor Yellow
@@ -791,7 +782,7 @@ Write-Host ""
 Write-Host "  【次回からの使い方】" -ForegroundColor Cyan
 Write-Host "  1. Cowork を開いて「内部リンクエージェント」プロジェクトを選択" -ForegroundColor White
 Write-Host "  2. チャット欄に Spreadsheet の URL を貼り付けて送信" -ForegroundColor White
-Write-Host "  3. 精度モード・AIモードを選択すると処理が自動で始まります" -ForegroundColor White
+Write-Host "  3. 精度モードを選択すると処理が自動で始まります" -ForegroundColor White
 Write-Host ""
 Write-Host "  ランナーサーバーは PC 起動時に自動で立ち上がります。" -ForegroundColor Gray
 Write-Host "  設定変更は install.bat を再実行してください。" -ForegroundColor Gray

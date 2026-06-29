@@ -125,7 +125,7 @@ def _insert_classic(
             last_child = m
         if last_child:
             section_content = section_content[last_child.start():]
-    if _section_has_link(section_content):
+    if _section_has_url(section_content, target_url):
         return content, _SECTION_HAS_LINK
 
     link_html = _build_link_html(target_url, link_text, link_format)
@@ -171,8 +171,8 @@ def _insert_gutenberg(
     )
     section = after[:next_boundary.start()] if next_boundary else after
 
-    # セクション内に既存リンクがあればスキップ
-    if _section_has_link(section):
+    # セクション内に同URLが既に存在すればスキップ
+    if _section_has_url(section, target_url):
         return content, _SECTION_HAS_LINK
 
     # そのセクション内の最後の <!-- /wp:paragraph --> の後に挿入
@@ -203,15 +203,9 @@ def _log_available_headings(content: str, editor: str) -> None:
     logger.warning(f"  記事内の見出し一覧（{len(clean)}件）: {clean[:10]}")
 
 
-def _section_has_link(section_content: str) -> bool:
-    """セクション内にリンク（aタグ・wp:embed・URL段落）が存在するか確認する。"""
-    if re.search(r'<a\s[^>]*href=', section_content, re.IGNORECASE):
-        return True
-    if re.search(r'<!--\s*wp:embed', section_content, re.IGNORECASE):
-        return True
-    if re.search(r'<p[^>]*>https?://[^\s<]+</p>', section_content, re.IGNORECASE):
-        return True
-    return False
+def _section_has_url(section_content: str, target_url: str) -> bool:
+    """セクション内に対象URLが既に存在するか確認する。"""
+    return target_url in section_content
 
 
 def _find_heading_match(pattern: re.Pattern, content: str, heading_text: str):
@@ -237,7 +231,7 @@ def _normalize(text: str) -> str:
 
 
 def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
-    """Gutenberg用ブロックを生成する。URLのみ→paragraphブロック（Classic同様にフロントエンドでブログカード展開）、aタグ→paragraphブロック。"""
+    """Gutenberg用ブロックを生成する。"""
     if link_format == "atag":
         safe_text = link_text or url
         return (
@@ -245,9 +239,17 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
             f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
             f'<!-- /wp:paragraph -->'
         )
-    else:
-        # wp:embedは同一サイトURLで全文展開する問題があるため、
-        # Classic同様にURLのみのparagraphブロックを使用する
+    elif link_format == "blogcard":
+        return (
+            f'<!-- wp:embed {{"url":"{url}"}} -->\n'
+            f'<figure class="wp-block-embed">\n'
+            f'<div class="wp-block-embed__wrapper">\n'
+            f'{url}\n'
+            f'</div>\n'
+            f'</figure>\n'
+            f'<!-- /wp:embed -->'
+        )
+    else:  # url
         return (
             f'<!-- wp:paragraph {{"align":"center"}} -->\n'
             f'<p class="has-text-align-center">{url}</p>\n'

@@ -33,12 +33,15 @@ def main(
     spreadsheet_url: str,
     editor: str = "auto",
     link_format: str = "url",
+    site_key: str = "",
     force_row: "int | None" = None,
     limit: "int | None" = None,
 ):
     logger.info("=" * 50)
     logger.info("WordPress内部リンク挿入ツール 開始")
     logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {link_format}")
+    if site_key:
+        logger.info(f"対象サイト: {site_key}")
     if limit:
         logger.info(f"処理上限: No{limit}まで")
     logger.info("=" * 50)
@@ -46,9 +49,7 @@ def main(
     sheets = SheetsClient(spreadsheet_url)
     _, data = sheets.load_data()
 
-    _ss_id_m = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", spreadsheet_url)
-    _ss_id   = _ss_id_m.group(1) if _ss_id_m else ""
-    wp = WPClient(spreadsheet_id=_ss_id)
+    wp = WPClient(site_key=site_key)
 
     # article_cacheからタイトルを取得するためのマップを構築
     title_cache = _build_title_cache(sheets)
@@ -210,12 +211,13 @@ def _write_wp_status(
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args:
-        print("使い方: py main_wp.py <SpreadsheetURL> [--editor auto|classic|gutenberg] [--link url|atag] [--row N] [--limit N]")
+        print("使い方: py main_wp.py <SpreadsheetURL> [--editor auto|classic|gutenberg] [--link url|atag|blogcard] [--site <domain>] [--row N] [--limit N]")
         sys.exit(1)
 
     _url     = args[0]
     _editor  = "auto"
     _link    = "url"
+    _site    = ""
     _row     = None
     _limit   = None
 
@@ -225,6 +227,8 @@ if __name__ == "__main__":
             _editor = args[i + 1]; i += 2
         elif args[i] == "--link" and i + 1 < len(args):
             _link = args[i + 1]; i += 2
+        elif args[i] == "--site" and i + 1 < len(args):
+            _site = args[i + 1]; i += 2
         elif args[i] == "--row" and i + 1 < len(args):
             _row = int(args[i + 1]); i += 2
         elif args[i] == "--limit" and i + 1 < len(args):
@@ -232,4 +236,4 @@ if __name__ == "__main__":
         else:
             i += 1
 
-    main(_url, editor=_editor, link_format=_link, force_row=_row, limit=_limit)
+    main(_url, editor=_editor, link_format=_link, site_key=_site, force_row=_row, limit=_limit)

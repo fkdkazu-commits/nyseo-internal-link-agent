@@ -57,7 +57,13 @@ def _find_claude() -> str:
             logger.info(f"claude をフォールバックパスで発見: {p}")
             return str(p)
 
-    # 5. Windows: ストア版（パッケージ名・バージョンが可変なのでglobで検索）
+    # 5. Windows: App Execution Aliases（ストア版の正規起動経路）
+    alias = local_app / "Microsoft" / "WindowsApps" / "claude.exe"
+    if alias.exists():
+        logger.info(f"claude をWindowsAppsエイリアスで発見: {alias}")
+        return str(alias)
+
+    # 6. Windows: ストア版パッケージ直接パス（フォールバック）
     packages_dir = local_app / "Packages"
     if packages_dir.exists():
         for exe in packages_dir.glob("Claude_*/LocalCache/Roaming/Claude/claude-code/*/claude.exe"):
@@ -89,7 +95,8 @@ def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "st
         try:
             cli_env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
             result = subprocess.run(
-                [_CLAUDE_CMD, "-p", prompt, "--model", model, "--output-format", "text"],
+                [_CLAUDE_CMD, "-p", "--model", model, "--output-format", "text"],
+                input=prompt.encode("utf-8"),
                 capture_output=True,
                 timeout=CLI_TIMEOUT,
                 env=cli_env,
@@ -253,19 +260,15 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
     # 候補記事ブロックを組み立て
     lines = []
     for c in candidates:
-        h_ctx = [_sanitize(h) for h in c.get("h_context_list", [])[:30]]
-        if h_ctx:
-            headings = "\n".join(f"    - {h}" for h in h_ctx)
-        else:
-            h2 = [_sanitize(h) for h in c.get("h2_list", [])[:15]]
-            h3 = [_sanitize(h) for h in c.get("h3_list", [])[:20]]
-            h2_text = "H2: " + " / ".join(h2) if h2 else ""
-            h3_text = "H3: " + " / ".join(h3) if h3 else ""
-            headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
+        h2 = [_sanitize(h) for h in c.get("h2_list", [])[:15]]
+        h3 = [_sanitize(h) for h in c.get("h3_list", [])[:20]]
+        h2_text = "H2: " + " / ".join(h2) if h2 else ""
+        h3_text = "H3: " + " / ".join(h3) if h3 else ""
+        headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
         lines.append(
             f"- URL: {c.get('url', '')}\n"
             f"  タイトル: {_sanitize(c.get('title', ''))}\n"
-            f"  見出し（見出し｜直後150文字）:\n{headings}\n"
+            f"  見出し: {headings}\n"
             f"  本文冒頭: {_sanitize(c.get('body_text', '')[:body_chars])}"
         )
     candidates_block = "\n\n".join(lines)
@@ -470,19 +473,15 @@ async def judge_relevance_batch_api_async(
     template = (PROMPTS_DIR / "relevance_judge_batch.txt").read_text(encoding="utf-8")
     lines = []
     for c in candidates:
-        h_ctx = c.get("h_context_list", [])[:30]
-        if h_ctx:
-            headings = "\n".join(f"    - {h}" for h in h_ctx)
-        else:
-            h2 = c.get("h2_list", [])[:15]
-            h3 = c.get("h3_list", [])[:20]
-            h2_text = "H2: " + " / ".join(h2) if h2 else ""
-            h3_text = "H3: " + " / ".join(h3) if h3 else ""
-            headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
+        h2 = c.get("h2_list", [])[:15]
+        h3 = c.get("h3_list", [])[:20]
+        h2_text = "H2: " + " / ".join(h2) if h2 else ""
+        h3_text = "H3: " + " / ".join(h3) if h3 else ""
+        headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
         lines.append(
             f"- URL: {c.get('url', '')}\n"
             f"  タイトル: {c.get('title', '')}\n"
-            f"  見出し（見出し｜直後150文字）:\n{headings}\n"
+            f"  見出し: {headings}\n"
             f"  本文冒頭: {c.get('body_text', '')[:body_chars]}"
         )
     t_h2 = target.get("h2_list", [])[:4]
@@ -544,3 +543,48 @@ async def judge_relevance_batch_api_async(
     except json.JSONDecodeError as e:
         logger.warning(f"API判定: JSON解析失敗 — {e}")
     return []
+
+
+def select_heading(target: dict, candidate: dict, reason: str = "") -> str:
+    """
+    採用記事のh2/h3/h4からrecommended_headingをAIで選定する。
+    reason: スコアリング時のAI判断理由（地理的文脈等を引き継ぐため）
+    戻り値: 見出しテキスト（該当なしは空文字）
+    """
+    template = (PROMPTS_DIR / "select_heading.txt").read_text(encoding="utf-8")
+
+    kw = target.get("kw", "")
+    target_title = target.get("title", "") or target.get("h1", "")
+    target_intro = target.get("body_text", "")[:150]
+    h2_list = candidate.get("h2_list", [])
+    h3_list = candidate.get("h3_list", [])
+    h4_list = candidate.get("h4_list", [])
+
+    all_headings = "\n".join([
+        *[f"  [H2] {h}" for h in h2_list[:10]],
+        *[f"  [H3] {h}" for h in h3_list[:20]],
+        *[f"  [H4] {h}" for h in h4_list[:30]],
+    ]) or "（見出しなし）"
+
+    prompt = template.format(
+        target_kw=kw,
+        target_title=target_title,
+        target_intro=target_intro,
+        candidate_url=candidate.get("url", ""),
+        candidate_title=candidate.get("title", ""),
+        reason=reason or "（理由なし）",
+        headings=all_headings,
+    )
+
+    response = _call_claude(prompt, model=MODEL_KW)
+    if not response:
+        logger.warning(f"select_heading: AIレスポンスなし（{candidate.get('url', '')[:60]}）")
+        return ""
+
+    import re as _re
+    result = response.strip().splitlines()[0].strip().strip('"')
+    result = _re.sub(r'^\[(H[234])\]\s*', '', result)
+    if result in ('""', ""):
+        return ""
+    logger.info(f"select_heading: 「{result[:40]}」({candidate.get('url', '')[:50]})")
+    return result

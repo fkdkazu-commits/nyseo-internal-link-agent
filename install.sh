@@ -380,23 +380,14 @@ SITES_JSON_CONTENT="{}"
 
 WP_SETUP_DONE=false
 while [ "$WP_SETUP_DONE" = false ]; do
-    echo "  ─── スプレッドシート ↔ WordPress の紐づけ設定 ───"
+    echo "  ─── WordPress サイト設定 ───"
     echo ""
-
-    SS_URL=""
-    while [ -z "$SS_URL" ]; do
-        read -r -p "  Spreadsheet URL を入力: " SS_URL
-    done
-
-    SS_ID=$(echo "$SS_URL" | grep -oE '/spreadsheets/d/([a-zA-Z0-9_-]+)' | grep -oE '[a-zA-Z0-9_-]+$')
-    if [ -z "$SS_ID" ]; then
-        show_warn "URL から ID を抽出できませんでした。URL を確認してください。"
-        continue
-    fi
-    show_ok "Spreadsheet ID: $SS_ID"
 
     read -r -p "  WordPress サイト URL（例: https://example.com）: " WP_URL
     WP_URL="${WP_URL%/}"
+    SITE_KEY=$(echo "$WP_URL" | sed -E 's|https?://||' | sed -E 's|/.*||')
+    show_ok "サイトキー: $SITE_KEY"
+
     read -r -p "  WordPress ユーザー名（管理者）: " WP_USER
     echo ""
     echo "  【アプリケーションパスワードの取得手順】"
@@ -413,7 +404,7 @@ while [ "$WP_SETUP_DONE" = false ]; do
     SITES_JSON_CONTENT=$($PY_CMD -c "
 import json, sys
 data = json.loads('''$SITES_JSON_CONTENT''')
-data['$SS_ID'] = {
+data['$SITE_KEY'] = {
     'wp_url': '$WP_URL',
     'wp_user': '$WP_USER',
     'wp_app_password': '$WP_PASS'
@@ -423,7 +414,7 @@ print(json.dumps(data, ensure_ascii=False, indent=2))
     show_ok "設定を追加しました: $WP_URL"
     echo ""
 
-    read -r -p "  別のスプレッドシート（メディア）を追加しますか？ [Y/N]: " MORE
+    read -r -p "  別のWordPressサイトを追加しますか？ [Y/N]: " MORE
     if [ "$MORE" != "Y" ] && [ "$MORE" != "y" ]; then
         WP_SETUP_DONE=true
     fi
@@ -712,16 +703,11 @@ echo ""
 wait_enter "Spreadsheet を作成したら Enter を押してください"
 
 echo ""
-echo "  【手順 2】CSV データをインポートする"
-show_step "1. メニューの「ファイル」→「インポート」をクリック"
-show_step "2. 「アップロード」タブで CSV ファイルを選択"
-show_step "3. インポート設定："
-echo "     ・インポート場所  →「現在のシートを置換する」"
-echo "     ・区切り文字     →「カンマ」"
-echo "     ・テキストを数値・日付に変換する → オン"
-show_step "4. 「データをインポート」をクリック"
+echo "  【手順 2】データを Spreadsheet に用意する"
+show_info "記事データのインポート方法は管理者から別途案内があります。"
+show_info "インポート後、以下の列構成になっているか確認してください。"
 echo ""
-echo "  【列構成の確認】インポート後、以下の列順になっているか確認してください"
+echo "  【列構成の確認】以下の列順になっているか確認してください"
 echo "  ┌────┬──────────────┬──────────────────────────────────┐"
 echo "  │ 列 │ 内容         │ 備考                             │"
 echo "  ├────┼──────────────┼──────────────────────────────────┤"
@@ -737,7 +723,7 @@ echo "  └────┴──────────────┴───
 echo ""
 show_warn "列の順番が違う場合は列を並び替えてから次へ進んでください"
 echo ""
-wait_enter "CSV のインポートと列確認が完了したら Enter を押してください"
+wait_enter "列構成の確認が完了したら Enter を押してください"
 
 echo ""
 echo "  【手順 3】サービスアカウントに編集権限を付与する"

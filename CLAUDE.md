@@ -24,12 +24,12 @@ SpreadsheetのH〜M列に内部リンク候補（候補記事URL・見出し）�
 
 ### 2. WordPress内部リンク挿入ツール（v1.3〜）
 ```
-py main_wp.py <SpreadsheetURL> [--link url|atag] [--row N] [--limit N]
+py main_wp.py <SpreadsheetURL> [--link blogcard|url|atag] [--row N] [--limit N]
 ```
 SpreadsheetのH〜M列（承認済みの内部リンク候補）を読み込み、WordPress記事に自動挿入します。
 
 オプション:
-- `--link url|atag`  : リンク形式（デフォルト: url）
+- `--link blogcard|url|atag`  : リンク形式（デフォルト: url）
 - `--row N`          : 指定行のみ処理
 - `--limit N`        : No N までのみ処理（テスト用）
 - `--editor auto|classic|gutenberg` : エディタ形式（デフォルト: auto＝記事ごとに自動判定）
@@ -54,10 +54,20 @@ SpreadsheetのH〜M列（承認済みの内部リンク候補）を読み込み�
 
 Spreadsheetのレビュー・承認が完了している前提で実行する。以下を確認してから起動する：
 
-**確認：リンク形式**
+**確認①：対象サイト（複数サイト登録時のみ）**
+
+まず `http://127.0.0.1:8765/sites` を開いてサイト一覧を取得する。
+- サイトが1件のみ → 確認不要。そのまま次へ。
+- サイトが2件以上 → 以下を確認する：
+> 「どのWordPressサイトに挿入しますか？
+> ・site-a.com
+> ・site-b.com」
+
+**確認②：リンク形式**
 > 「挿入するリンクの形式を教えてください：
-> ・URLのみ（サイトのテーマ・プラグイン設定によって表示が変わります。ブログカードにならない場合があります）
-> ・aタグ（&lt;a href="URL"&gt;記事タイトル&lt;/a&gt; の形式。表示が確実）」
+> ・ブログカード（Gutenbergエディタ推奨。テーマがブログカードに自動変換）
+> ・URLのみ（クラシックエディタ向け。テーマ次第でブログカードになる場合あり）
+> ・aタグ（&lt;a href="URL"&gt;記事タイトル&lt;/a&gt; の形式。確実にテキストリンク）」
 
 ※エディタ形式（クラシック / Gutenberg）は記事ごとに自動判定されるため確認不要。
 
@@ -88,7 +98,10 @@ Spreadsheetのレビュー・承認が完了している前提で実行する。
 GET http://127.0.0.1:8765/run?url=<SpreadsheetURL>
 
 # WordPress挿入ツール起動（v1.3〜）
-GET http://127.0.0.1:8765/run-wp?url=<SpreadsheetURL>&link=<url|atag>
+GET http://127.0.0.1:8765/run-wp?url=<SpreadsheetURL>&link=<url|atag|blogcard>&site=<domain>
+
+# 登録済みWordPressサイト一覧取得
+GET http://127.0.0.1:8765/sites
 
 # 実行状況確認
 GET http://127.0.0.1:8765/status

@@ -22,25 +22,31 @@ _SECRETS_ENV  = _SECRETS_DIR / ".env"
 _SITES_JSON   = _SECRETS_DIR / "nyseo_sites.json"
 
 
-def _load_wp_credentials(spreadsheet_id: str = "") -> tuple[str, str, str]:
+def _load_wp_credentials(site_key: str = "") -> tuple[str, str, str]:
     """WP_URL / WP_USER / WP_APP_PASSWORD を取得する。
 
     優先順位:
-    1. nyseo_sites.json の spreadsheet_id エントリ
-    2. 環境変数
-    3. ~/.secrets/.env
+    1. nyseo_sites.json の site_key エントリ（指定時）
+    2. nyseo_sites.json に1サイトのみ登録の場合はそれを自動使用
+    3. 環境変数
+    4. ~/.secrets/.env
     """
-    # 1. nyseo_sites.json から Spreadsheet ID で検索
-    if spreadsheet_id and _SITES_JSON.exists():
+    # 1. nyseo_sites.json からサイトキー（ドメイン）で検索
+    if _SITES_JSON.exists():
         try:
             sites = json.loads(_SITES_JSON.read_text(encoding="utf-8-sig"))
-            if spreadsheet_id in sites:
-                entry = sites[spreadsheet_id]
+            entry = None
+            if site_key and site_key in sites:
+                entry = sites[site_key]
+                logger.info(f"nyseo_sites.json からWP認証情報を取得: {site_key}")
+            elif not site_key and len(sites) == 1:
+                entry = list(sites.values())[0]
+                logger.info(f"nyseo_sites.json からWP認証情報を取得（1サイト自動選択）: {list(sites.keys())[0]}")
+            if entry:
                 url  = entry.get("wp_url", "")
                 user = entry.get("wp_user", "")
                 pwd  = entry.get("wp_app_password", "")
                 if url and user and pwd:
-                    logger.info(f"nyseo_sites.json からWP認証情報を取得: {url}")
                     return url.rstrip("/"), user, pwd
         except Exception as e:
             logger.warning(f"nyseo_sites.json 読み込み失敗: {e}")
@@ -70,8 +76,8 @@ def _load_wp_credentials(spreadsheet_id: str = "") -> tuple[str, str, str]:
 class WPClient:
     """WordPress REST API クライアント。"""
 
-    def __init__(self, spreadsheet_id: str = ""):
-        self.base_url, user, pwd = _load_wp_credentials(spreadsheet_id)
+    def __init__(self, site_key: str = ""):
+        self.base_url, user, pwd = _load_wp_credentials(site_key)
         token = base64.b64encode(f"{user}:{pwd}".encode()).decode()
         self.headers = {
             "Authorization": f"Basic {token}",

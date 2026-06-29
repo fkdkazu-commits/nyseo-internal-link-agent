@@ -253,14 +253,13 @@
         <h3>設定手順（install.bat で行います）</h3>
         <p>初期インストール時に実行した <span class="ic">install.bat</span> を再実行すると、STEP 8「WordPress サイト設定」で以下を入力できます。</p>
         <ol style="line-height:2.3;">
-          <li><strong>Spreadsheet URL</strong> を入力する（対象サイトと紐づけるため）</li>
-          <li><strong>WordPress サイト URL</strong> を入力する</li>
+          <li><strong>WordPress サイト URL</strong> を入力する（例：<span class="ic">https://example.com</span>）</li>
           <li><strong>ユーザー名・アプリケーションパスワード</strong> を入力する</li>
-          <li>設定が <span class="ic">~/.secrets/nyseo_sites.json</span> に保存される</li>
+          <li>設定が <span class="ic">~/.secrets/nyseo_sites.json</span> に保存される（キーは WordPress URL のドメイン名）</li>
         </ol>
         <div class="callout info" style="margin-top:10px;">
           <span class="callout-icon">ℹ️</span>
-          <div>複数の WordPress サイトを運用する場合は、Spreadsheet URL ごとに繰り返し追加できます。</div>
+          <div>複数の WordPress サイトを運用する場合は、繰り返し追加できます。各サイトは WordPress URL のドメイン名（例：<span class="ic">example.com</span>）で自動的に識別されます。</div>
         </div>
       </div>
 
@@ -303,8 +302,7 @@
         <p style="margin-bottom:12px;">WordPress 挿入は以下の <strong>2 通りの方法</strong>で開始できます。</p>
         <div class="callout info" style="margin-bottom:12px;">
           <span class="callout-icon">ℹ️</span>
-          <div><strong>複数サイトを管理している場合も、Spreadsheet URL を指定するだけで対応する WordPress サイトが自動的に選ばれます。</strong><br>
-          どのスプレッドシートにどの WordPress サイトが紐づくかは、install.bat の WordPress 設定時に登録した情報をもとに自動判定されます。</div>
+          <div><strong>1サイトのみ登録の場合は確認なしで自動的に選択されます。</strong>複数サイトを登録している場合は、実行時にどのサイトに挿入するかエージェントが確認してきます。</div>
         </div>
 
         <div style="padding:12px 14px; background:#f8fafc; border:1px solid var(--border); border-radius:6px; font-size:13px; line-height:1.9; margin-bottom:10px;">
@@ -312,7 +310,8 @@
           内部リンクエージェントが完了すると、PowerShell ウィンドウに自動でプロンプトが表示されます。Spreadsheet の H〜M 列を事前に確認する余裕がない場合を除き、<strong>一度「N」で終了して H〜M 列を確認してから方法②で実行することを推奨します</strong>。
           <ol style="margin: 6px 0 0 16px; line-height:2;">
             <li>「続けてWP挿入を開始しますか？ <span class="ic">[Y/N]</span>」→ <strong>Y</strong> を入力して Enter</li>
-            <li>リンク形式を選択：<strong>1</strong>（URLのみ）または <strong>2</strong>（aタグ形式）を入力して Enter</li>
+            <li>複数サイト登録の場合はサイト番号を選択する</li>
+            <li>リンク形式を選択：<strong>1</strong>（ブログカード）、<strong>2</strong>（URLのみ）、<strong>3</strong>（aタグ形式）を入力して Enter</li>
             <li>自動的に WordPress 挿入が開始されます</li>
           </ol>
         </div>
@@ -324,7 +323,7 @@
             <li>Spreadsheet の H〜M 列を確認・承認する（問題のある行は H 列を空白にしてスキップ）</li>
             <li>Cowork を開き、内部リンクエージェント プロジェクトを選択する</li>
             <li>「WordPress に挿入してほしい」と送信し、Spreadsheet URL を伝える</li>
-            <li>エージェントがリンク形式（URL or aタグ）を確認してくるので選択する（詳細は次のセクション参照）</li>
+            <li>エージェントがサイト（複数登録時）とリンク形式（3種類）を確認してくるので選択する（詳細は次のセクション参照）</li>
             <li>Chrome が自動で起動し、Cowork 上に「Allow」ボタンが表示されたらクリックする</li>
             <li>PowerShell ウィンドウが開き、処理が進む（完了まで閉じないでください）</li>
           </ol>
@@ -369,7 +368,7 @@
         <div class="step-circle" style="font-size:13px;">3</div>
         <div>
           <h2>リンク形式の選び方</h2>
-          <div class="sub">Cowork が確認してきます。どちらかを選んでください</div>
+          <div class="sub">Cowork が確認してきます。3種類から選んでください</div>
         </div>
       </div>
 
@@ -377,6 +376,12 @@
         <table class="tbl">
           <thead><tr><th>形式</th><th>WordPress での見た目</th><th>向いているケース</th><th>推奨</th></tr></thead>
           <tbody>
+            <tr>
+              <td><strong>ブログカード</strong><br><span class="ic">--link blogcard</span></td>
+              <td>Gutenberg の <code>wp:embed</code> ブロックとして挿入。テーマがブログカード表示に自動変換</td>
+              <td>Gutenberg エディタのサイトでブログカード表示したい場合</td>
+              <td><span class="badge b-green">Gutenberg 推奨</span></td>
+            </tr>
             <tr>
               <td><strong>URL のみ</strong><br><span class="ic">--link url</span></td>
               <td>サイトのテーマ・プラグイン設定によって異なる。ブログカードにならない場合あり</td>
@@ -387,7 +392,7 @@
               <td><strong>aタグ</strong><br><span class="ic">--link atag</span></td>
               <td><a href="#">記事タイトル</a> のようなテキストリンクとして挿入される</td>
               <td>表示結果を確実にしたい場合。サイトのテーマに依存しない</td>
-              <td><span class="badge b-green">推奨</span></td>
+              <td><span class="badge b-green">テキストリンク推奨</span></td>
             </tr>
           </tbody>
         </table>
@@ -478,13 +483,12 @@
 
       <div class="card">
         <h3>仕様</h3>
-        <p>WordPress 記事に内部リンクを挿入する前に、対象の見出しセクション内に以下のいずれかが存在するかチェックします。</p>
+        <p>WordPress 記事に内部リンクを挿入する前に、対象の見出しセクション内に<strong>挿入先と同一の URL が既に存在するか</strong>チェックします。</p>
         <ul style="margin-top:10px;">
-          <li>アンカーリンク（<span class="ic">&lt;a href=</span> タグ）</li>
-          <li>ブログカード埋め込み（<span class="ic">wp:embed</span> ブロック）</li>
-          <li>URL のみの段落（<span class="ic">&lt;p&gt;https://...&lt;/p&gt;</span> 形式。URL 形式で挿入済みの場合）</li>
+          <li>aタグ・ブログカード・URLのみなど、形式にかかわらずURLの文字列が含まれていれば「既存リンクあり」と判定</li>
+          <li>対象記事のURLが一致しない別のリンクはチェック対象外（同じセクションに複数の異なる記事へのリンクは許容）</li>
         </ul>
-        <p style="margin-top:12px;">上記のいずれかが見つかった場合は、<strong>そのセクションへの挿入をスキップ</strong>し、スキップ件数（P 列）を増やします。</p>
+        <p style="margin-top:12px;">同一URLが見つかった場合は、<strong>そのセクションへの挿入をスキップ</strong>し、スキップ件数（P 列）を増やします。</p>
 
         <div class="callout ok" style="margin-top:12px;">
           <span class="callout-icon">✅</span>
