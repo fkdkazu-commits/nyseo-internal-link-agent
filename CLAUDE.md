@@ -24,12 +24,12 @@ SpreadsheetのH〜M列に内部リンク候補（候補記事URL・見出し）�
 
 ### 2. WordPress内部リンク挿入ツール（v1.3〜）
 ```
-py main_wp.py <SpreadsheetURL> [--link url|atag] [--row N] [--limit N]
+py main_wp.py <SpreadsheetURL> [--link blogcard|url|atag] [--row N] [--limit N]
 ```
 SpreadsheetのH〜M列（承認済みの内部リンク候補）を読み込み、WordPress記事に自動挿入します。
 
 オプション:
-- `--link url|atag`  : リンク形式（デフォルト: url）
+- `--link blogcard|url|atag`  : リンク形式（デフォルト: url）
 - `--row N`          : 指定行のみ処理
 - `--limit N`        : No N までのみ処理（テスト用）
 - `--editor auto|classic|gutenberg` : エディタ形式（デフォルト: auto＝記事ごとに自動判定）
@@ -38,9 +38,11 @@ SpreadsheetのH〜M列（承認済みの内部リンク候補）を読み込み�
 
 ## ユーザーからの指示パターンと対応
 
-### パターン1：「内部リンクを作ってほしい」「エージェントを実行して」
+### パターン1：SpreadsheetのURLが渡された
 
-1. SpreadsheetのURLを確認してから、ローカルランナー経由で内部リンクエージェントを起動する
+**statusの確認は不要。URLが渡されたら即座に以下のフローを実行する。**
+
+1. ローカルランナー経由で内部リンクエージェントを起動する（H列に値がある行は自動スキップされる）
 2. 起動後、以下を伝える：
    > 「内部リンクエージェントを起動しました。処理が完了したらSpreadsheetのH〜M列に候補が書き込まれます。」
 3. **完了を確認したら、必ず以下を確認する：**
@@ -48,23 +50,35 @@ SpreadsheetのH〜M列（承認済みの内部リンク候補）を読み込み�
    > ・**はい** → スプレッドシートを確認せずにそのまま挿入します
    > ・**いいえ** → スプレッドシートでH〜M列を確認・承認してから、後でWordPress挿入を実行してください」
 
+4. **「はい」が選択されたら、パターン2の確認①②と同じ手順でWP挿入を起動する（サイト確認→リンク形式確認→run-wp呼び出し）**
+
 ### パターン2：「WordPressに挿入してほしい」「WP挿入を実行して」
 
 Spreadsheetのレビュー・承認が完了している前提で実行する。以下を確認してから起動する：
 
-**確認：リンク形式**
+**確認①：対象サイト（複数サイト登録時のみ）**
+
+まず `http://127.0.0.1:8765/sites` を開いてサイト一覧を取得する。
+- サイトが1件のみ → 確認不要。そのまま次へ。
+- サイトが2件以上 → 以下を確認する：
+> 「どのWordPressサイトに挿入しますか？
+> ・site-a.com
+> ・site-b.com」
+
+**確認②：リンク形式**
 > 「挿入するリンクの形式を教えてください：
-> ・URLのみ（サイトのテーマ・プラグイン設定によって表示が変わります。ブログカードにならない場合があります）
-> ・aタグ（&lt;a href="URL"&gt;記事タイトル&lt;/a&gt; の形式。表示が確実）」
+> ・ブログカード（Gutenberg・クラシック自動判定。Gutenbergは `<!-- wp:embed -->` ブロック、クラシックはURLをそのまま挿入してWordPressのoEmbedで処理）
+> ・URL・SWELL用（クラシックエディタ専用。SWELLショートコード `[post_link url="URL"]` で挿入。Gutenberg記事は自動スキップ）
+> ・aタグ（&lt;a href="URL"&gt;記事タイトル&lt;/a&gt; の形式。Gutenberg・クラシック両対応。確実にテキストリンク）」
 
 ※エディタ形式（クラシック / Gutenberg）は記事ごとに自動判定されるため確認不要。
 
-**「URLのみ」が選択された場合は必ず以下の警告を出すこと：**
-> 「⚠️ 注意：URLのみ形式はサイトのテーマ・プラグイン設定に依存するため、表示結果が予測できません。
-> ・サイトが独自のブログカード実装を使用している場合、ブログカードにならない可能性があります
-> ・クラシック / Gutenberg どちらのエディタでも同様の不確実性があります
+**「URL・SWELL用」が選択された場合は必ず以下の警告を出すこと：**
+> 「⚠️ 注意：URL・SWELL用形式はSWELLテーマのクラシックエディタ専用です。
+> ・Gutenberg記事には挿入されず自動スキップされます（N列に「スキップ（エディタ形式非マッチ）」と記録）
+> ・SWELLテーマ以外のクラシック記事では正しく表示されない場合があります
 > ・本番環境で事前に1件テストして表示を確認することを推奨します
-> aタグ形式であればテキストリンクとして確実に表示されます。このまま続けますか？」
+> aタグ形式であればGutenberg・クラシック両方に確実に挿入されます。このまま続けますか？」
 
 ユーザーが了承した場合のみ、ローカルランナー経由でWP挿入ツールを起動する。
 
@@ -86,7 +100,10 @@ Spreadsheetのレビュー・承認が完了している前提で実行する。
 GET http://127.0.0.1:8765/run?url=<SpreadsheetURL>
 
 # WordPress挿入ツール起動（v1.3〜）
-GET http://127.0.0.1:8765/run-wp?url=<SpreadsheetURL>&link=<url|atag>
+GET http://127.0.0.1:8765/run-wp?url=<SpreadsheetURL>&link=<url|atag|blogcard>&site=<domain>
+
+# 登録済みWordPressサイト一覧取得
+GET http://127.0.0.1:8765/sites
 
 # 実行状況確認
 GET http://127.0.0.1:8765/status
@@ -94,6 +111,17 @@ GET http://127.0.0.1:8765/status
 # 停止
 GET http://127.0.0.1:8765/stop
 ```
+
+### run-wp が `site_required` を返した場合
+
+`{"status": "site_required", "sites": ["site-a.com", "site-b.com"]}` が返った場合は、
+ユーザーにどのサイトか確認したうえで、`site` パラメータを付けて再度 run-wp を呼ぶ：
+
+```
+GET http://127.0.0.1:8765/run-wp?url=<SpreadsheetURL>&link=<url|atag|blogcard>&site=site-a.com
+```
+
+`site` パラメータを付けた場合は `site_required` は返らず、`{"status": "started"}` が返る。
 
 ---
 
