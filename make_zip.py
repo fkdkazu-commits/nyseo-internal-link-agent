@@ -1,7 +1,7 @@
 import zipfile, pathlib
 
 project_dir = pathlib.Path(r'c:\Users\fkdka\Downloads\Work\claude code\nyseo-internal-link-agent')
-output_path = pathlib.Path(r'c:\Users\fkdka\Downloads\Work\claude code\納品フォルダ\nyseo-internal-link-agent-v1.3.3.zip')
+output_path = pathlib.Path(r'c:\Users\fkdka\Downloads\Work\claude code\納品フォルダ\nyseo-internal-link-agent-v1.3.4.zip')
 
 EXCLUDE_DIRS = {'secrets', 'venv', '__pycache__', '.git', 'logs'}
 EXCLUDE_EXTS = {'.pyc', '.log'}
