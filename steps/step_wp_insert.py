@@ -20,8 +20,10 @@ _SECTION_HAS_LINK = "section_has_link"
 # ------------------------------------------------------------------ #
 
 def detect_editor(content: str) -> str:
-    """コンテンツのブロックコメント有無でエディタ形式を判定する。"""
-    return "gutenberg" if "<!-- wp:" in content else "classic"
+    """コンテンツのブロックコメント・wp-blockクラスの有無でエディタ形式を判定する。"""
+    if "<!-- wp:" in content or "wp-block-" in content:
+        return "gutenberg"
+    return "classic"
 
 
 def insert_links(
@@ -47,10 +49,6 @@ def insert_links(
     for heading_text, target_url, link_text in headings_and_targets:
         if editor == "gutenberg":
             new_content, status = _insert_gutenberg(content, heading_text, target_url, link_text, link_format)
-            # Gutenbergで見つからない場合、生HTML見出しにフォールバック
-            if status == _NOT_FOUND:
-                logger.debug(f"  Gutenbergパターン未発見、Classicパターンで再試行: 「{heading_text[:30]}」")
-                new_content, status = _insert_classic(content, heading_text, target_url, link_text, link_format)
         else:
             new_content, status = _insert_classic(content, heading_text, target_url, link_text, link_format)
 
@@ -144,10 +142,9 @@ def _insert_gutenberg(
     link_text: str,
     link_format: str,
 ) -> tuple[str, str]:
-    """Gutenberg用: 見出しブロック直後の段落の後にリンクブロックを挿入する。"""
-    # wp:headingブロックを検索（<!-- wp:heading ... --> の中に > が含まれる場合に対応）
+    """Gutenberg用: 指定見出し以降のセクション末尾にリンクブロックを挿入する。"""
     pattern = re.compile(
-        r'(<!-- wp:heading.*?-->\s*<h[2-4][^>]*>)(.*?)(</h[2-4]>\s*<!-- /wp:heading -->)',
+        r'(<h[2-4][^>]*>)(.*?)(</h[2-4]>)',
         re.IGNORECASE | re.DOTALL,
     )
 
@@ -155,34 +152,26 @@ def _insert_gutenberg(
     if not match:
         return content, _NOT_FOUND
 
-    # マッチした見出しのレベルを取得（デフォルトH2）
-    level_m = re.search(r'<h([2-5])', match.group(1), re.IGNORECASE)
+    level_m = re.search(r'<h([2-4])', match.group(1), re.IGNORECASE)
     level = int(level_m.group(1)) if level_m else 2
 
-    # 同レベル以上の次の見出しブロックまでのセクションを取得
-    # 例: H3指定なら <h2> or <h3> が境界（H2が先に来た場合もそこで止める）
     heading_end = match.end()
     after = content[heading_end:]
-    levels_str = ''.join(str(l) for l in range(2, level + 1))  # H3なら"23"
-    next_boundary = re.search(
-        rf'<!-- wp:heading[^>]*>\s*<h[{levels_str}][^>]*>',
-        after,
-        re.IGNORECASE,
-    )
-    section = after[:next_boundary.start()] if next_boundary else after
+    levels_str = ''.join(str(l) for l in range(2, level + 1))
+    next_boundary = re.search(rf'<h[{levels_str}][^>]*>', after, re.IGNORECASE)
 
-    # セクション内に同URLが既に存在すればスキップ
+    if next_boundary:
+        section = after[:next_boundary.start()]
+        insert_pos = heading_end + next_boundary.start()
+    else:
+        section = after
+        last_p = None
+        for m in re.finditer(r'</p>', after, re.IGNORECASE):
+            last_p = m
+        insert_pos = heading_end + last_p.end() if last_p else len(content)
+
     if _section_has_url(section, target_url):
         return content, _SECTION_HAS_LINK
-
-    # そのセクション内の最後の <!-- /wp:paragraph --> の後に挿入
-    last_para = None
-    for m in re.finditer(r'<!-- /wp:paragraph -->', section, re.IGNORECASE):
-        last_para = m
-    if last_para:
-        insert_pos = heading_end + last_para.end()
-    else:
-        insert_pos = heading_end
 
     block = _build_gutenberg_block(target_url, link_text, link_format)
     new_content = content[:insert_pos] + "\n" + block + content[insert_pos:]
@@ -251,16 +240,18 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
         )
     else:  # url
         return (
-            f'<!-- wp:paragraph {{"align":"center"}} -->\n'
-            f'<p class="has-text-align-center">{url}</p>\n'
+            f'<!-- wp:paragraph -->\n'
+            f'<p>{url}</p>\n'
             f'<!-- /wp:paragraph -->'
         )
 
 
 def _build_link_html(url: str, link_text: str, link_format: str) -> str:
-    """クラシックエディタ用HTMLを生成する。<p>タグで囲み記事枠内に収める。"""
+    """クラシックエディタ用HTMLを生成する。"""
     if link_format == "atag":
         safe_text = link_text or url
         return f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
-    else:
-        return f'<p style="text-align:center">{url}</p>\n'
+    elif link_format == "url":  # SWELL用ショートコード
+        return f'[post_link url="{url}"]\n'
+    else:  # blogcard: URLをそのまま挿入（WordPressのoEmbed処理に委ねる）
+        return f'<p>{url}</p>\n'

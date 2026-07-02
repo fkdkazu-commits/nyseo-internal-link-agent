@@ -39,7 +39,8 @@ def main(
 ):
     logger.info("=" * 50)
     logger.info("WordPress内部リンク挿入ツール 開始")
-    logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {link_format}")
+    _link_label = {"blogcard": "blogcard（自動判定）", "url": "url（SWELL用）", "atag": "atag（テキストリンク）"}.get(link_format, link_format)
+    logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {_link_label}")
     if site_key:
         logger.info(f"対象サイト: {site_key}")
     if limit:
@@ -106,8 +107,10 @@ def main(
                 continue
             insertions.append((cand_url, cand_head, target_url, target_title))
 
-        total_inserted = 0
-        total_skipped  = 0
+        total_inserted      = 0
+        total_skipped       = 0
+        total_link_exist    = 0
+        total_fmt_mismatch  = 0
         errors = []
 
         for cand_url, cand_heading, tgt_url, tgt_title in insertions:
@@ -124,9 +127,15 @@ def main(
             if editor == "auto":
                 logger.debug(f"  エディタ自動判定: {actual_editor} ({cand_url})")
 
+            # editor × link_format 非マッチチェック
+            if link_format == "url" and actual_editor == "gutenberg":
+                logger.warning(f"  Gutenberg記事にurl（SWELL）形式は使用できません。選択肢1または3で再実行してください: {cand_url}")
+                total_fmt_mismatch += 1
+                continue
+
             if already_has_link(content, tgt_url):
-                logger.info(f"  すでにリンクあり: {cand_url}")
-                total_inserted += 1
+                logger.info(f"  すでにリンクあり（スキップ）: {cand_url}")
+                total_link_exist += 1
                 continue
 
             new_content, count, skipped = insert_links(
@@ -144,7 +153,7 @@ def main(
                     errors.append(f"更新失敗: {cand_url}")
             elif skipped > 0:
                 total_skipped += 1
-                logger.info(f"  セクション内既存リンクのためスキップ: {cand_url} 見出し「{cand_heading[:30]}」")
+                logger.info(f"  スキップ: {cand_url} 見出し「{cand_heading[:30]}」")
             else:
                 errors.append(f"見出し未発見: {cand_heading[:30]}")
 
@@ -153,7 +162,16 @@ def main(
         if errors:
             status_val = "エラー"
             date_val   = now + " / " + " | ".join(errors)
-        elif total_skipped > 0:
+        elif total_fmt_mismatch > 0 and total_inserted == 0:
+            status_val = "スキップ（エディタ形式非マッチ）"
+            date_val   = now
+        elif total_skipped > 0 and total_inserted == 0:
+            status_val = "警告（スキップあり）"
+            date_val   = now
+        elif total_inserted == 0 and total_link_exist > 0:
+            status_val = "スキップ（リンク済み）"
+            date_val   = now
+        elif total_link_exist > 0:
             status_val = "済み（スキップあり）"
             date_val   = now
         else:

@@ -26,7 +26,7 @@ COL_OUT_URL3 = 11 # L列
 COL_WP_STATUS = 13  # N列
 URL_COLS = [COL_OUT_URL1, COL_OUT_URL2, COL_OUT_URL3]
 
-TARGET_RANGE = range(1, 21)  # No1〜20
+TARGET_RANGE = range(1, 21)  # デフォルト: No1〜20（--from/--toで変更可）
 
 
 def remove_inserted_links(content: str, target_url: str) -> tuple[str, int]:
@@ -40,7 +40,10 @@ def remove_inserted_links(content: str, target_url: str) -> tuple[str, int]:
     # 2. Classic — atag形式: <p ...><a href="URL" ...>任意テキスト</a></p>\n
     content = re.sub(rf'<p[^>]*><a href="{url}"[^>]*>[^<]*</a></p>\n{{1,2}}', '', content)
 
-    # 3. Gutenberg — URL形式 (wp:paragraph with URL)
+    # 3. Classic — SWELL用ショートコード: [post_link url="URL"]
+    content = re.sub(rf'\[post_link url="{url}"\]\n{{0,2}}', '', content)
+
+    # 4. Gutenberg — URL形式 (wp:paragraph with URL)
     content = re.sub(
         rf'\n<!-- wp:paragraph[^>]*-->\n'
         rf'<p[^>]*>{url}</p>\n'
@@ -48,11 +51,23 @@ def remove_inserted_links(content: str, target_url: str) -> tuple[str, int]:
         '', content,
     )
 
-    # 4. Gutenberg — atag形式 (wp:paragraph)
+    # 5. Gutenberg — atag形式 (wp:paragraph)
     content = re.sub(
         rf'\n<!-- wp:paragraph[^>]*-->\n'
         rf'<p[^>]*><a href="{url}"[^>]*>[^<]*</a></p>\n'
         rf'<!-- /wp:paragraph -->',
+        '', content,
+    )
+
+    # 6. Gutenberg — blogcard形式 (wp:embed)
+    content = re.sub(
+        rf'\n<!-- wp:embed \{{"url":"{url}"\}} -->\n'
+        rf'<figure class="wp-block-embed">\n'
+        rf'<div class="wp-block-embed__wrapper">\n'
+        rf'{url}\n'
+        rf'</div>\n'
+        rf'</figure>\n'
+        rf'<!-- /wp:embed -->',
         '', content,
     )
 
@@ -65,9 +80,9 @@ def clear_wp_status(ws, sheet_row: int) -> None:
     ws.update(values=[["", "", ""]], range_name=f"N{sheet_row}:P{sheet_row}")
 
 
-def main(spreadsheet_url: str, dry_run: bool = False) -> None:
+def main(spreadsheet_url: str, dry_run: bool = False, target_range: range = TARGET_RANGE) -> None:
     logger.info("=" * 55)
-    logger.info(f"WPリセットスクリプト 開始（No1〜20）dry_run={dry_run}")
+    logger.info(f"WPリセットスクリプト 開始（No{target_range.start}〜{target_range.stop - 1}）dry_run={dry_run}")
     logger.info("=" * 55)
 
     sheets = SheetsClient(spreadsheet_url)
@@ -81,7 +96,7 @@ def main(spreadsheet_url: str, dry_run: bool = False) -> None:
             no = int(no_val)
         except ValueError:
             continue
-        if no not in TARGET_RANGE:
+        if no not in target_range:
             continue
 
         target_url = row[COL_URL].strip() if len(row) > COL_URL else ""
@@ -149,4 +164,11 @@ if __name__ == "__main__":
     _url = args[0]
     _dry_run = "--dry-run" in args
 
-    main(_url, dry_run=_dry_run)
+    _from = 1
+    _to = 20
+    if "--from" in args:
+        _from = int(args[args.index("--from") + 1])
+    if "--to" in args:
+        _to = int(args[args.index("--to") + 1])
+
+    main(_url, dry_run=_dry_run, target_range=range(_from, _to + 1))

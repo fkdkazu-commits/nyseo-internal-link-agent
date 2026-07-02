@@ -139,7 +139,7 @@ class Handler(BaseHTTPRequestHandler):
         params = parse_qs(parsed.query)
         url    = params.get("url",    [""])[0]
         editor = params.get("editor", ["auto"])[0]
-        link   = params.get("link",   ["url"])[0]
+        link   = params.get("link",   [""])[0]
         site   = params.get("site",   [""])[0]
 
         if not url:
@@ -166,19 +166,47 @@ class Handler(BaseHTTPRequestHandler):
         try:
             site_arg = f' --site "{site}"' if site else ""
             if IS_MAC:
+                if link:
+                    link_select = f'linkMode="{link}"\n'
+                else:
+                    link_select = (
+                        f'echo ""\n'
+                        f'echo "リンク形式を選択してください："\n'
+                        f'echo "  1. URL（Gutenberg/クラシック自動判定）"\n'
+                        f'echo "  2. URL（クラシックエディタ推奨・SWELL用）"\n'
+                        f'echo "  3. aタグ形式（テキストリンク）"\n'
+                        f'echo ""\n'
+                        f'read -p "番号を入力 [1/2/3]: " linkAns\n'
+                        f'if [ "$linkAns" = "3" ]; then linkMode="atag"; elif [ "$linkAns" = "2" ]; then linkMode="url"; else linkMode="blogcard"; fi\n'
+                    )
                 bash_script = (
                     f'#!/bin/bash\n'
                     f'cd "{PROJECT_DIR}"\n'
-                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link {link}{site_arg}\n'
+                    f'{link_select}'
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}\n'
                     f'echo ""\n'
                     f'echo "WP挿入完了。このウィンドウを閉じてください。"\n'
                     f'read -p "Enterキーを押して終了..." dummy\n'
                 )
                 _open_terminal_mac(bash_script)
             else:
+                if link:
+                    link_select = f'$linkMode = "{link}"; '
+                else:
+                    link_select = (
+                        f'Write-Host ""; '
+                        f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
+                        f'Write-Host "  1. URL（Gutenberg/クラシック自動判定）"; '
+                        f'Write-Host "  2. URL（クラシックエディタ推奨・SWELL用）"; '
+                        f'Write-Host "  3. aタグ形式（テキストリンク）"; '
+                        f'Write-Host ""; '
+                        f'$linkAns = Read-Host "番号を入力 [1/2/3]"; '
+                        f'if ($linkAns -eq "3") {{ $linkMode = "atag" }} elseif ($linkAns -eq "2") {{ $linkMode = "url" }} else {{ $linkMode = "blogcard" }}; '
+                    )
                 ps_cmd = (
                     f'cd "{PROJECT_DIR}"; '
-                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link {link}{site_arg}; '
+                    f'{link_select}'
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}; '
                     f'Write-Host ""; Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green; '
                     f'pause'
                 )
@@ -246,8 +274,8 @@ class Handler(BaseHTTPRequestHandler):
                     f'{site_select}'
                     f'  echo ""\n'
                     f'  echo "リンク形式を選択してください："\n'
-                    f'  echo "  1. ブログカード（Gutenberg推奨・テーマがブログカードに自動変換）"\n'
-                    f'  echo "  2. URLのみ（クラシックエディタ向け・テーマ次第でブログカードになる場合あり）"\n'
+                    f'  echo "  1. URL（Gutenberg/クラシック自動判定）"\n'
+                    f'  echo "  2. URL（クラシックエディタ推奨・SWELL用）"\n'
                     f'  echo "  3. aタグ形式（テキストリンク）"\n'
                     f'  echo ""\n'
                     f'  read -p "番号を入力 [1/2/3]: " linkAns\n'
@@ -298,8 +326,8 @@ class Handler(BaseHTTPRequestHandler):
                     f'{site_select}'
                     f'Write-Host ""; '
                     f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
-                    f'Write-Host "  1. ブログカード（Gutenberg推奨・テーマがブログカードに自動変換）"; '
-                    f'Write-Host "  2. URLのみ（クラシックエディタ向け・テーマ次第でブログカードになる場合あり）"; '
+                    f'Write-Host "  1. URL（Gutenberg/クラシック自動判定）"; '
+                    f'Write-Host "  2. URL（クラシックエディタ推奨・SWELL用）"; '
                     f'Write-Host "  3. aタグ形式（テキストリンク）"; '
                     f'Write-Host ""; '
                     f'$linkAns = Read-Host "番号を入力 [1/2/3]"; '
