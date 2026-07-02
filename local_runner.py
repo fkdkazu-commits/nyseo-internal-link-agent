@@ -234,112 +234,27 @@ class Handler(BaseHTTPRequestHandler):
             if api:
                 args.append("--api")
             args_str = " ".join(f'"{a}"' for a in args)
-            # サイト一覧を実行時に取得してスクリプトに埋め込む
-            sites = _load_sites()
-            site_keys = list(sites.keys())
 
             if IS_MAC:
-                # サイト選択スクリプト（bash）
-                if len(site_keys) > 1:
-                    site_menu_lines = '\n'.join(
-                        f'  echo "  {i+1}. {k}"' for i, k in enumerate(site_keys)
-                    )
-                    site_select = (
-                        f'echo ""\n'
-                        f'echo "どのWordPressサイトに挿入しますか？"\n'
-                        f'{site_menu_lines}\n'
-                        f'read -p "番号を入力 [1-{len(site_keys)}]: " siteAns\n'
-                    )
-                    site_cases = ' '.join(
-                        f'"{i+1}") siteMode="{k}"; ;;' for i, k in enumerate(site_keys)
-                    )
-                    site_select += f'case "$siteAns" in {site_cases} *) siteMode="{site_keys[0]}"; ;; esac\n'
-                    site_arg = '--site "$siteMode"'
-                elif len(site_keys) == 1:
-                    site_select = f'siteMode="{site_keys[0]}"\n'
-                    site_arg = '--site "$siteMode"'
-                else:
-                    site_select = ''
-                    site_arg = ''
-
                 bash_script = (
                     f'#!/bin/bash\n'
                     f'cd "{PROJECT_DIR}"\n'
                     f'{PYTHON_CMD} main.py {args_str}\n'
                     f'echo ""\n'
                     f'echo "内部リンクエージェントの処理は完了しました。"\n'
+                    f'echo "WordPressへの挿入はCoworkの画面から操作してください。"\n'
                     f'echo ""\n'
-                    f'read -p "続けてWP挿入を開始しますか？ [Y/N]: " wpAns\n'
-                    f'if [ "$wpAns" = "Y" ] || [ "$wpAns" = "y" ]; then\n'
-                    f'{site_select}'
-                    f'  echo ""\n'
-                    f'  echo "リンク形式を選択してください："\n'
-                    f'  echo "  1. URL（Gutenberg/クラシック自動判定）"\n'
-                    f'  echo "  2. URL（クラシックエディタ推奨・SWELL用）"\n'
-                    f'  echo "  3. aタグ形式（テキストリンク）"\n'
-                    f'  echo ""\n'
-                    f'  read -p "番号を入力 [1/2/3]: " linkAns\n'
-                    f'  if [ "$linkAns" = "3" ]; then linkMode="atag"; elif [ "$linkAns" = "2" ]; then linkMode="url"; else linkMode="blogcard"; fi\n'
-                    f'  echo ""\n'
-                    f'  echo "WP挿入を開始します..."\n'
-                    f'  {PYTHON_CMD} main_wp.py "{url}" --link $linkMode {site_arg}\n'
-                    f'  echo ""\n'
-                    f'  echo "WP挿入完了。このウィンドウを閉じてください。"\n'
-                    f'else\n'
-                    f'  echo "完了しました。このウィンドウを閉じてください。"\n'
-                    f'fi\n'
                     f'read -p "Enterキーを押して終了..." dummy\n'
                 )
                 _open_terminal_mac(bash_script)
             else:
-                # サイト選択スクリプト（PowerShell）
-                if len(site_keys) > 1:
-                    site_display = ''.join(
-                        f'Write-Host "  {i+1}. {k}"; ' for i, k in enumerate(site_keys)
-                    )
-                    site_cases = ''.join(
-                        f'"{i+1}" {{ $siteMode = "{k}" }} ' for i, k in enumerate(site_keys)
-                    )
-                    site_select = (
-                        f'Write-Host ""; '
-                        f'Write-Host "どのWordPressサイトに挿入しますか？" -ForegroundColor Cyan; '
-                        f'{site_display}'
-                        f'$siteAns = Read-Host "番号を入力 [1-{len(site_keys)}]"; '
-                        f'switch ($siteAns) {{ {site_cases}default {{ $siteMode = "{site_keys[0]}" }} }}; '
-                    )
-                    site_arg = '--site "$siteMode"'
-                elif len(site_keys) == 1:
-                    site_select = f'$siteMode = "{site_keys[0]}"; '
-                    site_arg = '--site $siteMode'
-                else:
-                    site_select = ''
-                    site_arg = ''
-
                 ps_cmd = (
                     f'cd "{PROJECT_DIR}"; '
                     f'{PYTHON_CMD} main.py {args_str}; '
                     f'Write-Host ""; '
                     f'Write-Host "内部リンクエージェントの処理は完了しました。" -ForegroundColor Green; '
+                    f'Write-Host "WordPressへの挿入はCoworkの画面から操作してください。" -ForegroundColor Cyan; '
                     f'Write-Host ""; '
-                    f'$wpAns = Read-Host "続けてWP挿入を開始しますか？ [Y/N]"; '
-                    f'if ($wpAns -eq "Y" -or $wpAns -eq "y") {{ '
-                    f'{site_select}'
-                    f'Write-Host ""; '
-                    f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
-                    f'Write-Host "  1. URL（Gutenberg/クラシック自動判定）"; '
-                    f'Write-Host "  2. URL（クラシックエディタ推奨・SWELL用）"; '
-                    f'Write-Host "  3. aタグ形式（テキストリンク）"; '
-                    f'Write-Host ""; '
-                    f'$linkAns = Read-Host "番号を入力 [1/2/3]"; '
-                    f'if ($linkAns -eq "3") {{ $linkMode = "atag" }} elseif ($linkAns -eq "2") {{ $linkMode = "url" }} else {{ $linkMode = "blogcard" }}; '
-                    f'Write-Host ""; '
-                    f'Write-Host "WP挿入を開始します..." -ForegroundColor Cyan; '
-                    f'{PYTHON_CMD} main_wp.py "{url}" --link $linkMode {site_arg}; '
-                    f'Write-Host ""; '
-                    f'Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green '
-                    f'}} else {{ '
-                    f'Write-Host "完了しました。このウィンドウを閉じてください。" -ForegroundColor Green '
-                    f'}}; '
                     f'pause'
                 )
                 subprocess.Popen(
