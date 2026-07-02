@@ -33,12 +33,16 @@ def main(
     spreadsheet_url: str,
     editor: str = "auto",
     link_format: str = "url",
+    site_key: str = "",
     force_row: "int | None" = None,
     limit: "int | None" = None,
 ):
     logger.info("=" * 50)
     logger.info("WordPress内部リンク挿入ツール 開始")
-    logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {link_format}")
+    _link_label = {"blogcard": "blogcard（自動判定）", "url": "url（SWELL用）", "atag": "atag（テキストリンク）"}.get(link_format, link_format)
+    logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {_link_label}")
+    if site_key:
+        logger.info(f"対象サイト: {site_key}")
     if limit:
         logger.info(f"処理上限: No{limit}まで")
     logger.info("=" * 50)
@@ -46,9 +50,7 @@ def main(
     sheets = SheetsClient(spreadsheet_url)
     _, data = sheets.load_data()
 
-    _ss_id_m = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", spreadsheet_url)
-    _ss_id   = _ss_id_m.group(1) if _ss_id_m else ""
-    wp = WPClient(spreadsheet_id=_ss_id)
+    wp = WPClient(site_key=site_key)
 
     # article_cacheからタイトルを取得するためのマップを構築
     title_cache = _build_title_cache(sheets)
@@ -105,8 +107,10 @@ def main(
                 continue
             insertions.append((cand_url, cand_head, target_url, target_title))
 
-        total_inserted = 0
-        total_skipped  = 0
+        total_inserted      = 0
+        total_skipped       = 0
+        total_link_exist    = 0
+        total_fmt_mismatch  = 0
         errors = []
 
         for cand_url, cand_heading, tgt_url, tgt_title in insertions:
@@ -123,9 +127,15 @@ def main(
             if editor == "auto":
                 logger.debug(f"  エディタ自動判定: {actual_editor} ({cand_url})")
 
+            # editor × link_format 非マッチチェック
+            if link_format == "url" and actual_editor == "gutenberg":
+                logger.warning(f"  Gutenberg記事にurl（SWELL）形式は使用できません。選択肢1または3で再実行してください: {cand_url}")
+                total_fmt_mismatch += 1
+                continue
+
             if already_has_link(content, tgt_url):
-                logger.info(f"  すでにリンクあり: {cand_url}")
-                total_inserted += 1
+                logger.info(f"  すでにリンクあり（スキップ）: {cand_url}")
+                total_link_exist += 1
                 continue
 
             new_content, count, skipped = insert_links(
@@ -143,7 +153,7 @@ def main(
                     errors.append(f"更新失敗: {cand_url}")
             elif skipped > 0:
                 total_skipped += 1
-                logger.info(f"  セクション内既存リンクのためスキップ: {cand_url} 見出し「{cand_heading[:30]}」")
+                logger.info(f"  スキップ: {cand_url} 見出し「{cand_heading[:30]}」")
             else:
                 errors.append(f"見出し未発見: {cand_heading[:30]}")
 
@@ -152,7 +162,16 @@ def main(
         if errors:
             status_val = "エラー"
             date_val   = now + " / " + " | ".join(errors)
-        elif total_skipped > 0:
+        elif total_fmt_mismatch > 0 and total_inserted == 0:
+            status_val = "スキップ（エディタ形式非マッチ）"
+            date_val   = now
+        elif total_skipped > 0 and total_inserted == 0:
+            status_val = "警告（スキップあり）"
+            date_val   = now
+        elif total_inserted == 0 and total_link_exist > 0:
+            status_val = "スキップ（リンク済み）"
+            date_val   = now
+        elif total_link_exist > 0:
             status_val = "済み（スキップあり）"
             date_val   = now
         else:
@@ -210,12 +229,13 @@ def _write_wp_status(
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args:
-        print("使い方: py main_wp.py <SpreadsheetURL> [--editor auto|classic|gutenberg] [--link url|atag] [--row N] [--limit N]")
+        print("使い方: py main_wp.py <SpreadsheetURL> [--editor auto|classic|gutenberg] [--link url|atag|blogcard] [--site <domain>] [--row N] [--limit N]")
         sys.exit(1)
 
     _url     = args[0]
     _editor  = "auto"
     _link    = "url"
+    _site    = ""
     _row     = None
     _limit   = None
 
@@ -225,6 +245,8 @@ if __name__ == "__main__":
             _editor = args[i + 1]; i += 2
         elif args[i] == "--link" and i + 1 < len(args):
             _link = args[i + 1]; i += 2
+        elif args[i] == "--site" and i + 1 < len(args):
+            _site = args[i + 1]; i += 2
         elif args[i] == "--row" and i + 1 < len(args):
             _row = int(args[i + 1]); i += 2
         elif args[i] == "--limit" and i + 1 < len(args):
@@ -232,4 +254,4 @@ if __name__ == "__main__":
         else:
             i += 1
 
-    main(_url, editor=_editor, link_format=_link, force_row=_row, limit=_limit)
+    main(_url, editor=_editor, link_format=_link, site_key=_site, force_row=_row, limit=_limit)

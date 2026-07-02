@@ -5,15 +5,18 @@ Cowork (Claude in Chrome) から main.py / main_wp.py を起動するための�
 
 エンドポイント:
   GET /status                          現在の実行状態を返す
+  GET /sites                           登録済みWordPressサイト一覧を返す
   GET /run?url=...                     main.py を実行開始する
        &mid=true/false                  中精度モード（省略時=false=高精度）
        &api=true/false                  APIモード（省略時=false=CLIモード）
   GET /run-wp?url=...                  main_wp.py を実行開始する（v1.3〜）
        &editor=classic|gutenberg        エディタ形式
-       &link=url|atag                   リンク形式
+       &link=blogcard|url|atag           リンク形式
+       &site=<domain>                    対象WordPressサイト（複数登録時に指定）
   GET /stop                            実行中の処理を停止する
 """
 
+import json
 import os
 import platform
 import subprocess
@@ -23,6 +26,18 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+
+_SITES_JSON = Path.home() / ".secrets" / "nyseo_sites.json"
+
+
+def _load_sites() -> dict:
+    """~/.secrets/nyseo_sites.json から登録済みサイト一覧を読み込む。"""
+    if _SITES_JSON.exists():
+        try:
+            return json.loads(_SITES_JSON.read_text(encoding="utf-8-sig"))
+        except Exception:
+            pass
+    return {}
 
 PROJECT_DIR = Path(__file__).parent
 LOG_FILE    = PROJECT_DIR / "logs" / "latest.log"
@@ -61,6 +76,10 @@ class Handler(BaseHTTPRequestHandler):
             self._respond(200, f'{{"status": "{status}"}}')
             return
 
+        if parsed.path == "/sites":
+            self._handle_sites()
+            return
+
         if parsed.path == "/run":
             self._handle_run(parsed)
             return
@@ -78,6 +97,11 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         self._respond(404, '{"error": "not found"}')
+
+    def _handle_sites(self):
+        sites = _load_sites()
+        keys = list(sites.keys())
+        self._respond(200, json.dumps({"sites": keys}, ensure_ascii=False))
 
     def _handle_run(self, parsed):
         global _running
@@ -114,8 +138,9 @@ class Handler(BaseHTTPRequestHandler):
 
         params = parse_qs(parsed.query)
         url    = params.get("url",    [""])[0]
-        editor = params.get("editor", ["classic"])[0]
-        link   = params.get("link",   ["url"])[0]
+        editor = params.get("editor", ["auto"])[0]
+        link   = params.get("link",   [""])[0]
+        site   = params.get("site",   [""])[0]
 
         if not url:
             with _lock:
@@ -123,26 +148,65 @@ class Handler(BaseHTTPRequestHandler):
             self._respond(400, '{"error": "url parameter is required"}')
             return
 
-        self._respond(200, f'{{"status": "started", "editor": "{editor}", "link": "{link}"}}')
-        threading.Thread(target=self._execute_wp, args=(url, editor, link), daemon=True).start()
+        # 複数サイト登録済みでsite未指定の場合はサイト一覧を返す
+        if not site:
+            sites = _load_sites()
+            if len(sites) > 1:
+                with _lock:
+                    _running = False
+                keys = list(sites.keys())
+                self._respond(200, json.dumps({"status": "site_required", "sites": keys}, ensure_ascii=False))
+                return
 
-    def _execute_wp(self, url: str, editor: str, link: str):
+        self._respond(200, json.dumps({"status": "started", "editor": editor, "link": link, "site": site}, ensure_ascii=False))
+        threading.Thread(target=self._execute_wp, args=(url, editor, link, site), daemon=True).start()
+
+    def _execute_wp(self, url: str, editor: str, link: str, site: str = ""):
         global _running
         try:
+            site_arg = f' --site "{site}"' if site else ""
             if IS_MAC:
+                if link:
+                    link_select = f'linkMode="{link}"\n'
+                else:
+                    link_select = (
+                        f'echo ""\n'
+                        f'echo "リンク形式を選択してください："\n'
+                        f'echo "  1. URL（Gutenberg/クラシック自動判定）"\n'
+                        f'echo "  2. URL（クラシックエディタ推奨・SWELL用）"\n'
+                        f'echo "  3. aタグ形式（テキストリンク）"\n'
+                        f'echo ""\n'
+                        f'read -p "番号を入力 [1/2/3]: " linkAns\n'
+                        f'if [ "$linkAns" = "3" ]; then linkMode="atag"; elif [ "$linkAns" = "2" ]; then linkMode="url"; else linkMode="blogcard"; fi\n'
+                    )
                 bash_script = (
                     f'#!/bin/bash\n'
                     f'cd "{PROJECT_DIR}"\n'
-                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link {link}\n'
+                    f'{link_select}'
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}\n'
                     f'echo ""\n'
                     f'echo "WP挿入完了。このウィンドウを閉じてください。"\n'
                     f'read -p "Enterキーを押して終了..." dummy\n'
                 )
                 _open_terminal_mac(bash_script)
             else:
+                if link:
+                    link_select = f'$linkMode = "{link}"; '
+                else:
+                    link_select = (
+                        f'Write-Host ""; '
+                        f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
+                        f'Write-Host "  1. URL（Gutenberg/クラシック自動判定）"; '
+                        f'Write-Host "  2. URL（クラシックエディタ推奨・SWELL用）"; '
+                        f'Write-Host "  3. aタグ形式（テキストリンク）"; '
+                        f'Write-Host ""; '
+                        f'$linkAns = Read-Host "番号を入力 [1/2/3]"; '
+                        f'if ($linkAns -eq "3") {{ $linkMode = "atag" }} elseif ($linkAns -eq "2") {{ $linkMode = "url" }} else {{ $linkMode = "blogcard" }}; '
+                    )
                 ps_cmd = (
                     f'cd "{PROJECT_DIR}"; '
-                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link {link}; '
+                    f'{link_select}'
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}; '
                     f'Write-Host ""; Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green; '
                     f'pause'
                 )
@@ -170,7 +234,34 @@ class Handler(BaseHTTPRequestHandler):
             if api:
                 args.append("--api")
             args_str = " ".join(f'"{a}"' for a in args)
+            # サイト一覧を実行時に取得してスクリプトに埋め込む
+            sites = _load_sites()
+            site_keys = list(sites.keys())
+
             if IS_MAC:
+                # サイト選択スクリプト（bash）
+                if len(site_keys) > 1:
+                    site_menu_lines = '\n'.join(
+                        f'  echo "  {i+1}. {k}"' for i, k in enumerate(site_keys)
+                    )
+                    site_select = (
+                        f'echo ""\n'
+                        f'echo "どのWordPressサイトに挿入しますか？"\n'
+                        f'{site_menu_lines}\n'
+                        f'read -p "番号を入力 [1-{len(site_keys)}]: " siteAns\n'
+                    )
+                    site_cases = ' '.join(
+                        f'"{i+1}") siteMode="{k}"; ;;' for i, k in enumerate(site_keys)
+                    )
+                    site_select += f'case "$siteAns" in {site_cases} *) siteMode="{site_keys[0]}"; ;; esac\n'
+                    site_arg = '--site "$siteMode"'
+                elif len(site_keys) == 1:
+                    site_select = f'siteMode="{site_keys[0]}"\n'
+                    site_arg = '--site "$siteMode"'
+                else:
+                    site_select = ''
+                    site_arg = ''
+
                 bash_script = (
                     f'#!/bin/bash\n'
                     f'cd "{PROJECT_DIR}"\n'
@@ -180,21 +271,18 @@ class Handler(BaseHTTPRequestHandler):
                     f'echo ""\n'
                     f'read -p "続けてWP挿入を開始しますか？ [Y/N]: " wpAns\n'
                     f'if [ "$wpAns" = "Y" ] || [ "$wpAns" = "y" ]; then\n'
+                    f'{site_select}'
                     f'  echo ""\n'
                     f'  echo "リンク形式を選択してください："\n'
-                    f'  echo "  1. URLのみ"\n'
-                    f'  echo "  2. aタグ形式（テキストリンク）"\n'
+                    f'  echo "  1. URL（Gutenberg/クラシック自動判定）"\n'
+                    f'  echo "  2. URL（クラシックエディタ推奨・SWELL用）"\n'
+                    f'  echo "  3. aタグ形式（テキストリンク）"\n'
                     f'  echo ""\n'
-                    f'  echo "⚠ URLのみを選択する場合の注意："\n'
-                    f'  echo "  サイトのテーマ・プラグイン設定によって表示が変わります。"\n'
-                    f'  echo "  ブログカードにならない場合があります。"\n'
-                    f'  echo "  事前に1記事で表示確認してから選択してください。"\n'
-                    f'  echo ""\n'
-                    f'  read -p "番号を入力 [1/2]: " linkAns\n'
-                    f'  if [ "$linkAns" = "2" ]; then linkMode="atag"; else linkMode="url"; fi\n'
+                    f'  read -p "番号を入力 [1/2/3]: " linkAns\n'
+                    f'  if [ "$linkAns" = "3" ]; then linkMode="atag"; elif [ "$linkAns" = "2" ]; then linkMode="url"; else linkMode="blogcard"; fi\n'
                     f'  echo ""\n'
                     f'  echo "WP挿入を開始します..."\n'
-                    f'  {PYTHON_CMD} main_wp.py "{url}" --link $linkMode\n'
+                    f'  {PYTHON_CMD} main_wp.py "{url}" --link $linkMode {site_arg}\n'
                     f'  echo ""\n'
                     f'  echo "WP挿入完了。このウィンドウを閉じてください。"\n'
                     f'else\n'
@@ -204,6 +292,29 @@ class Handler(BaseHTTPRequestHandler):
                 )
                 _open_terminal_mac(bash_script)
             else:
+                # サイト選択スクリプト（PowerShell）
+                if len(site_keys) > 1:
+                    site_display = ''.join(
+                        f'Write-Host "  {i+1}. {k}"; ' for i, k in enumerate(site_keys)
+                    )
+                    site_cases = ''.join(
+                        f'"{i+1}" {{ $siteMode = "{k}" }} ' for i, k in enumerate(site_keys)
+                    )
+                    site_select = (
+                        f'Write-Host ""; '
+                        f'Write-Host "どのWordPressサイトに挿入しますか？" -ForegroundColor Cyan; '
+                        f'{site_display}'
+                        f'$siteAns = Read-Host "番号を入力 [1-{len(site_keys)}]"; '
+                        f'switch ($siteAns) {{ {site_cases}default {{ $siteMode = "{site_keys[0]}" }} }}; '
+                    )
+                    site_arg = '--site "$siteMode"'
+                elif len(site_keys) == 1:
+                    site_select = f'$siteMode = "{site_keys[0]}"; '
+                    site_arg = '--site $siteMode'
+                else:
+                    site_select = ''
+                    site_arg = ''
+
                 ps_cmd = (
                     f'cd "{PROJECT_DIR}"; '
                     f'{PYTHON_CMD} main.py {args_str}; '
@@ -212,21 +323,18 @@ class Handler(BaseHTTPRequestHandler):
                     f'Write-Host ""; '
                     f'$wpAns = Read-Host "続けてWP挿入を開始しますか？ [Y/N]"; '
                     f'if ($wpAns -eq "Y" -or $wpAns -eq "y") {{ '
+                    f'{site_select}'
                     f'Write-Host ""; '
                     f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
-                    f'Write-Host "  1. URLのみ"; '
-                    f'Write-Host "  2. aタグ形式（テキストリンク）"; '
+                    f'Write-Host "  1. URL（Gutenberg/クラシック自動判定）"; '
+                    f'Write-Host "  2. URL（クラシックエディタ推奨・SWELL用）"; '
+                    f'Write-Host "  3. aタグ形式（テキストリンク）"; '
                     f'Write-Host ""; '
-                    f'Write-Host "⚠ URLのみを選択する場合の注意：" -ForegroundColor Yellow; '
-                    f'Write-Host "  サイトのテーマ・プラグイン設定によって表示が変わります。" -ForegroundColor Yellow; '
-                    f'Write-Host "  ブログカードにならない場合があります。" -ForegroundColor Yellow; '
-                    f'Write-Host "  事前に1記事で表示確認してから選択してください。" -ForegroundColor Yellow; '
-                    f'Write-Host ""; '
-                    f'$linkAns = Read-Host "番号を入力 [1/2]"; '
-                    f'if ($linkAns -eq "2") {{ $linkMode = "atag" }} else {{ $linkMode = "url" }}; '
+                    f'$linkAns = Read-Host "番号を入力 [1/2/3]"; '
+                    f'if ($linkAns -eq "3") {{ $linkMode = "atag" }} elseif ($linkAns -eq "2") {{ $linkMode = "url" }} else {{ $linkMode = "blogcard" }}; '
                     f'Write-Host ""; '
                     f'Write-Host "WP挿入を開始します..." -ForegroundColor Cyan; '
-                    f'{PYTHON_CMD} main_wp.py "{url}" --link $linkMode; '
+                    f'{PYTHON_CMD} main_wp.py "{url}" --link $linkMode {site_arg}; '
                     f'Write-Host ""; '
                     f'Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green '
                     f'}} else {{ '
