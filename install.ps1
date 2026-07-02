@@ -604,21 +604,47 @@ Chrome拡張機能が使えない場合：
 ユーザーが「WordPressに挿入してほしい」「WP挿入を実行して」などと伝えたら以下を実行する。
 SpreadsheetのH〜M列のレビュー・承認が完了している前提で進める。
 
-**STEP 1：リンク形式の確認**
+**STEP 1：対象サイトの確認（複数サイト登録時のみ）**
+
+Claude in Chrome で以下のURLを開いてサイト一覧を取得する：
+http://127.0.0.1:8765/sites
+
+- サイトが1件のみ → 確認不要。そのままSTEP 2へ。
+- サイトが2件以上 → 以下を確認する：
+  「どのWordPressサイトに挿入しますか？
+  ・site-a.com
+  ・site-b.com」
+
+**STEP 2：リンク形式の確認**
 
 > 挿入するリンクの形式を教えてください：
-> - **URLのみ**（WordPressがブログカードに自動展開）
-> - **aタグ**（`<a href="URL">記事タイトル</a>` の形式）
+> 1. URL（Gutenberg/クラシック自動判定）
+> 2. URL（クラシックエディタ推奨・SWELL用）
+> 3. aタグ形式（テキストリンク）
 
 ※エディタ形式（クラシック / Gutenberg）は記事ごとに自動判定されるため確認不要。
 
-**STEP 2：WP挿入リクエストを送信**
+「2. URL（クラシックエディタ推奨・SWELL用）」が選択された場合は必ず以下の警告を出すこと：
+「⚠️ 注意：この形式はSWELLテーマのクラシックエディタ専用です。
+・Gutenberg記事には挿入されず自動スキップされます
+・SWELLテーマ以外のクラシック記事では正しく表示されない場合があります
+aタグ形式であればGutenberg・クラシック両方に確実に挿入されます。このまま続けますか？」
+ユーザーが了承した場合のみ次へ進む。
 
-リンク形式に応じて Claude in Chrome で以下のURLを開く：
-| 形式 | URL |
+**STEP 3：WP挿入リクエストを送信**
+
+選択に応じて Claude in Chrome で以下のURLを開く：
+| 選択 | URL |
 |------|-----|
-| URLのみ | http://127.0.0.1:8765/run-wp?url=<URL>&link=url |
-| aタグ | http://127.0.0.1:8765/run-wp?url=<URL>&link=atag |
+| 1. URL（Gutenberg/クラシック自動判定） | http://127.0.0.1:8765/run-wp?url=<URL>&link=blogcard |
+| 2. URL（クラシックエディタ推奨・SWELL用） | http://127.0.0.1:8765/run-wp?url=<URL>&link=url |
+| 3. aタグ形式（テキストリンク） | http://127.0.0.1:8765/run-wp?url=<URL>&link=atag |
+
+複数サイトの場合は末尾に &site=<domain> を追加する：
+例）http://127.0.0.1:8765/run-wp?url=<URL>&link=blogcard&site=example.com
+
+run-wp が {"status": "site_required"} を返した場合は、
+ユーザーにサイトを確認してから &site=<domain> を付けて再度リクエストを送る。
 
 <URL> はユーザーから受け取ったSpreadsheetのURLをそのまま入れる。
 

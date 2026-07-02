@@ -79,10 +79,10 @@ def main(
         if not h_val or h_val == "該当なし":
             continue
 
-        # N列（挿入済み）チェック
+        # N列（挿入済み）チェック — 空欄以外はすべてスキップ
         status = row[COL_WP_STATUS].strip() if len(row) > COL_WP_STATUS else ""
-        if status == "済み":
-            logger.debug(f"行{row_idx + 2}: 挿入済みのためスキップ")
+        if status:
+            logger.debug(f"行{row_idx + 2}: 処理済みのためスキップ（{status}）")
             continue
 
         rows_to_process.append((row_idx, row))
@@ -215,8 +215,8 @@ def _write_wp_status(
         ws = sheets._ss.worksheets()[0]
         sheet_row = row_idx + 2  # ヘッダー行分+1
         ws.update(
-            f"N{sheet_row}:P{sheet_row}",
             [[status, date_str, str(count)]],
+            f"N{sheet_row}:P{sheet_row}",
         )
     except Exception as e:
         logger.warning(f"ステータス書き込み失敗 行{row_idx + 2}: {e}")
