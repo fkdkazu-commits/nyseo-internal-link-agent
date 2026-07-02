@@ -50,6 +50,8 @@ SpreadsheetのH〜M列（承認済みの内部リンク候補）を読み込み�
    > ・**はい** → スプレッドシートを確認せずにそのまま挿入します
    > ・**いいえ** → スプレッドシートでH〜M列を確認・承認してから、後でWordPress挿入を実行してください」
 
+4. **「はい」が選択されたら、パターン2の確認①②と同じ手順でWP挿入を起動する（サイト確認→リンク形式確認→run-wp呼び出し）**
+
 ### パターン2：「WordPressに挿入してほしい」「WP挿入を実行して」
 
 Spreadsheetのレビュー・承認が完了している前提で実行する。以下を確認してから起動する：
@@ -109,6 +111,17 @@ GET http://127.0.0.1:8765/status
 # 停止
 GET http://127.0.0.1:8765/stop
 ```
+
+### run-wp が `site_required` を返した場合
+
+`{"status": "site_required", "sites": ["site-a.com", "site-b.com"]}` が返った場合は、
+ユーザーにどのサイトか確認したうえで、`site` パラメータを付けて再度 run-wp を呼ぶ：
+
+```
+GET http://127.0.0.1:8765/run-wp?url=<SpreadsheetURL>&link=<url|atag|blogcard>&site=site-a.com
+```
+
+`site` パラメータを付けた場合は `site_required` は返らず、`{"status": "started"}` が返る。
 
 ---
 
