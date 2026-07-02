@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書 (v1.4.0)</title>
+  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書 (v1.4.2)</title>
   <style>
     :root {
       --sidebar-width: 280px;
@@ -204,7 +204,7 @@
 ═══════════════════════════════ -->
 <main class="main">
   <div class="page-header">
-    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.4.0)</div>
+    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.4.2)</div>
     <h1>WordPress 自動反映機能<br>導入・操作手順書</h1>
     <div class="page-header-desc">
       内部リンクエージェントが提案した候補（H〜M 列）を、WordPress 記事に自動挿入する機能の手順書です。<br>
@@ -299,26 +299,15 @@
 
       <div class="card">
         <h3>WordPress 挿入の開始方法</h3>
-        <p style="margin-bottom:12px;">WordPress 挿入は以下の <strong>2 通りの方法</strong>で開始できます。</p>
+        <p style="margin-bottom:12px;">WordPress 挿入は <strong>Cowork から依頼</strong>して開始します。</p>
         <div class="callout info" style="margin-bottom:12px;">
           <span class="callout-icon">ℹ️</span>
           <div><strong>1サイトのみ登録の場合は確認なしで自動的に選択されます。</strong>複数サイトを登録している場合は、実行時にどのサイトに挿入するかエージェントが確認してきます。</div>
         </div>
 
-        <div style="padding:12px 14px; background:#f8fafc; border:1px solid var(--border); border-radius:6px; font-size:13px; line-height:1.9; margin-bottom:10px;">
-          <strong>方法① 内部リンクエージェント完了後に PowerShell から続けて開始する</strong><br>
-          内部リンクエージェントが完了すると、PowerShell ウィンドウに自動でプロンプトが表示されます。Spreadsheet の H〜M 列を事前に確認する余裕がない場合を除き、<strong>一度「N」で終了して H〜M 列を確認してから方法②で実行することを推奨します</strong>。
-          <ol style="margin: 6px 0 0 16px; line-height:2;">
-            <li>「続けてWP挿入を開始しますか？ <span class="ic">[Y/N]</span>」→ <strong>Y</strong> を入力して Enter</li>
-            <li>複数サイト登録の場合はサイト番号を選択する</li>
-            <li>リンク形式を選択：<strong>1</strong>（ブログカード）、<strong>2</strong>（URLのみ）、<strong>3</strong>（aタグ形式）を入力して Enter</li>
-            <li>自動的に WordPress 挿入が開始されます</li>
-          </ol>
-        </div>
-
         <div style="padding:12px 14px; background:#f8fafc; border:1px solid var(--border); border-radius:6px; font-size:13px; line-height:1.9;">
-          <strong>方法② Cowork から個別に依頼して開始する</strong><br>
-          Spreadsheet の H〜M 列を確認・承認してから実行する場合はこちらを使います。
+          <strong>Cowork から依頼して開始する</strong><br>
+          Spreadsheet の H〜M 列を確認・承認してから実行することを推奨します。
           <ol style="margin: 6px 0 0 16px; line-height:2;">
             <li>Spreadsheet の H〜M 列を確認・承認する（問題のある行は H 列を空白にしてスキップ）</li>
             <li>Cowork を開き、内部リンクエージェント プロジェクトを選択する</li>
@@ -383,10 +372,10 @@
               <td><span class="badge b-green">Gutenberg 推奨</span></td>
             </tr>
             <tr>
-              <td><strong>URL のみ</strong><br><span class="ic">--link url</span></td>
-              <td>サイトのテーマ・プラグイン設定によって異なる。ブログカードにならない場合あり</td>
-              <td>事前に1記事でテスト表示を確認してから使用する</td>
-              <td><span class="badge b-yellow">要確認</span></td>
+              <td><strong>URL（SWELL用・クラシック専用）</strong><br><span class="ic">--link url</span></td>
+              <td>SWELLテーマのショートコード <code>[post_link url="URL"]</code> として挿入。SWELLのクラシックエディタ専用。Gutenberg 記事は自動スキップ</td>
+              <td>SWELLテーマ + クラシックエディタの記事のみ。Gutenberg 混在サイトは aタグ形式を推奨</td>
+              <td><span class="badge b-yellow">クラシック専用</span></td>
             </tr>
             <tr>
               <td><strong>aタグ</strong><br><span class="ic">--link atag</span></td>
@@ -399,9 +388,9 @@
         <div class="callout warn" style="margin-top:12px;">
           <span class="callout-icon">⚠️</span>
           <div>
-            <strong>URL のみ形式を選択する前に必ず確認してください。</strong><br>
-            ブログカードとして表示されるかどうかは WordPress のテーマ・プラグイン設定に依存します。サイトが独自のブログカード実装を持っている場合、カードにならないことがあります。クラシック / Gutenberg のどちらのエディタでも同様の不確実性があります。<br>
-            <strong>本番環境で1記事テストしてから全件実行してください。</strong>
+            <strong>URL（SWELL用・クラシック専用）形式を選択する前に必ず確認してください。</strong><br>
+            この形式は SWELLテーマのクラシックエディタ専用です。Gutenberg 記事には挿入されず自動スキップされます（N 列に「スキップ（エディタ形式非マッチ）」と記録）。SWELLテーマ以外のクラシック記事では正しく表示されない場合があります。<br>
+            <strong>Gutenberg・クラシック両対応が必要な場合は aタグ形式を選択してください。</strong>
           </div>
         </div>
         <div class="callout info" style="margin-top:8px;">
@@ -444,17 +433,22 @@
             </tr>
             <tr>
               <td>済み（スキップあり）</td>
-              <td>一部の候補がスキップされた（セクション内リンクチェックなど）</td>
-              <td>P 列のスキップ件数を確認。必要なら手動で確認</td>
+              <td>一部の候補は既存リンクがあり挿入スキップ。1 件以上は挿入済み</td>
+              <td>P 列の挿入件数を確認。必要なら手動で確認</td>
             </tr>
             <tr>
-              <td>スキップ（重複）</td>
-              <td>対象記事の URL がすでに候補記事の本文に含まれていた</td>
+              <td>スキップ（リンク済み）</td>
+              <td>対象記事の URL がすでに候補記事の本文に含まれていた（全候補スキップ）</td>
               <td>対応不要。すでにリンクが設置済みです</td>
             </tr>
             <tr>
-              <td>スキップ（見出し不一致）</td>
-              <td>I/K/M 列の見出しが WordPress 記事内に見つからなかった</td>
+              <td>スキップ（エディタ形式非マッチ）</td>
+              <td>URL（SWELL用）形式を選択したが、対象記事が Gutenberg エディタだった</td>
+              <td>aタグ形式またはブログカード形式で再実行してください（N 列を空白に戻してから）</td>
+            </tr>
+            <tr>
+              <td>警告（スキップあり）</td>
+              <td>指定した見出しが記事内に見つからず全候補がスキップされた</td>
               <td>Spreadsheet の I/K/M 列の見出し名が記事と一致しているか確認</td>
             </tr>
             <tr>
@@ -466,7 +460,7 @@
         </table>
         <div class="callout info" style="margin-top:12px;">
           <span class="callout-icon">ℹ️</span>
-          <div><strong>冪等性（重複防止）について：</strong>N 列に「済み」が記録されている行は再実行しても処理されません。誤って再実行しても2重挿入にはなりません。</div>
+          <div><strong>冪等性（重複防止）について：</strong>N 列に何らかの値が記録されている行（空欄以外）は再実行しても処理されません。誤って再実行しても2重挿入にはなりません。再処理が必要な場合は N 列を空白に戻してから実行してください。</div>
         </div>
       </div>
     </section>

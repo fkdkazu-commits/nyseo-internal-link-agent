@@ -480,7 +480,7 @@
             <li>候補記事ごとにWordPress REST APIで記事コンテンツを取得する</li>
             <li>指定見出しのセクション末尾にブログカードを挿入する</li>
             <li>クラシックエディタ（HTML）とGutenbergブロックエディタの両方に対応する</li>
-            <li>リンク形式（URLのみ / aタグ）をCowork実行時に選択できる</li>
+            <li>リンク形式（ブログカード / URL（SWELL用・クラシック専用） / aタグ）をCowork実行時に選択できる</li>
             <li>挿入結果をSpreadsheetのN〜P列に記録する（成功・失敗ステータス）</li>
           </ul>
         </div>
@@ -525,7 +525,7 @@
               <ul>
                 <li>SpreadsheetのSheet1を全行読み込む</li>
                 <li>H列が空白または「該当なし」の行はスキップする</li>
-                <li>N列（挿入済みフラグ）が「済み」の行はスキップする（再実行時の重複防止）</li>
+                <li>N列（挿入済みフラグ）が空欄以外の行はすべてスキップする（再実行時の重複防止）</li>
                 <li>H列・J列・L列のURLと、I列・K列・M列の見出しをセットで取得する（最大3セット/行）</li>
                 <li><code>--row N</code> オプションで特定行のみ処理することもできる</li>
               </ul>
@@ -587,7 +587,8 @@
             <div class="step-body">
               <ul>
                 <li><code>POST /wp/v2/posts/{id}</code> で更新済みコンテンツを書き込む</li>
-                <li>成功した場合、SpreadsheetのN列に「済み」・O列に更新日時・P列に挿入数を記録する</li>
+                <li>成功した場合、SpreadsheetのN列に「済み」または「済み（スキップあり）」・O列に更新日時・P列に挿入数を記録する</li>
+                <li>スキップのみの場合、N列に「スキップ（リンク済み）」「スキップ（エディタ形式非マッチ）」「警告（スキップあり）」のいずれかを記録する</li>
                 <li>失敗した場合、N列に「エラー」・O列にエラー内容を記録する</li>
               </ul>
             </div>
@@ -596,27 +597,28 @@
 
         <div class="card" id="req-choice">
           <div class="card-title">1.4 実行時選択仕様（Coworkが実行前に確認）</div>
-          <p>本ツールはCowork（Claude Desktop）から実行します。Coworkが以下2つの選択肢を実行前にユーザーに確認します。</p>
+          <p>本ツールはCowork（Claude Desktop）から実行します。Coworkが以下の選択肢を実行前にユーザーに確認します。</p>
 
           <div class="choice-grid">
             <div class="choice-box">
-              <div class="choice-box-title">Q1. エディタ形式は？</div>
+              <div class="choice-box-title">Q1. 対象サイトは？（複数登録時のみ）</div>
               <ul>
-                <li><strong>クラシックエディタ</strong><br>HTMLとして記事コンテンツを操作</li>
-                <li><strong>Gutenbergブロックエディタ</strong><br>ブロックJSONとして記事コンテンツを操作</li>
+                <li>登録済みサイトが1件のみの場合は確認なしで自動選択</li>
+                <li>複数サイトが登録されている場合のみ選択を求める</li>
               </ul>
             </div>
             <div class="choice-box">
               <div class="choice-box-title">Q2. リンク形式は？</div>
               <ul>
-                <li><strong>URLのみ</strong><br>WordPress側のブログカード自動展開に任せる</li>
-                <li><strong>aタグ</strong><br><code>&lt;a href="URL"&gt;記事タイトル&lt;/a&gt;</code><br>アンカーテキストはarticle_cacheのtitleを使用</li>
+                <li><strong>ブログカード</strong><br>Gutenbergは <code>&lt;!-- wp:embed --&gt;</code> ブロック、クラシックはURLをそのまま挿入（WordPress oEmbed）</li>
+                <li><strong>URL（SWELL用・クラシック専用）</strong><br>SWELLショートコード <code>[post_link url="URL"]</code>。Gutenberg記事は自動スキップ</li>
+                <li><strong>aタグ</strong><br><code>&lt;a href="URL"&gt;記事タイトル&lt;/a&gt;</code>。Gutenberg・クラシック両対応</li>
               </ul>
             </div>
           </div>
 
           <div class="alert alert-info">
-            💡 クライアントのWordPressがどちらのエディタかは、初回実行前に口頭確認します。確認できた場合はデフォルト値として環境変数に設定することも可能です（<code>WP_EDITOR=classic</code> など）。
+            💡 エディタ形式（Gutenberg / クラシック）は記事ごとに自動判定されます。実行前に指定する必要はありません。
           </div>
         </div>
 
@@ -630,7 +632,7 @@
               <tr><td>認証方式</td><td>WordPress Application Password（Basic認証ヘッダー）+ Googleサービスアカウント（Sheets）</td></tr>
               <tr><td>通信</td><td>HTTPS（WordPress REST API・Google Sheets API）</td></tr>
               <tr><td>エラー耐性</td><td>個別記事のAPI失敗はスキップして処理継続。Spreadsheetにエラー内容を記録する</td></tr>
-              <tr><td>冪等性</td><td>N列の「済み」フラグにより再実行時の重複挿入を防止する</td></tr>
+              <tr><td>冪等性</td><td>N列が空欄以外の行はすべてスキップし、再実行時の重複挿入を防止する</td></tr>
             </table>
           </div>
         </div>
