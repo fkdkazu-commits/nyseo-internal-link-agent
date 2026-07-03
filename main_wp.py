@@ -36,15 +36,18 @@ def main(
     site_key: str = "",
     force_row: "int | None" = None,
     limit: "int | None" = None,
+    count_limit: "int | None" = None,
 ):
     logger.info("=" * 50)
     logger.info("WordPress内部リンク挿入ツール 開始")
-    _link_label = {"blogcard": "blogcard（自動判定）", "url": "url（SWELL用）", "atag": "atag（テキストリンク）"}.get(link_format, link_format)
+    _link_label = {"url": "url（URL挿入・自動判定）", "atag": "atag（テキストリンク）"}.get(link_format, link_format)
     logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {_link_label}")
     if site_key:
         logger.info(f"対象サイト: {site_key}")
     if limit:
         logger.info(f"処理上限: No{limit}まで")
+    if count_limit:
+        logger.info(f"処理件数上限: {count_limit}件")
     logger.info("=" * 50)
 
     sheets = SheetsClient(spreadsheet_url)
@@ -87,6 +90,9 @@ def main(
 
         rows_to_process.append((row_idx, row))
 
+    if count_limit is not None:
+        rows_to_process = rows_to_process[:count_limit]
+
     logger.info(f"処理対象: {len(rows_to_process)} 行")
 
     for row_idx, row in rows_to_process:
@@ -107,10 +113,9 @@ def main(
                 continue
             insertions.append((cand_url, cand_head, target_url, target_title))
 
-        total_inserted      = 0
-        total_skipped       = 0
-        total_link_exist    = 0
-        total_fmt_mismatch  = 0
+        total_inserted   = 0
+        total_skipped    = 0
+        total_link_exist = 0
         errors = []
 
         for cand_url, cand_heading, tgt_url, tgt_title in insertions:
@@ -126,12 +131,6 @@ def main(
             actual_editor = detect_editor(content) if editor == "auto" else editor
             if editor == "auto":
                 logger.debug(f"  エディタ自動判定: {actual_editor} ({cand_url})")
-
-            # editor × link_format 非マッチチェック
-            if link_format == "url" and actual_editor == "gutenberg":
-                logger.warning(f"  Gutenberg記事にurl（SWELL）形式は使用できません。選択肢1または3で再実行してください: {cand_url}")
-                total_fmt_mismatch += 1
-                continue
 
             if already_has_link(content, tgt_url):
                 logger.info(f"  すでにリンクあり（スキップ）: {cand_url}")
@@ -162,9 +161,6 @@ def main(
         if errors:
             status_val = "エラー"
             date_val   = now + " / " + " | ".join(errors)
-        elif total_fmt_mismatch > 0 and total_inserted == 0:
-            status_val = "スキップ（エディタ形式非マッチ）"
-            date_val   = now
         elif total_skipped > 0 and total_inserted == 0:
             status_val = "警告（スキップあり）"
             date_val   = now
@@ -238,6 +234,7 @@ if __name__ == "__main__":
     _site    = ""
     _row     = None
     _limit   = None
+    _count   = None
 
     i = 1
     while i < len(args):
@@ -251,7 +248,9 @@ if __name__ == "__main__":
             _row = int(args[i + 1]); i += 2
         elif args[i] == "--limit" and i + 1 < len(args):
             _limit = int(args[i + 1]); i += 2
+        elif args[i] == "--count" and i + 1 < len(args):
+            _count = int(args[i + 1]); i += 2
         else:
             i += 1
 
-    main(_url, editor=_editor, link_format=_link, site_key=_site, force_row=_row, limit=_limit)
+    main(_url, editor=_editor, link_format=_link, site_key=_site, force_row=_row, limit=_limit, count_limit=_count)

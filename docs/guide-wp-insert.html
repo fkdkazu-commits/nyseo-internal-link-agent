@@ -312,9 +312,10 @@
             <li>Spreadsheet の H〜M 列を確認・承認する（問題のある行は H 列を空白にしてスキップ）</li>
             <li>Cowork を開き、内部リンクエージェント プロジェクトを選択する</li>
             <li>「WordPress に挿入してほしい」と送信し、Spreadsheet URL を伝える</li>
-            <li>エージェントがサイト（複数登録時）とリンク形式（3種類）を確認してくるので選択する（詳細は次のセクション参照）</li>
+            <li>エージェントがサイト（複数登録時）・リンク形式（2種類）・実行範囲（1記事のみ / 一括）を順に確認してくるので選択する</li>
             <li>Chrome が自動で起動し、Cowork 上に「Allow」ボタンが表示されたらクリックする</li>
             <li>PowerShell ウィンドウが開き、処理が進む（完了まで閉じないでください）</li>
+            <li>1記事のみを選択した場合は、完了後に Spreadsheet と WordPress のプレビューで表示を確認してから「一括実行」を依頼する</li>
           </ol>
         </div>
       </div>
@@ -366,16 +367,10 @@
           <thead><tr><th>形式</th><th>WordPress での見た目</th><th>向いているケース</th><th>推奨</th></tr></thead>
           <tbody>
             <tr>
-              <td><strong>ブログカード</strong><br><span class="ic">--link blogcard</span></td>
-              <td>Gutenberg の <code>wp:embed</code> ブロックとして挿入。テーマがブログカード表示に自動変換</td>
-              <td>Gutenberg エディタのサイトでブログカード表示したい場合</td>
-              <td><span class="badge b-green">Gutenberg 推奨</span></td>
-            </tr>
-            <tr>
-              <td><strong>URL（SWELL用・クラシック専用）</strong><br><span class="ic">--link url</span></td>
-              <td>SWELLテーマのショートコード <code>[post_link url="URL"]</code> として挿入。SWELLのクラシックエディタ専用。Gutenberg 記事は自動スキップ</td>
-              <td>SWELLテーマ + クラシックエディタの記事のみ。Gutenberg 混在サイトは aタグ形式を推奨</td>
-              <td><span class="badge b-yellow">クラシック専用</span></td>
+              <td><strong>URL挿入</strong><br><span class="ic">--link url</span></td>
+              <td>Gutenberg は <code>wp:embed</code> ブロック、クラシックは URL をそのまま挿入。WordPress の oEmbed 機能でブログカード表示を試みる。表示結果はテーマに依存</td>
+              <td>ブログカード表示を希望する場合。まず 1 記事でテスト表示を確認してから一括実行することを推奨</td>
+              <td><span class="badge b-green">ブログカード推奨</span></td>
             </tr>
             <tr>
               <td><strong>aタグ</strong><br><span class="ic">--link atag</span></td>
@@ -388,9 +383,8 @@
         <div class="callout warn" style="margin-top:12px;">
           <span class="callout-icon">⚠️</span>
           <div>
-            <strong>URL（SWELL用・クラシック専用）形式を選択する前に必ず確認してください。</strong><br>
-            この形式は SWELLテーマのクラシックエディタ専用です。Gutenberg 記事には挿入されず自動スキップされます（N 列に「スキップ（エディタ形式非マッチ）」と記録）。SWELLテーマ以外のクラシック記事では正しく表示されない場合があります。<br>
-            <strong>Gutenberg・クラシック両対応が必要な場合は aタグ形式を選択してください。</strong>
+            <strong>URL挿入でブログカードになるかはテーマによって異なります。</strong><br>
+            WordPress の oEmbed 機能に対応していないテーマでは、URL がそのままテキスト表示される場合があります。<strong>必ず 1 記事のみでテスト実行し、表示結果を確認してから一括実行してください。</strong>
           </div>
         </div>
         <div class="callout info" style="margin-top:8px;">
@@ -440,11 +434,6 @@
               <td>スキップ（リンク済み）</td>
               <td>対象記事の URL がすでに候補記事の本文に含まれていた（全候補スキップ）</td>
               <td>対応不要。すでにリンクが設置済みです</td>
-            </tr>
-            <tr>
-              <td>スキップ（エディタ形式非マッチ）</td>
-              <td>URL（SWELL用）形式を選択したが、対象記事が Gutenberg エディタだった</td>
-              <td>aタグ形式またはブログカード形式で再実行してください（N 列を空白に戻してから）</td>
             </tr>
             <tr>
               <td>警告（スキップあり）</td>

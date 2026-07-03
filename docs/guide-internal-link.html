@@ -360,30 +360,29 @@ http://127.0.0.1:8765/sites
 **STEP 2：リンク形式の確認**
 
 &gt; 挿入するリンクの形式を教えてください：
-&gt; 1. URL（Gutenberg/クラシック自動判定）
-&gt; 2. URL（クラシックエディタ推奨・SWELL用）
-&gt; 3. aタグ形式（テキストリンク）
+&gt; 1. URL挿入（Gutenberg/クラシック自動判定）※ブログカード表示はテーマ依存
+&gt; 2. aタグ（テキストリンク・Gutenberg/クラシック両対応）
 
 ※エディタ形式（クラシック / Gutenberg）は記事ごとに自動判定されるため確認不要。
 
-「2. URL（クラシックエディタ推奨・SWELL用）」が選択された場合は必ず以下の警告を出すこと：
-「⚠️ 注意：この形式はSWELLテーマのクラシックエディタ専用です。
-・Gutenberg記事には挿入されず自動スキップされます
-・SWELLテーマ以外のクラシック記事では正しく表示されない場合があります
-aタグ形式であればGutenberg・クラシック両方に確実に挿入されます。このまま続けますか？」
-ユーザーが了承した場合のみ次へ進む。
+**STEP 3：実行範囲の確認**
 
-**STEP 3：WP挿入リクエストを送信**
+&gt; まず1記事のみテスト実行しますか？それとも一括実行しますか？
+&gt; ・1記事のみ → 先頭の未処理行を1件だけ処理します。表示結果を確認してから一括実行してください。
+&gt; ・一括実行 → すべての未処理行を処理します。
+
+**STEP 4：WP挿入リクエストを送信**
 
 選択に応じて Claude in Chrome で以下のURLを開く：
-| 選択 | URL |
-|------|-----|
-| 1. URL（Gutenberg/クラシック自動判定） | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=blogcard |
-| 2. URL（クラシックエディタ推奨・SWELL用） | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=url |
-| 3. aタグ形式（テキストリンク） | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=atag |
+| リンク形式 | 実行範囲 | URL |
+|------|------|-----|
+| 1. URL挿入 | 1記事のみ | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=url&amp;count=1 |
+| 1. URL挿入 | 一括 | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=url |
+| 2. aタグ | 1記事のみ | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=atag&amp;count=1 |
+| 2. aタグ | 一括 | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=atag |
 
 複数サイトの場合は末尾に &amp;site=&lt;domain&gt; を追加する：
-例）http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=blogcard&amp;site=example.com
+例）http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=url&amp;site=example.com
 
 run-wp が {"status": "site_required"} を返した場合は、
 ユーザーにサイトを確認してから &amp;site=&lt;domain&gt; を付けて再度リクエストを送る。
@@ -391,7 +390,10 @@ run-wp が {"status": "site_required"} を返した場合は、
 &lt;URL&gt; はユーザーから受け取ったSpreadsheetのURLをそのまま入れる。
 
 {"status": "started"} が返ってきたら：
-「WP挿入を開始しました。完了後にSpreadsheetのN列でステータスを確認できます。」
+- 1記事のみの場合：「1件処理します。完了後にSpreadsheetとWordPressのプレビューで表示を確認してください。問題なければ「一括実行」と送ってください。」
+- 一括の場合：「WP挿入を開始しました。完了後にSpreadsheetのN列でステータスを確認できます。」
+
+1記事テスト後にユーザーが「一括実行」と送ってきたら、STEP 4を再度実行する（count=1を外して一括実行）。
 
 ---
 

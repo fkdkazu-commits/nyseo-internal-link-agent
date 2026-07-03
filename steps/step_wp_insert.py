@@ -228,7 +228,7 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
             f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
             f'<!-- /wp:paragraph -->'
         )
-    elif link_format == "blogcard":
+    else:  # url: wp:embedブロックとして挿入（テーマ側でブログカード表示）
         return (
             f'<!-- wp:embed {{"url":"{url}"}} -->\n'
             f'<figure class="wp-block-embed">\n'
@@ -238,12 +238,6 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
             f'</figure>\n'
             f'<!-- /wp:embed -->'
         )
-    else:  # url
-        return (
-            f'<!-- wp:paragraph -->\n'
-            f'<p>{url}</p>\n'
-            f'<!-- /wp:paragraph -->'
-        )
 
 
 def _build_link_html(url: str, link_text: str, link_format: str) -> str:
@@ -251,7 +245,5 @@ def _build_link_html(url: str, link_text: str, link_format: str) -> str:
     if link_format == "atag":
         safe_text = link_text or url
         return f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
-    elif link_format == "url":  # SWELL用ショートコード
-        return f'[post_link url="{url}"]\n'
-    else:  # blogcard: URLをそのまま挿入（WordPressのoEmbed処理に委ねる）
+    else:  # url: URLをそのまま挿入（WordPressのoEmbed処理に委ねる）
         return f'<p>{url}</p>\n'

@@ -141,6 +141,7 @@ class Handler(BaseHTTPRequestHandler):
         editor = params.get("editor", ["auto"])[0]
         link   = params.get("link",   [""])[0]
         site   = params.get("site",   [""])[0]
+        count  = params.get("count",  [""])[0]
 
         if not url:
             with _lock:
@@ -158,13 +159,15 @@ class Handler(BaseHTTPRequestHandler):
                 self._respond(200, json.dumps({"status": "site_required", "sites": keys}, ensure_ascii=False))
                 return
 
-        self._respond(200, json.dumps({"status": "started", "editor": editor, "link": link, "site": site}, ensure_ascii=False))
-        threading.Thread(target=self._execute_wp, args=(url, editor, link, site), daemon=True).start()
+        self._respond(200, json.dumps({"status": "started", "editor": editor, "link": link, "site": site, "count": count}, ensure_ascii=False))
+        threading.Thread(target=self._execute_wp, args=(url, editor, link, site, count), daemon=True).start()
 
-    def _execute_wp(self, url: str, editor: str, link: str, site: str = ""):
+    def _execute_wp(self, url: str, editor: str, link: str, site: str = "", count: str = ""):
         global _running
         try:
-            site_arg = f' --site "{site}"' if site else ""
+            site_arg  = f' --site "{site}"' if site else ""
+            count_arg = f' --count {count}' if count else ""
+            is_test   = count == "1"
             if IS_MAC:
                 if link:
                     link_select = f'linkMode="{link}"\n'
@@ -172,20 +175,25 @@ class Handler(BaseHTTPRequestHandler):
                     link_select = (
                         f'echo ""\n'
                         f'echo "リンク形式を選択してください："\n'
-                        f'echo "  1. URL（Gutenberg/クラシック自動判定）"\n'
-                        f'echo "  2. URL（クラシックエディタ推奨・SWELL用）"\n'
-                        f'echo "  3. aタグ形式（テキストリンク）"\n'
+                        f'echo "  1. URL挿入（Gutenberg/クラシック自動判定）"\n'
+                        f'echo "  2. aタグ形式（テキストリンク）"\n'
                         f'echo ""\n'
-                        f'read -p "番号を入力 [1/2/3]: " linkAns\n'
-                        f'if [ "$linkAns" = "3" ]; then linkMode="atag"; elif [ "$linkAns" = "2" ]; then linkMode="url"; else linkMode="blogcard"; fi\n'
+                        f'read -p "番号を入力 [1/2]: " linkAns\n'
+                        f'if [ "$linkAns" = "2" ]; then linkMode="atag"; else linkMode="url"; fi\n'
                     )
+                if is_test:
+                    done_msg = (
+                        f'echo ""\n'
+                        f'echo "1件の処理が完了しました。Spreadsheetで結果を確認し、問題なければCoworkで「一括実行」と送ってください。"\n'
+                    )
+                else:
+                    done_msg = f'echo ""\necho "WP挿入完了。このウィンドウを閉じてください。"\n'
                 bash_script = (
                     f'#!/bin/bash\n'
                     f'cd "{PROJECT_DIR}"\n'
                     f'{link_select}'
-                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}\n'
-                    f'echo ""\n'
-                    f'echo "WP挿入完了。このウィンドウを閉じてください。"\n'
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}{count_arg}\n'
+                    f'{done_msg}'
                     f'read -p "Enterキーを押して終了..." dummy\n'
                 )
                 _open_terminal_mac(bash_script)
@@ -196,18 +204,24 @@ class Handler(BaseHTTPRequestHandler):
                     link_select = (
                         f'Write-Host ""; '
                         f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
-                        f'Write-Host "  1. URL（Gutenberg/クラシック自動判定）"; '
-                        f'Write-Host "  2. URL（クラシックエディタ推奨・SWELL用）"; '
-                        f'Write-Host "  3. aタグ形式（テキストリンク）"; '
+                        f'Write-Host "  1. URL挿入（Gutenberg/クラシック自動判定）"; '
+                        f'Write-Host "  2. aタグ形式（テキストリンク）"; '
                         f'Write-Host ""; '
-                        f'$linkAns = Read-Host "番号を入力 [1/2/3]"; '
-                        f'if ($linkAns -eq "3") {{ $linkMode = "atag" }} elseif ($linkAns -eq "2") {{ $linkMode = "url" }} else {{ $linkMode = "blogcard" }}; '
+                        f'$linkAns = Read-Host "番号を入力 [1/2]"; '
+                        f'if ($linkAns -eq "2") {{ $linkMode = "atag" }} else {{ $linkMode = "url" }}; '
                     )
+                if is_test:
+                    done_msg = (
+                        f'Write-Host ""; '
+                        f'Write-Host "1件の処理が完了しました。Spreadsheetで結果を確認し、問題なければCoworkで「一括実行」と送ってください。" -ForegroundColor Cyan; '
+                    )
+                else:
+                    done_msg = f'Write-Host ""; Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green; '
                 ps_cmd = (
                     f'cd "{PROJECT_DIR}"; '
                     f'{link_select}'
-                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}; '
-                    f'Write-Host ""; Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green; '
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}{count_arg}; '
+                    f'{done_msg}'
                     f'pause'
                 )
                 subprocess.Popen(
