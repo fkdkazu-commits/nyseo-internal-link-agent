@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NYSEO Cowork自動化エージェント — 初期インストール手順書</title>
+  <title>NYSEO Cowork自動化エージェント — 初期インストール手順書（macOS版）</title>
   <style>
     :root {
       --sidebar-width: 280px;
@@ -83,6 +83,24 @@
     .page-header h1 { font-size: 26px; font-weight: 800; line-height: 1.3; margin-bottom: 10px; }
     .page-header-desc { font-size: 14px; color: #bfdbfe; max-width: 620px; line-height: 1.7; }
     .content { padding: 44px 52px 80px; max-width: 940px; }
+
+    /* ── OS Switch Banner ── */
+    .os-switch {
+      background: #f8fafc; border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 20px;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 32px; font-size: 13px;
+    }
+    .os-switch-label { color: var(--text-secondary); flex-shrink: 0; }
+    .os-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 700;
+      text-decoration: none; border: 1px solid var(--border);
+      transition: all .15s;
+    }
+    .os-btn.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .os-btn.other { background: #fff; color: var(--text-primary); }
+    .os-btn.other:hover { background: var(--accent-light); border-color: #bfdbfe; color: var(--accent); }
 
     /* ── Section ── */
     .section { margin-bottom: 52px; scroll-margin-top: 20px; }
@@ -176,30 +194,6 @@
     .checklist .ck-title { font-weight: 700; }
     .checklist .ck-desc { color: var(--text-secondary); font-size: 12px; }
 
-    /* ── Trouble ── */
-    .trouble { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
-    .trouble-q { display: flex; align-items: flex-start; gap: 10px; padding: 13px 18px; background: #f8fafc; font-weight: 700; font-size: 13.5px; }
-    .trouble-q .qi { color: #dc2626; font-weight: 800; flex-shrink: 0; }
-    .trouble-a { padding: 16px 18px; font-size: 13px; line-height: 1.8; border-top: 1px solid var(--border); }
-
-    /* ── OS Switch Banner ── */
-    .os-switch {
-      background: #f8fafc; border: 1px solid var(--border);
-      border-radius: 10px; padding: 14px 20px;
-      display: flex; align-items: center; gap: 14px;
-      margin-bottom: 32px; font-size: 13px;
-    }
-    .os-switch-label { color: var(--text-secondary); flex-shrink: 0; }
-    .os-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 5px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 700;
-      text-decoration: none; border: 1px solid var(--border);
-      transition: all .15s;
-    }
-    .os-btn.current { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .os-btn.other { background: #fff; color: var(--text-primary); }
-    .os-btn.other:hover { background: var(--accent-light); border-color: #bfdbfe; color: var(--accent); }
-
     /* ── Misc ── */
     p { margin-bottom: 10px; }
     p:last-child { margin-bottom: 0; }
@@ -227,7 +221,7 @@
 <nav class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-label">NYSEO Cowork自動化エージェント</div>
-    <div class="sidebar-title">初期インストール手順書</div>
+    <div class="sidebar-title">初期インストール手順書<br>（macOS版）</div>
     <div class="sidebar-meta">クライアント向けセットアップガイド</div>
   </div>
   <div class="sidebar-nav">
@@ -235,8 +229,8 @@
     <a class="nav-item" href="#overview"><span class="nav-badge">0</span> 仕組みと概要</a>
     <a class="nav-item" href="#prereq"><span class="nav-badge">★</span> 必要なもの一覧</a>
 
-    <div class="nav-group">インストール（install.bat の 12 ステップ）</div>
-    <a class="nav-item" href="#start"><span class="nav-badge">▶</span> セットアップ開始（install.bat）</a>
+    <div class="nav-group">インストール（install.sh の 12 ステップ）</div>
+    <a class="nav-item" href="#start"><span class="nav-badge">▶</span> セットアップ開始（install.sh）</a>
     <a class="nav-item" href="#flow-overview"><span class="nav-badge">≡</span> 12 ステップ概要</a>
     <a class="nav-item" href="#step1"><span class="nav-badge">1</span> Python の確認</a>
     <a class="nav-item" href="#step2"><span class="nav-badge">2</span> Chrome + 拡張機能</a>
@@ -248,7 +242,8 @@
     <a class="nav-item" href="#step8"><span class="nav-badge">8</span> WordPress サイト設定</a>
     <a class="nav-item" href="#step9"><span class="nav-badge">9</span> ライブラリのインストール</a>
     <a class="nav-item" href="#step10"><span class="nav-badge">10</span> ランナーサーバー起動</a>
-    <a class="nav-item" href="#step11"><span class="nav-badge">11</span> Cowork 再起動</a>
+    <a class="nav-item" href="#step11"><span class="nav-badge">11</span> Cowork プロジェクト作成</a>
+    <a class="nav-item" href="#step12"><span class="nav-badge">12</span> Spreadsheet の準備</a>
     <a class="nav-item" href="#verify"><span class="nav-badge">✓</span> 動作確認</a>
 
     <div class="nav-group">機能別 導入手順</div>
@@ -262,11 +257,11 @@
 ═══════════════════════════════ -->
 <main class="main">
   <div class="page-header">
-    <div class="page-header-label">Installation Guide</div>
-    <h1>NYSEO Cowork自動化エージェント<br>初期インストール手順書</h1>
+    <div class="page-header-label">Installation Guide — macOS</div>
+    <h1>NYSEO Cowork自動化エージェント<br>初期インストール手順書（macOS版）</h1>
     <div class="page-header-desc">
-      Windows 11 環境への初期セットアップガイドです。<br>
-      順番通りに進めると約 15〜20 分で完了します。完了後は各機能の導入手順書をご参照ください。
+      macOS 環境への初期セットアップガイドです。<br>
+      ターミナルで <code style="background:rgba(255,255,255,.15); padding:1px 6px; border-radius:4px;">bash install.sh</code> を実行するだけで全 12 ステップが自動で進みます。完了後は各機能の導入手順書をご参照ください。
     </div>
   </div>
 
@@ -275,8 +270,8 @@
     <!-- OS Switch -->
     <div class="os-switch">
       <span class="os-switch-label">OS を切り替え：</span>
-      <a class="os-btn current" href="install.html">🪟 Windows版（現在）</a>
-      <a class="os-btn other" href="install-mac.html">🍎 macOS版</a>
+      <a class="os-btn other" href="install.html">🪟 Windows版</a>
+      <a class="os-btn current" href="install-mac.html">🍎 macOS版（現在）</a>
     </div>
 
     <!-- ═══ 仕組みと概要 ═══ -->
@@ -319,9 +314,9 @@
           <div class="flow-arrow">→</div>
           <div class="flow-box yellow"><span class="fb-icon">🖥️</span>ランナーサーバー<span class="fb-sub">常駐・仲介</span></div>
           <div class="flow-arrow">→</div>
-          <div class="flow-box green"><span class="fb-icon">⚡</span>PowerShell<span class="fb-sub">処理実行</span></div>
+          <div class="flow-box green"><span class="fb-icon">⚡</span>ターミナル<span class="fb-sub">処理実行</span></div>
         </div>
-        <p style="margin-top:12px; font-size:13px; color:var(--text-secondary);">このインストール手順（install.bat）では、上記すべてのコンポーネントが動作するための共通基盤をセットアップします。</p>
+        <p style="margin-top:12px; font-size:13px; color:var(--text-secondary);">このインストール手順（install.sh）では、上記すべてのコンポーネントが動作するための共通基盤をセットアップします。</p>
       </div>
     </section>
 
@@ -341,12 +336,12 @@
           <thead><tr><th>必要なもの</th><th>バージョン目安</th><th>状態確認</th></tr></thead>
           <tbody>
             <tr>
-              <td><strong>Windows 11</strong></td>
-              <td>10.0 以降</td>
+              <td><strong>macOS</strong></td>
+              <td>Ventura (13) 以降推奨</td>
               <td><span class="badge b-blue">OS 要件</span></td>
             </tr>
             <tr>
-              <td><strong>Python</strong>（<span class="ic">py</span> コマンド）</td>
+              <td><strong>Python</strong>（<span class="ic">python3</span> コマンド）</td>
               <td>3.10 以上推奨</td>
               <td><span class="badge b-yellow">ステップ 1 で確認</span></td>
             </tr>
@@ -388,7 +383,7 @@
         </table>
         <div class="callout warn" style="margin-top:14px;">
           <span class="callout-icon">⚠️</span>
-          <div>Spreadsheet にはサービスアカウントのメールアドレスの<strong>編集権限を付与</strong>する必要があります。メールアドレスは install.bat の STEP 11 で自動表示されます。</div>
+          <div>Spreadsheet にはサービスアカウントのメールアドレスの<strong>編集権限を付与</strong>する必要があります。メールアドレスは install.sh の STEP 12 で自動表示されます。</div>
         </div>
       </div>
     </section>
@@ -398,59 +393,56 @@
       <div class="section-header">
         <div class="step-circle" style="background:#16a34a; font-size:16px;">▶</div>
         <div>
-          <h2>セットアップ開始：install.bat を起動する</h2>
-          <div class="sub">zip を展開してフォルダを配置し、install.bat をダブルクリックするだけで全 11 ステップが始まります</div>
+          <h2>セットアップ開始：ターミナルで install.sh を実行する</h2>
+          <div class="sub">フォルダを配置してターミナルでコマンドを実行するだけで全 12 ステップが始まります</div>
         </div>
       </div>
       <div class="card">
-        <p><span class="ic">install.bat</span> は、このツールのセットアップに必要な全 11 ステップを自動で案内する<strong>インストーラー</strong>です。</p>
-        <p>ダブルクリックするだけで PowerShell が開き、順番に処理が進みます。所要時間の目安は <strong>15〜20 分</strong>です。</p>
+        <p><span class="ic">install.sh</span> は、このツールのセットアップに必要な全 12 ステップを自動で案内する<strong>インストーラー</strong>です。</p>
+        <p>ターミナルでコマンドを実行するだけで順番に処理が進みます。所要時間の目安は <strong>15〜20 分</strong>です。</p>
         <ul style="margin-top:8px; margin-bottom:0;">
-          <li>STEP 1〜7・9・10 はすべて<strong>自動処理</strong>（待つだけ）</li>
-          <li>STEP 7 のみ <kbd>Enter</kbd> を 2 回押す操作が必要</li>
-          <li>STEP 8・11・12 は画面の案内に従って手動で設定</li>
+          <li>STEP 1・4・5・6・9・10 はすべて<strong>自動処理</strong>（待つだけ）</li>
+          <li>STEP 7 のみ <kbd>Enter</kbd> を押す操作が必要</li>
+          <li>STEP 2・3・8・11・12 は画面の案内に従って手動で設定</li>
         </ul>
-        <p style="margin-top:10px; margin-bottom:0;">このページでは、zip 展開から各ステップの詳細まで順番に説明します。</p>
       </div>
 
       <div class="card">
-        <h3>① zip を展開してフォルダを配置する</h3>
-        <p>受け取った <span class="ic">nyseo-internal-link-agent.zip</span> を右クリック →「すべて展開」で展開してください。</p>
-
-        <h4 style="margin-top:14px; margin-bottom:6px; font-size:13px;">配置場所について</h4>
-        <p>このツールは内部でコマンドを実行するため、<strong>フォルダのパスに日本語や半角スペースが含まれるとエラーが発生します。</strong>以下の場所への配置を推奨します。</p>
+        <h3>① フォルダを配置する</h3>
+        <p>受け取った <span class="ic">nyseo-internal-link-agent</span> フォルダを、<strong>恒久的な場所</strong>に移動してください。</p>
 
         <div class="code-block" style="margin-top:8px;">
           <div class="code-header"><span class="code-lang">推奨パス</span></div>
-          <pre><code>C:\tools\nyseo-internal-link-agent\</code></pre>
+          <pre><code>~/Documents/nyseo-internal-link-agent/</code></pre>
         </div>
-        <p style="margin-top:8px; font-size:12.5px; color:var(--text-secondary);"><span class="ic">C:\tools\</span> フォルダが存在しない場合は、エクスプローラーで <span class="ic">C:\</span> を開いて新規フォルダを作成してください。</p>
 
         <div class="callout warn" style="margin-top:10px;">
           <span class="callout-icon">⚠️</span>
           <div>
             以下の場所への配置は<strong>避けてください</strong>：<br>
-            ・<strong>デスクトップ・ドキュメント・ダウンロード</strong>（Windowsアカウント名が日本語の場合、パスに日本語が混入する）<br>
-            ・<strong>OneDrive 管理下のフォルダ</strong>（クラウド同期との競合が起きる場合がある）<br>
-            ・<strong>ネットワークドライブ・USB メモリ</strong>
+            ・<strong>デスクトップ・ダウンロード</strong>（install.sh が途中で警告を出します）<br>
+            ・<strong>iCloud Drive・Dropbox などのクラウド同期フォルダ</strong>（競合が起きる場合があります）
           </div>
         </div>
       </div>
+
       <div class="card">
-        <h3>② install.bat をダブルクリックして起動する</h3>
-        <p>展開した <strong>nyseo-internal-link-agent</strong> フォルダを開き、<strong>install.bat</strong> をダブルクリックしてください。PowerShell が自動で起動してインストールが始まります。</p>
+        <h3>② ターミナルを開いて install.sh を実行する</h3>
+        <p>Spotlight（<kbd>Command</kbd> + <kbd>Space</kbd>）で「ターミナル」と検索して開き、以下を実行してください。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">ターミナル</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>cd ~/Documents/nyseo-internal-link-agent
+bash install.sh</code></pre>
+        </div>
         <div class="callout ok" style="margin-top:10px;">
           <span class="callout-icon">✅</span>
-          <div>黒いウィンドウ（PowerShell）が開き、インストーラーのメッセージが表示されれば正常に起動しています。</div>
+          <div>以下のような画面が表示されれば正常に起動しています。</div>
         </div>
-        <div class="callout warn" style="margin-top:8px;">
-          <span class="callout-icon">⚠️</span>
-          <div>
-            <strong>「このアプリがデバイスに変更を加えることを許可しますか？」と表示される場合：</strong><br>
-            「はい」をクリックしてください。<br><br>
-            <strong>「Windows によって PC が保護されました」と表示される場合：</strong><br>
-            「詳細情報」→「実行」をクリックしてください。
-          </div>
+        <div class="terminal" style="margin-top:8px;">
+          ╔══════════════════════════════════════════════════╗<br>
+          ║&nbsp; NYSEO Cowork自動化エージェント インストーラー&nbsp;&nbsp; ║<br>
+          ║&nbsp; （macOS版）&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ║<br>
+          ╚══════════════════════════════════════════════════╝
         </div>
       </div>
     </section>
@@ -460,12 +452,12 @@
       <div class="section-header">
         <div class="step-circle" style="background:#475569; font-size:12px;">流れ</div>
         <div>
-          <h2>install.bat の 12 ステップ概要</h2>
-          <div class="sub">install.bat を起動すると、以下の順番で自動的に進みます</div>
+          <h2>install.sh の 12 ステップ概要</h2>
+          <div class="sub">install.sh を起動すると、以下の順番で自動的に進みます</div>
         </div>
       </div>
       <div class="card">
-        <p>操作が必要なのは <strong>STEP 7 の操作（Enter キー）</strong>と、<strong>STEP 8・11・12 の手動入力</strong>のみです。それ以外はすべて自動で完了します。</p>
+        <p>操作が必要なのは <strong>STEP 7 の操作（Enter キー）</strong>と、<strong>STEP 2・3・8・11・12 の手動入力</strong>のみです。それ以外はすべて自動で完了します。</p>
         <table class="tbl" style="margin-top:12px;">
           <thead>
             <tr>
@@ -476,22 +468,22 @@
           </thead>
           <tbody>
             <tr><td><strong>1</strong></td><td>Python のインストール確認</td><td><span class="badge b-blue">自動確認</span></td></tr>
-            <tr><td><strong>2</strong></td><td>Chrome・Claude 拡張機能の確認</td><td><span class="badge b-blue">自動確認</span></td></tr>
-            <tr><td><strong>3</strong></td><td>Cowork（Claude Desktop Pro）の確認</td><td><span class="badge b-blue">自動確認</span></td></tr>
+            <tr><td><strong>2</strong></td><td>Chrome・Claude 拡張機能の確認</td><td><span class="badge b-green">手動確認</span></td></tr>
+            <tr><td><strong>3</strong></td><td>Cowork（Claude Desktop Pro）の確認</td><td><span class="badge b-green">手動確認</span></td></tr>
             <tr><td><strong>4</strong></td><td>Claude CLI ログイン確認</td><td><span class="badge b-blue">自動確認</span></td></tr>
             <tr><td><strong>5</strong></td><td>プロジェクトフォルダの確認・登録</td><td><span class="badge b-blue">自動確認</span></td></tr>
             <tr><td><strong>6</strong></td><td>Google サービスアカウント JSON の自動配置</td><td><span class="badge b-blue">自動実行</span></td></tr>
-            <tr><td><strong>7</strong></td><td>環境変数の設定（JSON パス・API キー）</td><td><span class="badge b-yellow">Enter 2 回</span></td></tr>
+            <tr><td><strong>7</strong></td><td>環境変数の設定（~/.zshrc に JSON パスを記録）</td><td><span class="badge b-yellow">Enter 1 回</span></td></tr>
             <tr><td><strong>8</strong></td><td>WordPress サイト情報の設定（URL・ユーザー名・パスワード）</td><td><span class="badge b-green">手動入力</span></td></tr>
             <tr><td><strong>9</strong></td><td>必要なライブラリのインストール（pip）</td><td><span class="badge b-blue">自動実行</span></td></tr>
-            <tr><td><strong>10</strong></td><td>ランナーサーバーのスタートアップ登録・起動</td><td><span class="badge b-blue">自動実行</span></td></tr>
+            <tr><td><strong>10</strong></td><td>ランナーサーバーの LaunchAgent 登録・起動</td><td><span class="badge b-blue">自動実行</span></td></tr>
             <tr><td><strong>11</strong></td><td>Cowork プロジェクト作成（案内に従い手動）</td><td><span class="badge b-green">手動</span></td></tr>
             <tr><td><strong>12</strong></td><td>Spreadsheet の新規作成・共有設定</td><td><span class="badge b-green">手動</span></td></tr>
           </tbody>
         </table>
         <div class="callout info" style="margin-top:14px;">
           <span class="callout-icon">ℹ️</span>
-          <div>STEP 1〜3 で未インストールのソフトウェアが見つかった場合、install.bat の画面に案内が表示されます。案内に従ってインストールを完了したあと <strong>install.bat を再実行</strong>してください。</div>
+          <div>STEP 1〜3 で未インストールのソフトウェアが見つかった場合、install.sh の画面に案内が表示されます。案内に従ってインストールを完了したあと <strong>install.sh を再実行</strong>してください。</div>
         </div>
       </div>
     </section>
@@ -506,22 +498,21 @@
         </div>
       </div>
       <div class="card">
-        <p>スタートメニューから「PowerShell」を検索して開き、以下を実行してください。</p>
+        <p>ターミナルで以下を実行してください。</p>
         <div class="code-block">
-          <div class="code-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
-          <pre><code>py --version</code></pre>
+          <div class="code-header"><span class="code-lang">ターミナル</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+          <pre><code>python3 --version</code></pre>
         </div>
         <div class="callout ok">
           <span class="callout-icon">✅</span>
-          <div><strong>OK：</strong><span class="ic">Python 3.11.x</span> のようなバージョンが表示されます → ステップ 2 へ進んでください。</div>
+          <div><strong>OK：</strong><span class="ic">Python 3.11.x</span> のようなバージョンが表示されます → そのまま install.sh が進みます。</div>
         </div>
         <div class="callout warn">
           <span class="callout-icon">⚠️</span>
           <div>
-            <strong>「py は認識されていません」と表示される場合：</strong><br>
-            <a href="https://www.python.org/downloads/" style="color:inherit; text-decoration:underline;">python.org</a> からインストーラーをダウンロードして実行してください。<br>
-            インストール画面で <strong>「Add Python to PATH」のチェックを必ず入れてください</strong>。<br>
-            インストール後は PowerShell を一度閉じて再度開いてから <span class="ic">py --version</span> を再確認してください。
+            <strong>「command not found: python3」と表示される場合：</strong><br>
+            <a href="https://www.python.org/downloads/" style="color:inherit; text-decoration:underline;">python.org</a> から macOS 版インストーラー（.pkg）をダウンロードして実行してください。<br>
+            インストール後はターミナルを一度閉じて再度開いてから <span class="ic">python3 --version</span> を再確認してください。
           </div>
         </div>
       </div>
@@ -541,13 +532,9 @@
         <h3>Chrome のインストール確認</h3>
         <p>Google Chrome がインストールされているか確認してください。</p>
         <ul>
-          <li>スタートメニューで「Chrome」を検索して起動できればインストール済みです</li>
-          <li>インストールされていない場合は <a href="https://www.google.com/chrome/" style="color:var(--accent);">google.com/chrome</a> からダウンロードしてください</li>
+          <li>Spotlight（<kbd>Command</kbd> + <kbd>Space</kbd>）で「Chrome」を検索して起動できればインストール済みです</li>
+          <li>インストールされていない場合は <a href="https://www.google.com/chrome/" style="color:var(--accent);">google.com/chrome</a> から .dmg をダウンロードしてインストールしてください</li>
         </ul>
-        <div class="callout info">
-          <span class="callout-icon">ℹ️</span>
-          <div>Chrome は <strong>通常起動できる状態（ログインなしでも可）</strong>であれば問題ありません。Cowork が自動操作するため、普段 Chrome をメインブラウザとして使っていなくても構いません。</div>
-        </div>
       </div>
 
       <div class="card">
@@ -564,13 +551,13 @@
           <div class="code-header"><span class="code-lang">Chrome ウェブストア検索 URL</span></div>
           <pre><code>https://chromewebstore.google.com/search/Claude</code></pre>
         </div>
-        <div class="callout ok" style="margin-top:10px;">
-          <span class="callout-icon">✅</span>
-          <div>拡張機能バーに Claude のアイコン（橙色）が表示されていればインストール済みです。すでにある場合は何もしなくて構いません。</div>
-        </div>
         <div class="callout warn" style="margin-top:8px;">
           <span class="callout-icon">⚠️</span>
-          <div>Cowork の「Claude in Chrome」機能は <strong>この拡張機能がなければ動作しません</strong>。必ずインストールしてください。</div>
+          <div>
+            <strong>インストール後に以下の設定を必ず行ってください：</strong><br>
+            Cowork の画面で 設定 →「Claude in Chrome」→「すべてのサイト」のデフォルト項目で「<strong>拡張機能を許可</strong>」を選択する。<br>
+            この設定をしないと内部リンクエージェント実行時に接続エラーになります。
+          </div>
         </div>
       </div>
     </section>
@@ -587,14 +574,10 @@
       <div class="card">
         <p>Cowork（Claude Desktop Pro）がインストールされており、起動できることを確認してください。</p>
         <ul>
-          <li>スタートメニューで「Claude」を検索して起動できるか確認</li>
+          <li>Spotlight で「Claude」を検索して起動できるか確認</li>
+          <li>インストールされていない場合は <a href="https://claude.ai/download" style="color:var(--accent);">claude.ai/download</a> から .dmg をダウンロードしてインストールしてください</li>
           <li>Anthropic のアカウントでログインしてください</li>
-          <li>インストールされていない場合は管理者に確認してください</li>
         </ul>
-        <div class="callout info">
-          <span class="callout-icon">ℹ️</span>
-          <div>Cowork には <strong>内部リンクエージェント プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成は install.bat の STEP 10 で案内します。</div>
-        </div>
       </div>
     </section>
 
@@ -604,17 +587,23 @@
         <div class="step-circle">4</div>
         <div>
           <h2>Claude CLI ログイン確認</h2>
-          <div class="sub">install.bat が自動で確認します</div>
+          <div class="sub">install.sh が自動で確認します</div>
         </div>
       </div>
       <div class="card">
-        <p>install.bat が Claude CLI（<span class="ic">claude</span> コマンド）の場所を自動で検索し、<strong>実際にプロンプトを送信してログイン済みかどうかを確認</strong>します。</p>
-        <div class="callout ok">
+        <p>install.sh が Claude CLI（<span class="ic">claude</span> コマンド）の場所を自動で検索し、<strong>実際にプロンプトを送信してログイン済みかどうかを確認</strong>します。検索場所は以下の順番です。</p>
+        <ul style="font-size:13px; color:var(--text-secondary);">
+          <li><span class="ic">~/.claude/local/claude</span>（Cowork が自動インストール）</li>
+          <li><span class="ic">~/Library/Application Support/Claude/claude-code/</span></li>
+          <li><span class="ic">/usr/local/bin/claude</span>、<span class="ic">/opt/homebrew/bin/claude</span></li>
+        </ul>
+        <div class="callout ok" style="margin-top:10px;">
           <span class="callout-icon">✅</span>
           <div>ログイン済みであれば自動で次のステップへ進みます。</div>
         </div>
         <div class="terminal" style="margin-top:8px;">
-          <span class="t-yellow">━━━━━━ [4/11] Claude CLI ログイン確認 ━━━━━━</span><br>
+          <span class="t-yellow">━━━━━━ [4/12] Claude CLI ログイン確認 ━━━━━━</span><br>
+          <span class="t-green">✔ claude を発見: ~/.claude/local/claude</span><br>
           ログイン状態を確認中...<br>
           <span class="t-green">✔ Claude CLI のログインを確認しました</span>
         </div>
@@ -627,51 +616,25 @@
           <span class="t-yellow">⚠ Claude にログインしていません。ログインが必要です。</span><br>
           &nbsp;<br>
           &nbsp; 【手順】<br>
-          &nbsp; 1. 別の PowerShell ウィンドウを開いて以下を実行：<br>
-          &nbsp;    &amp; "C:\...\claude.exe"<br>
+          &nbsp; 1. 別のターミナルウィンドウを開いて以下を実行：<br>
+          &nbsp;    ~/.claude/local/claude<br>
           &nbsp; 2. 起動後に /login と入力して Enter<br>
           &nbsp; 3. ブラウザで Claude アカウントにログイン<br>
-          &nbsp; 4. ログイン完了後このウィンドウに戻ってください<br>
-          &nbsp;<br>
-          ログインが完了したら Enter を押してください（再確認します）:
+          &nbsp; 4. ログイン完了後このウィンドウに戻ってください
         </div>
         <ol>
-          <li><strong>別の PowerShell ウィンドウを開く</strong>（install.bat のウィンドウはそのままにしておく）</li>
-          <li>表示されたパスの <span class="ic">claude.exe</span> を実行する</li>
+          <li><strong>別のターミナルウィンドウを開く</strong>（install.sh のウィンドウはそのままにしておく）</li>
+          <li>表示されたパスの <span class="ic">claude</span> を実行する</li>
           <li>Claude の画面が開いたら <span class="ic">/login</span> と入力して <kbd>Enter</kbd></li>
-          <li>
-            <strong>「Select login method:」画面が表示されたら <kbd>1</kbd> を入力して <kbd>Enter</kbd></strong>
-            <div class="terminal" style="margin-top:8px; margin-bottom:8px; font-size:0.85em;">
-              Select login method:<br>
-              &nbsp; &gt; <span class="t-green">1. Claude account with subscription</span> &nbsp;<span class="t-dim">· Pro, Max, Team, or Enterprise</span><br>
-              &nbsp; &nbsp; 2. Anthropic Console account &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-dim">· API usage billing</span><br>
-              &nbsp; &nbsp; 3. 3rd-party platform &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-dim">· Amazon Bedrock, Microsoft Foundry, or Vertex AI</span>
-            </div>
-            <div class="callout ok" style="margin-bottom:0;">
-              <span class="callout-icon">✅</span>
-              <div>Cowork（Claude Desktop Pro）のサブスクリプションをお持ちの場合は必ず <strong>1 番</strong> を選択してください。</div>
-            </div>
-          </li>
-          <li>
-            ブラウザが自動で開くので「<strong>許可（Authorize）</strong>」または「<strong>承諾</strong>」をクリックしてログインを完了する<br>
-            <span style="font-size:0.88em; color:#666;">※ すでにブラウザで Claude にログイン済みの場合はボタンを押すだけで完了します</span>
-            <div class="callout warn" style="margin-top:8px; margin-bottom:0; font-size:13px;">
-              <span class="callout-icon">⚠️</span>
-              <div><strong>ブラウザが自動で開かない場合：</strong><br>
-              PowerShell の画面に長い URL が表示されています。その URL を<strong>コピーしてブラウザのアドレスバーに貼り付け</strong>てください。承諾ボタンのある画面が開きます。</div>
-            </div>
-          </li>
-          <li>install.bat のウィンドウに戻り <kbd>Enter</kbd> を押す → 自動で再確認されます</li>
+          <li><strong>「Select login method:」画面で <kbd>1</kbd> を入力</strong>（Claude account with subscription）</li>
+          <li>ブラウザが自動で開くので「<strong>許可（Authorize）</strong>」をクリック</li>
+          <li>install.sh のウィンドウに戻り <kbd>Enter</kbd> を押す → 自動で再確認されます</li>
         </ol>
-        <div class="callout info" style="margin-top:10px;">
-          <span class="callout-icon">ℹ️</span>
-          <div>ログインが完了するまでこのステップは先に進みません。ログインが確認されると自動で STEP 5 へ進みます。</div>
-        </div>
-        <div class="callout warn" style="margin-top:8px;">
+        <div class="callout warn" style="margin-top:10px;">
           <span class="callout-icon">⚠️</span>
           <div>
-            <strong>「claude: コマンドが見つかりません」と表示される場合：</strong><br>
-            Cowork（Claude Desktop Pro）が正しくインストールされていないか、まだ一度も起動していない可能性があります。Cowork を起動してログインを完了してから install.bat を再実行してください。
+            <strong>「claude コマンドが自動検出できませんでした」と表示される場合：</strong><br>
+            Cowork を一度起動してログインを完了してから install.sh を再実行してください。または別のターミナルで <span class="ic">which claude</span> を実行してパスを確認し、表示されたパスを入力してください。
           </div>
         </div>
       </div>
@@ -683,17 +646,16 @@
         <div class="step-circle">5</div>
         <div>
           <h2>プロジェクトフォルダの確認</h2>
-          <div class="sub">install.bat が自動で確認します</div>
+          <div class="sub">install.sh が自動で確認します</div>
         </div>
       </div>
       <div class="card">
-        <p>install.bat が実行されているフォルダを <strong>PROJECT_DIR</strong> として自動登録します。フォルダ内に必要なファイルが含まれているか確認されます。</p>
+        <p>install.sh が実行されているフォルダを <strong>PROJECT_DIR</strong> として自動登録します。フォルダ内に必要なファイルが含まれているか確認されます。</p>
         <div class="tree">
           <span class="tree-dir">nyseo-internal-link-agent/</span><br>
           ├── <span class="tree-key">main.py</span>　　　　　<span style="color:#475569;">← メイン処理</span><br>
           ├── <span class="tree-key">local_runner.py</span>　<span style="color:#475569;">← ランナーサーバー（常駐）</span><br>
-          ├── <span class="tree-key">install.bat</span>　　　<span style="color:#475569;">← ダブルクリックで起動するインストーラー</span><br>
-          ├── <span class="tree-key">install.ps1</span>　　　<span style="color:#475569;">← install.bat から自動で呼ばれるスクリプト（直接実行不要）</span><br>
+          ├── <span class="tree-key">install.sh</span>　　　　<span style="color:#475569;">← ターミナルで実行するインストーラー</span><br>
           ├── <span class="tree-key">requirements.txt</span>　<span style="color:#475569;">← 必要なライブラリ一覧</span><br>
           ├── <span class="tree-key">config.py</span><br>
           ├── <span class="tree-dir">steps/</span><br>
@@ -703,7 +665,7 @@
         </div>
         <div class="callout warn" style="margin-top:12px;">
           <span class="callout-icon">⚠️</span>
-          <div>インストーラーが起動中に「<strong>このままセットアップを続けると、ランナーサーバーの自動起動がこのフォルダを参照するように登録されます</strong>」と表示された場合、フォルダの場所が適切でない可能性があります。日本語や半角スペースを含まないパスに移動してから install.bat を再実行してください。</div>
+          <div>デスクトップやダウンロードフォルダを検出した場合、install.sh が警告を表示して続けるか確認します。<strong>恒久的な場所（~/Documents/ など）に移動してから再実行</strong>することを推奨します。</div>
         </div>
       </div>
     </section>
@@ -714,11 +676,11 @@
         <div class="step-circle">6</div>
         <div>
           <h2>Google サービスアカウント JSON の自動配置</h2>
-          <div class="sub">install.bat が自動でコピーします</div>
+          <div class="sub">install.sh が自動でコピーします</div>
         </div>
       </div>
       <div class="card">
-        <p>受け取った zip を展開すると、プロジェクトフォルダ内の <span class="ic">secrets/</span> フォルダに JSON ファイルが含まれています。</p>
+        <p>受け取ったフォルダ内の <span class="ic">secrets/</span> に JSON ファイルが含まれている場合、install.sh が自動的に <span class="ic">~/.secrets/</span> へコピーします。</p>
         <div class="tree">
           <span class="tree-dir">nyseo-internal-link-agent/</span><br>
           └── <span class="tree-dir">secrets/</span><br>
@@ -726,11 +688,11 @@
         </div>
         <div class="callout ok" style="margin-top:10px;">
           <span class="callout-icon">✅</span>
-          <div>JSON ファイルが <span class="ic">secrets/</span> フォルダ内にあれば、<strong>install.bat が自動的に <span class="ic">~\.secrets\</span> へコピー</strong>します。手動での操作は不要です。</div>
+          <div>JSON ファイルが <span class="ic">secrets/</span> フォルダ内にあれば、<strong>install.sh が自動的に <span class="ic">~/.secrets/</span> へコピー</strong>します。手動での操作は不要です。</div>
         </div>
         <div class="callout warn" style="margin-top:8px;">
           <span class="callout-icon">⚠️</span>
-          <div>JSON ファイルが見つからない場合は管理者にお問い合わせください。<span class="ic">secrets/</span> フォルダ内に配置すれば install.bat が処理します。</div>
+          <div><strong>JSON ファイルが見つからない場合：</strong>ダウンロードフォルダまたはデスクトップに配置すると install.sh が自動検出してコピーします。見つからない場合はパスを手動入力する画面が表示されます。</div>
         </div>
       </div>
     </section>
@@ -741,31 +703,29 @@
         <div class="step-circle">7</div>
         <div>
           <h2>環境変数の設定</h2>
-          <div class="sub">入力が必要な箇所は 2 箇所のみです</div>
+          <div class="sub">~/.zshrc に JSON パスを自動記録します</div>
         </div>
       </div>
       <div class="card">
-        <h3>入力が必要な箇所（全 11 ステップ中 1 箇所のみ）</h3>
-        <p style="margin-bottom:12px;">インストーラーはほぼ自動で進みます。以下の 1 箇所だけ <kbd>Enter</kbd> を押す操作が必要です。</p>
+        <p>install.sh が <span class="ic">~/.zshrc</span> に <span class="ic">GOOGLE_SERVICE_ACCOUNT</span> を自動で書き込みます。</p>
 
         <div class="substep">
-          <div class="substep-label">① Google サービスアカウントのパス確認</div>
-          <p>STEP 6 で配置した JSON のパスが自動表示されます。合っていれば <kbd>Enter</kbd> を押すだけです。</p>
+          <div class="substep-label">Google サービスアカウントのパス確認</div>
+          <p>STEP 6 でコピーした JSON のパスが自動表示されます。合っていれば <kbd>Enter</kbd> を押すだけです。</p>
           <div class="terminal">
-<span class="t-yellow">━━━━━━ [7/11] 環境変数の設定 ━━━━━━</span>
-&nbsp;
-  [7-1] Google サービスアカウント JSON のパス設定
-  デフォルト: C:\Users\<span class="t-blue">&lt;ユーザー名&gt;</span>\.secrets\agent-xxxxxxxx.json
-  パスを入力（デフォルトのままなら Enter）: <span class="t-dim">← Enter を押す</span>
-  <span class="t-green">✔ ファイルを確認しました</span>
-  <span class="t-green">✔ GOOGLE_SERVICE_ACCOUNT を設定しました</span>
+<span class="t-yellow">━━━━━━ [7/12] 環境変数の設定 ━━━━━━</span><br>
+&nbsp;<br>
+  [7-1] Google サービスアカウント JSON のパス設定<br>
+  デフォルト: /Users/<span class="t-blue">&lt;ユーザー名&gt;</span>/.secrets/agent-xxxxxxxx.json<br>
+  パスを入力（デフォルトのままなら Enter）: <span class="t-dim">← Enter を押す</span><br>
+  <span class="t-green">✔ ファイルを確認しました</span><br>
+  <span class="t-green">✔ GOOGLE_SERVICE_ACCOUNT を ~/.zshrc に設定しました</span>
 </div>
-          <p><strong>別のパスに保存した場合：</strong>フルパスを入力して <kbd>Enter</kbd> を押してください。「ファイルが見つかりません」と出た場合はパスを再確認してください。</p>
         </div>
 
         <div class="callout info" style="margin-top:12px;">
           <span class="callout-icon">ℹ️</span>
-          <div>上記以外（Python 確認・JSON 自動コピー・pip インストール・スタートアップ登録・ランナーサーバー起動）はすべて<strong>自動処理</strong>です。画面を見ながら待つだけです。</div>
+          <div>設定した環境変数はターミナルを再起動後に反映されます。install.sh が完了したら <span class="ic">source ~/.zshrc</span> を実行するか、ターミナルを一度閉じてください。</div>
         </div>
       </div>
     </section>
@@ -780,7 +740,7 @@
         </div>
       </div>
       <div class="card">
-        <p>WordPress REST API で記事を更新するため、サイトの URL・ユーザー名・アプリケーションパスワードを入力します。入力した情報は <span class="ic">~/.secrets/nyseo_sites.json</span> に安全に保存されます。サイトはWordPress URL のドメイン名（例：<span class="ic">example.com</span>）をキーとして自動識別されます。</p>
+        <p>WordPress REST API で記事を更新するため、サイトの URL・ユーザー名・アプリケーションパスワードを入力します。入力した情報は <span class="ic">~/.secrets/nyseo_sites.json</span> に安全に保存されます。</p>
         <ol style="line-height:2.3;">
           <li><strong>WordPress サイト URL</strong> を入力する（例：<span class="ic">https://example.com</span>）</li>
           <li><strong>WordPress ユーザー名</strong> を入力する（ログイン名）</li>
@@ -789,7 +749,7 @@
         </ol>
         <div class="callout info" style="margin-top:10px;">
           <span class="callout-icon">ℹ️</span>
-          <div>WordPress を使わない場合は <kbd>N</kbd> を入力してスキップできます。後から <span class="ic">install.bat</span> を再実行して追加することも可能です。</div>
+          <div>WordPress を使わない場合は <kbd>N</kbd> を入力してスキップできます。後から <span class="ic">bash install.sh</span> を再実行して追加することも可能です。</div>
         </div>
       </div>
       <div class="card">
@@ -813,24 +773,27 @@
         <div class="step-circle">9</div>
         <div>
           <h2>必要なライブラリのインストール</h2>
-          <div class="sub">install.bat が自動で実行します（約 2〜5 分）</div>
+          <div class="sub">install.sh が自動で実行します（約 2〜5 分）</div>
         </div>
       </div>
       <div class="card">
-        <p>このステップは <strong>install.bat が自動で実行</strong>します。手動での操作は不要です。</p>
+        <p>このステップは <strong>install.sh が自動で実行</strong>します。手動での操作は不要です。</p>
         <div class="callout ok">
           <span class="callout-icon">✅</span>
-          <div>install.bat 実行中に以下のような表示が出れば完了です。</div>
+          <div>install.sh 実行中に以下のような表示が出れば完了です。</div>
         </div>
         <div class="terminal" style="margin-top:8px;">
-          Successfully installed anthropic-x.x.x beautifulsoup4-4.12.x gspread-6.x.x ...<br>
-          <span class="t-dim">（バージョン番号は異なる場合があります）</span>
+          <span class="t-green">✔ ライブラリのインストールが完了しました</span>
         </div>
         <div class="callout warn" style="margin-top:8px;">
           <span class="callout-icon">⚠️</span>
           <div>
-            <strong>「pip は認識されていません」と表示される場合：</strong><br>
-            STEP 1 で Python のインストール時に「Add Python to PATH」にチェックが入っていない可能性があります。Python を再インストールしてから install.bat を再実行してください。
+            <strong>エラーが発生した場合：</strong><br>
+            ターミナルで以下を手動実行して詳細を確認してください：
+            <div class="code-block" style="margin-top:8px;">
+              <div class="code-header"><span class="code-lang">ターミナル</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+              <pre><code>python3 -m pip install -r ~/Documents/nyseo-internal-link-agent/requirements.txt</code></pre>
+            </div>
           </div>
         </div>
       </div>
@@ -842,88 +805,122 @@
         <div class="step-circle">10</div>
         <div>
           <h2>ランナーサーバーの登録と起動</h2>
-          <div class="sub">install.bat が自動で登録・起動します</div>
+          <div class="sub">LaunchAgent として登録し、Mac 起動時に自動起動します</div>
         </div>
       </div>
       <div class="card">
-        <p>このステップは <strong>install.bat が自動で実行</strong>します。手動での操作は不要です。</p>
-        <p><span class="ic">local_runner.py</span>（ランナーサーバー）を Windows のスタートアップに登録し、続けてサーバーを起動します。次回 PC 起動時からは自動的に起動します。</p>
+        <p>このステップは <strong>install.sh が自動で実行</strong>します。手動での操作は不要です。</p>
+        <p><span class="ic">local_runner.py</span> を macOS の <strong>LaunchAgent</strong>（<span class="ic">~/Library/LaunchAgents/com.nyseo.runner.plist</span>）として登録し、続けてサーバーを起動します。次回 Mac 起動時からは自動的に立ち上がります。</p>
         <div class="callout ok">
           <span class="callout-icon">✅</span>
           <div>以下のような表示が出れば完了です。</div>
         </div>
         <div class="terminal" style="margin-top:8px;">
-          <span class="t-yellow">━━━━━━ [9/11] ランナーサーバー登録・起動 ━━━━━━</span><br>
-          <span class="t-green">✔ スタートアップへの登録が完了しました</span><br>
-          <span class="t-green">✔ ランナーサーバーを起動しました（http://127.0.0.1:8765）</span>
-        </div>
-        <div class="callout info" style="margin-top:8px;">
-          <span class="callout-icon">ℹ️</span>
-          <div>サーバーが起動すると、バックグラウンドで <span class="ic">http://127.0.0.1:8765</span> のリクエストを待ち受けます。Cowork からエージェントが実行命令を送ると、このサーバーが <span class="ic">main.py</span> を呼び出します。</div>
+          <span class="t-yellow">━━━━━━ [10/12] ランナーサーバーの登録・起動 ━━━━━━</span><br>
+          <span class="t-green">✔ LaunchAgent を登録しました</span><br>
+          ランナーサーバーを起動しています...<br>
+          <span class="t-green">✔ ランナーサーバーが起動しました: {"status": "idle"}</span>
         </div>
         <div class="callout warn" style="margin-top:8px;">
           <span class="callout-icon">⚠️</span>
           <div>
             <strong>サーバーが起動しない場合：</strong><br>
-            PowerShell で以下を実行して手動起動してください。
-            <div class="terminal" style="margin-top:8px;">py "<span class="t-blue">プロジェクトフォルダのパス</span>\local_runner.py"</div>
+            ターミナルで以下を実行して手動起動してください。
+            <div class="code-block" style="margin-top:8px;">
+              <div class="code-header"><span class="code-lang">ターミナル</span><button class="copy-btn" onclick="copyCode(this)">コピー</button></div>
+              <pre><code>python3 ~/Documents/nyseo-internal-link-agent/local_runner.py</code></pre>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ═══ STEP 11: Cowork 再起動 ═══ -->
+    <!-- ═══ STEP 11: Cowork プロジェクト ═══ -->
     <section class="section" id="step11">
       <div class="section-header">
         <div class="step-circle">11</div>
         <div>
-          <h2>Cowork の再起動</h2>
-          <div class="sub">環境変数の設定を反映させます</div>
+          <h2>Cowork プロジェクトの作成</h2>
+          <div class="sub">install.sh が指示文を自動生成・クリップボードにコピーします</div>
         </div>
       </div>
-
       <div class="card">
-        <h3>Cowork を再起動する</h3>
+        <p>install.sh がプロジェクトフォルダのパスを埋め込んだ<strong>指示文を自動生成</strong>し、クリップボードにコピーします（<span class="ic">pbcopy</span> 使用）。以下の手順でプロジェクトを作成してください。</p>
         <ol style="line-height:2.3;">
-          <li>Cowork（Claude Desktop Pro）を<strong>完全に閉じる</strong><br>
-            <span style="color:var(--text-secondary); font-size:12.5px;">タスクトレイ（画面右下の通知領域）にアイコンがある場合は右クリックして「終了」してください</span>
-          </li>
-          <li>Cowork を<strong>再起動</strong>する</li>
+          <li>Cowork（Claude Desktop Pro）を起動する</li>
+          <li>左サイドバーの「<strong>Projects</strong>」をクリックする</li>
+          <li>「<strong>+ New project</strong>」をクリックする</li>
+          <li>プロジェクト名に「<strong>内部リンクエージェント</strong>」と入力して作成する</li>
+          <li>「<strong>Project instructions</strong>」の入力欄を開く</li>
+          <li>ターミナルに表示された指示文を全文コピーして貼り付ける（<kbd>Command</kbd> + <kbd>V</kbd>）<br>
+            <span style="font-size:12.5px; color:var(--text-secondary);">クリップボードに自動コピーされている場合はそのまま貼り付けできます</span></li>
+          <li>保存する</li>
         </ol>
-        <div class="callout ok" style="margin-top:12px;">
-          <span class="callout-icon">✅</span>
-          <div>これで初期インストールは完了です。続けて各機能の導入手順書でプロジェクトの作成と動作確認を行ってください。</div>
+        <div class="callout info" style="margin-top:10px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>指示文にはランナーサーバーの起動方法・WP 挿入の手順・各パラメータの説明が含まれています。Cowork はこの指示文をもとにエージェントを正しく操作します。</div>
         </div>
       </div>
     </section>
 
-
-    <!-- ═══ 次のステップ ═══ -->
-    <section class="section" id="next">
+    <!-- ═══ STEP 12: Spreadsheet ═══ -->
+    <section class="section" id="step12">
       <div class="section-header">
-        <div class="step-circle" style="background:#16a34a; font-size:16px;">→</div>
+        <div class="step-circle">12</div>
         <div>
-          <h2>初期インストール完了 — 次のステップ</h2>
-          <div class="sub">各機能の導入手順書に進んでください</div>
+          <h2>Google Spreadsheet の準備</h2>
+          <div class="sub">ツールが読み込む Spreadsheet を新規作成して共有します</div>
         </div>
       </div>
       <div class="card">
-        <p>初期インストールが完了しました。続けて使用する機能の導入手順書を参照してください。</p>
-        <table class="tbl" style="margin-top:12px;">
-          <thead><tr><th>機能</th><th>手順書</th><th>内容</th></tr></thead>
+        <h3>① Spreadsheet を新規作成する</h3>
+        <ol style="line-height:2.3;">
+          <li>ブラウザで Google ドライブ（drive.google.com）を開く</li>
+          <li>「+ 新規」→「Google スプレッドシート」をクリック</li>
+          <li>シート名は任意でOK（例：内部リンク管理）</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>② 列構成を確認する</h3>
+        <p>以下の列順になっているか確認してください。</p>
+        <table class="tbl" style="margin-top:8px;">
+          <thead><tr><th>列</th><th>内容</th><th>備考</th></tr></thead>
           <tbody>
-            <tr>
-              <td><strong>内部リンクエージェント</strong></td>
-              <td><a href="guide-internal-link.html" style="color:var(--accent);">guide-internal-link.html</a></td>
-              <td>Spreadsheet の準備・実行方法・出力結果の見方</td>
-            </tr>
-            <tr>
-              <td><strong>WordPress 自動反映機能</strong></td>
-              <td><a href="guide-wp-insert.html" style="color:var(--accent);">guide-wp-insert.html</a></td>
-              <td>WP 認証設定・リンク挿入の実行方法・結果確認</td>
-            </tr>
+            <tr><td><strong>A</strong></td><td>NO</td><td>記事番号</td></tr>
+            <tr><td><strong>B</strong></td><td>記事URL</td><td>処理対象のURL</td></tr>
+            <tr><td><strong>C</strong></td><td>メインKW</td><td>キーワード（空欄可）</td></tr>
+            <tr><td><strong>D</strong></td><td>発リンク数</td><td></td></tr>
+            <tr><td><strong>E</strong></td><td>被リンク数</td><td>1 以下の記事が処理対象</td></tr>
+            <tr><td><strong>F</strong></td><td>クリック数</td><td></td></tr>
+            <tr><td><strong>G</strong></td><td>表示回数</td><td></td></tr>
+            <tr><td><strong>H〜M</strong></td><td>出力欄</td><td>ツールが自動入力（空欄のままでOK）</td></tr>
           </tbody>
         </table>
+        <div class="callout warn" style="margin-top:10px;">
+          <span class="callout-icon">⚠️</span>
+          <div>列の順番が違う場合は列を並び替えてから次へ進んでください。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>③ サービスアカウントに編集権限を付与する</h3>
+        <p>install.sh が自動的にサービスアカウントのメールアドレスを表示し、クリップボードにコピーします。</p>
+        <ol style="line-height:2.3;">
+          <li>Spreadsheet 右上の「<strong>共有</strong>」ボタンをクリック</li>
+          <li>表示されたメールアドレスを入力して追加する（<kbd>Command</kbd> + <kbd>V</kbd> で貼り付け）</li>
+          <li>権限を「<strong>閲覧者</strong>」→「<strong>編集者</strong>」に変更する</li>
+          <li>「<strong>送信</strong>」をクリック</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>④ Spreadsheet の URL をコピーする</h3>
+        <p>ブラウザのアドレスバーの URL をコピーしておいてください。</p>
+        <div class="callout ok" style="margin-top:8px;">
+          <span class="callout-icon">✅</span>
+          <div>この URL を Cowork のチャットに貼り付けると処理が始まります。セットアップはこれで完了です。</div>
+        </div>
       </div>
     </section>
 
@@ -949,24 +946,44 @@
         </div>
         <div class="callout warn">
           <span class="callout-icon">⚠️</span>
-          <div>「このサイトにアクセスできません」と表示される場合、ランナーサーバーが起動していません。<a href="guide-internal-link.html#trouble" style="color:var(--accent);">トラブルシューティング（内部リンクエージェント手順書）</a>を参照してください。</div>
+          <div>「このサイトにアクセスできません」と表示される場合、ランナーサーバーが起動していません。ターミナルで <span class="ic">python3 ~/Documents/nyseo-internal-link-agent/local_runner.py</span> を実行して手動起動してください。</div>
         </div>
       </div>
 
       <div class="card">
         <h3>セットアップ完了チェックリスト</h3>
         <ul class="checklist">
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">Python がインストールされている</div><div class="ck-desc"><span class="ic">py --version</span> でバージョンが表示される</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">Python がインストールされている</div><div class="ck-desc"><span class="ic">python3 --version</span> でバージョンが表示される</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">Chrome に Claude 拡張機能がインストールされている</div><div class="ck-desc">ブラウザ右上に Claude アイコン（橙色）が表示されている</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">Cowork が起動している</div><div class="ck-desc">内部リンクエージェント プロジェクトが開ける</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">JSON ファイルが正しい場所にある</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo-agent-…json</span> が存在する</div></div></li>
-          <li><span class="ck-icon">✅</span><div><div class="ck-title">WordPress サイト情報が設定済み</div><div class="ck-desc"><span class="ic">~\.secrets\nyseo_sites.json</span> にサイト情報が保存されている（WordPress 自動反映機能を使う場合）</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">JSON ファイルが正しい場所にある</div><div class="ck-desc"><span class="ic">~/.secrets/nyseo-agent-…json</span> が存在する</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">WordPress サイト情報が設定済み</div><div class="ck-desc"><span class="ic">~/.secrets/nyseo_sites.json</span> にサイト情報が保存されている（WordPress 自動反映機能を使う場合）</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">pip install が完了している</div><div class="ck-desc">requirements.txt のライブラリがすべて入っている</div></div></li>
           <li><span class="ck-icon">✅</span><div><div class="ck-title">ランナーサーバーが起動している</div><div class="ck-desc"><span class="ic">http://127.0.0.1:8765/status</span> で <span class="ic">{"status": "idle"}</span> が返る</div></div></li>
+          <li><span class="ck-icon">✅</span><div><div class="ck-title">環境変数が反映されている</div><div class="ck-desc">ターミナルを再起動、または <span class="ic">source ~/.zshrc</span> を実行済み</div></div></li>
         </ul>
       </div>
-    </section>
 
+      <div class="card">
+        <h3>次のステップ</h3>
+        <p>初期インストールが完了しました。続けて使用する機能の導入手順書を参照してください。</p>
+        <table class="tbl" style="margin-top:12px;">
+          <thead><tr><th>機能</th><th>手順書</th><th>内容</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>内部リンクエージェント</strong></td>
+              <td><a href="guide-internal-link.html" style="color:var(--accent);">guide-internal-link.html</a></td>
+              <td>Spreadsheet の準備・実行方法・出力結果の見方</td>
+            </tr>
+            <tr>
+              <td><strong>WordPress 自動反映機能</strong></td>
+              <td><a href="guide-wp-insert.html" style="color:var(--accent);">guide-wp-insert.html</a></td>
+              <td>WP 認証設定・リンク挿入の実行方法・結果確認</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
   </div><!-- /content -->
 </main>
