@@ -157,7 +157,9 @@ def _call_claude(prompt: str, retries: int = 2, model: str = MODEL_JUDGE) -> "st
             logger.warning(f"claude CLI 例外（試行{attempt}）: {e}")
 
         if attempt <= retries:
-            time.sleep(2)
+            wait = 10 * attempt  # 試行1→10秒, 試行2→20秒
+            logger.info(f"claude CLI リトライ待機: {wait}秒")
+            time.sleep(wait)
 
     return None
 
