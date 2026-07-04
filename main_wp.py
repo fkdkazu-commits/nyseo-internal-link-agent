@@ -17,7 +17,7 @@ from config import (
 from utils.logger import get_logger
 from utils.sheets_client import SheetsClient
 from utils.wp_client import WPClient
-from steps.step_wp_insert import insert_links, already_has_link, detect_editor
+from steps.step_wp_insert import insert_links, detect_editor
 
 logger = get_logger()
 
@@ -113,9 +113,8 @@ def main(
                 continue
             insertions.append((cand_url, cand_head, target_url, target_title))
 
-        total_inserted   = 0
-        total_skipped    = 0
-        total_link_exist = 0
+        total_inserted = 0
+        total_skipped  = 0
         errors = []
 
         for cand_url, cand_heading, tgt_url, tgt_title in insertions:
@@ -131,11 +130,6 @@ def main(
             actual_editor = detect_editor(content) if editor == "auto" else editor
             if editor == "auto":
                 logger.debug(f"  エディタ自動判定: {actual_editor} ({cand_url})")
-
-            if already_has_link(content, tgt_url):
-                logger.info(f"  すでにリンクあり（スキップ）: {cand_url}")
-                total_link_exist += 1
-                continue
 
             new_content, count, skipped = insert_links(
                 content,
@@ -161,13 +155,10 @@ def main(
         if errors:
             status_val = "エラー"
             date_val   = now + " / " + " | ".join(errors)
-        elif total_skipped > 0 and total_inserted == 0:
-            status_val = "警告（スキップあり）"
-            date_val   = now
-        elif total_inserted == 0 and total_link_exist > 0:
+        elif total_inserted == 0 and total_skipped > 0:
             status_val = "スキップ（リンク済み）"
             date_val   = now
-        elif total_link_exist > 0:
+        elif total_inserted > 0 and total_skipped > 0:
             status_val = "済み（スキップあり）"
             date_val   = now
         else:
