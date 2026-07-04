@@ -16,7 +16,7 @@ from utils.logger import get_logger
 logger = get_logger()
 
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
-CLI_TIMEOUT = 240  # 秒（20件一括判定プロンプトは応答に2〜3分かかる場合がある）
+CLI_TIMEOUT = 420  # 秒（20件一括判定プロンプトは応答に3〜6分かかる場合がある）
 
 def _find_claude() -> str:
     """claude 実行ファイルのパスを返す。見つからなければ 'claude' を返す。"""
@@ -260,8 +260,8 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
     # 候補記事ブロックを組み立て
     lines = []
     for c in candidates:
-        h2 = [_sanitize(h) for h in c.get("h2_list", [])[:15]]
-        h3 = [_sanitize(h) for h in c.get("h3_list", [])[:20]]
+        h2 = [_sanitize(h) for h in c.get("h2_list", [])[:10]]
+        h3 = [_sanitize(h) for h in c.get("h3_list", [])[:15]]
         h2_text = "H2: " + " / ".join(h2) if h2 else ""
         h3_text = "H3: " + " / ".join(h3) if h3 else ""
         headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
@@ -287,9 +287,11 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
         candidates_block=candidates_block,
     )
 
+    prompt_len = len(prompt)
+    logger.debug(f"AI一括判定: プロンプト {prompt_len:,} 文字 / 候補 {len(candidates)} 件")
     response = _call_claude(prompt)
     if not response:
-        logger.warning("AI一括判定: AIレスポンスなし")
+        logger.warning(f"AI一括判定: AIレスポンスなし（プロンプト {prompt_len:,} 文字 / 候補 {len(candidates)} 件）")
         return []
 
     raw = _extract_json(response, "[")
