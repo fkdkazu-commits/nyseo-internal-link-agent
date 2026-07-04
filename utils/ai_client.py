@@ -260,8 +260,8 @@ def judge_relevance_batch(target: dict, candidates: list[dict], body_chars: int 
     # 候補記事ブロックを組み立て
     lines = []
     for c in candidates:
-        h2 = [_sanitize(h) for h in c.get("h2_list", [])[:10]]
-        h3 = [_sanitize(h) for h in c.get("h3_list", [])[:15]]
+        h2 = [_sanitize(h) for h in c.get("h2_list", [])[:15]]
+        h3 = [_sanitize(h) for h in c.get("h3_list", [])[:20]]
         h2_text = "H2: " + " / ".join(h2) if h2 else ""
         h3_text = "H3: " + " / ".join(h3) if h3 else ""
         headings = " | ".join(filter(None, [h2_text, h3_text])) or "（見出しなし）"
