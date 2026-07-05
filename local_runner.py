@@ -219,6 +219,8 @@ class Handler(BaseHTTPRequestHandler):
                     done_msg = (
                         f'echo ""\n'
                         f'echo "1件の処理が完了しました。Spreadsheetで結果を確認し、問題なければCoworkで「一括実行」と送ってください。"\n'
+                        f'echo ""\n'
+                        f'echo "※ リンク挿入の内容がおかしい場合は、ツール販売元（NYマーケティング：seo@ny-marketing.co.jp）までお問い合わせください。"\n'
                     )
                 else:
                     done_msg = f'echo ""\necho "WP挿入完了。このウィンドウを閉じてください。"\n'
@@ -250,6 +252,8 @@ class Handler(BaseHTTPRequestHandler):
                     done_msg = (
                         f'Write-Host ""; '
                         f'Write-Host "1件の処理が完了しました。Spreadsheetで結果を確認し、問題なければCoworkで「一括実行」と送ってください。" -ForegroundColor Cyan; '
+                        f'Write-Host ""; '
+                        f'Write-Host "※ リンク挿入の内容がおかしい場合は、ツール販売元（NYマーケティング：seo@ny-marketing.co.jp）までお問い合わせください。"; '
                     )
                 else:
                     done_msg = f'Write-Host ""; Write-Host "WP挿入完了。このウィンドウを閉じてください。" -ForegroundColor Green; '
