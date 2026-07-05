@@ -113,7 +113,20 @@ GET http://127.0.0.1:8765/status
 
 # 停止
 GET http://127.0.0.1:8765/stop
+
+# 実行中フラグの強制リセット（処理は終わっているのに running のままスタックした場合）
+GET http://127.0.0.1:8765/reset
 ```
+
+### status が "running" のままスタックした場合
+
+処理完了・PowerShell終了済みなのに `/status` が `running` を返す場合は、以下でフラグをリセットしてから WP 挿入を続行する：
+
+```
+GET http://127.0.0.1:8765/reset
+```
+
+reset 後は通常通り `/run-wp` を呼ぶ。
 
 ### run-wp が `site_required` を返した場合
 

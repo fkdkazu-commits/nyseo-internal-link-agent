@@ -14,6 +14,7 @@ Cowork (Claude in Chrome) から main.py / main_wp.py を起動するための�
        &link=blogcard|url|atag           リンク形式
        &site=<domain>                    対象WordPressサイト（複数登録時に指定）
   GET /stop                            実行中の処理を停止する
+  GET /reset                           実行中フラグを強制リセットする（スタック時の回復用）
 """
 
 import json
@@ -43,7 +44,7 @@ def _load_sites() -> dict:
 PROJECT_DIR = Path(__file__).parent
 LOG_FILE    = PROJECT_DIR / "logs" / "latest.log"
 STOP_FLAG   = PROJECT_DIR / "stop.flag"
-_SENTINEL   = PROJECT_DIR / ".runner_done"
+_SENTINEL   = Path.home() / ".nyseo_runner_done"   # スペースを含むパスを避けるためホームディレクトリに配置
 PORT = 8765
 
 IS_MAC = platform.system() == "Darwin"
@@ -70,10 +71,16 @@ def _sentinel_cleanup() -> None:
         pass
 
 
-def _wait_for_sentinel(interval: float = 2.0) -> None:
-    """sentinel ファイルが作成されるまでポーリングし、作成後に削除する。"""
+def _wait_for_sentinel(interval: float = 2.0, timeout: float = 10800.0) -> None:
+    """sentinel ファイルが作成されるまでポーリングし、作成後に削除する。
+    timeout 秒（デフォルト3時間）経過しても検知できない場合は諦めて返る。
+    """
+    elapsed = 0.0
     while not _SENTINEL.exists():
         time.sleep(interval)
+        elapsed += interval
+        if elapsed >= timeout:
+            break
     try:
         _SENTINEL.unlink()
     except Exception:
@@ -111,6 +118,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == "/stop":
             self._handle_stop()
+            return
+
+        if parsed.path == "/reset":
+            self._handle_reset()
             return
 
         if parsed.path == "/log":
@@ -255,6 +266,13 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             with _lock:
                 _running = False
+
+    def _handle_reset(self):
+        global _running
+        _sentinel_cleanup()
+        with _lock:
+            _running = False
+        self._respond(200, '{"status": "reset", "message": "Running flag cleared."}')
 
     def _handle_stop(self):
         with _lock:
