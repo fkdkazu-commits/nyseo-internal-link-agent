@@ -1,7 +1,7 @@
 import zipfile, pathlib
 
 project_dir = pathlib.Path(r'c:\Users\fkdka\Downloads\Work\claude code\nyseo-internal-link-agent')
-output_path = pathlib.Path(r'c:\Users\fkdka\Downloads\Work\claude code\納品フォルダ\nyseo-internal-link-agent-v1.4.2.zip')
+output_path = pathlib.Path(r'c:\Users\fkdka\Downloads\Work\claude code\納品フォルダ\nyseo-internal-link-agent-v1.4.3.zip')
 
 EXCLUDE_DIRS = {'venv', '__pycache__', '.git', 'logs', 'secrets'}
 EXCLUDE_EXTS = {'.pyc', '.log'}
@@ -10,6 +10,7 @@ EXCLUDE_FILES = {
     # テスト用ファイル（納品対象外）
     'clean_test_articles.py', 'prepare_test_rows.py', 'reset_wp_test.py',
     'test_convert_gutenberg.py', 'test_wp_random.py', 'test_wp_range.py',
+    'test_rendered_dup_check.py',
 }
 
 count = 0
