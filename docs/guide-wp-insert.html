@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書 (v1.4.2)</title>
+  <title>内部リンク構築エージェント — WordPress 自動反映機能 導入・操作手順書 (v1.4.3)</title>
   <style>
     :root {
       --sidebar-width: 280px;
@@ -204,7 +204,7 @@
 ═══════════════════════════════ -->
 <main class="main">
   <div class="page-header">
-    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.4.2)</div>
+    <div class="page-header-label">Feature Guide — WordPress Auto Insert (v1.4.3)</div>
     <h1>WordPress 自動反映機能<br>導入・操作手順書</h1>
     <div class="page-header-desc">
       内部リンクエージェントが提案した候補（H〜M 列）を、WordPress 記事に自動挿入する機能の手順書です。<br>
@@ -317,6 +317,16 @@
             <li>PowerShell ウィンドウが開き、処理が進む（完了まで閉じないでください）</li>
             <li>1記事のみを選択した場合は、完了後に Spreadsheet と WordPress のプレビューで表示を確認してから「一括実行」を依頼する</li>
           </ol>
+        </div>
+
+        <div class="callout warn" style="margin-top:16px;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>はじめて実行するときは必ず「1記事のみ」でテスト実行してください。</strong><br>
+            WordPress プレビューで挿入位置・リンク形式を確認してから一括実行することを強く推奨します。<br>
+            <span style="margin-top:6px; display:block;">挿入結果がおかしいと感じた場合は、ツール販売元までお問い合わせください。<br>
+            <strong>NYマーケティング：<a href="mailto:seo@ny-marketing.co.jp" style="color:inherit;">seo@ny-marketing.co.jp</a></strong></span>
+          </div>
         </div>
       </div>
 
@@ -459,7 +469,7 @@
       <div class="section-header">
         <div class="step-circle" style="background:#7c3aed; font-size:13px;">5</div>
         <div>
-          <h2>セクション内リンクチェック（v1.3〜）</h2>
+          <h2>セクション内リンクチェック（v1.3〜 / SWELL対応 v1.4.3〜）</h2>
           <div class="sub">見出しセクション内に既存リンクがある場合は自動スキップ</div>
         </div>
       </div>
@@ -469,6 +479,7 @@
         <p>WordPress 記事に内部リンクを挿入する前に、対象の見出しセクション内に<strong>挿入先と同一の URL が既に存在するか</strong>チェックします。</p>
         <ul style="margin-top:10px;">
           <li>aタグ・ブログカード・URLのみなど、形式にかかわらずURLの文字列が含まれていれば「既存リンクあり」と判定</li>
+          <li><strong>SWELLテーマのブログカード（v1.4.3〜）：</strong>投稿IDで保存されるため raw コンテンツには URL が含まれないが、レンダリング済みの href を参照することで正しく重複検知する</li>
           <li>対象記事のURLが一致しない別のリンクはチェック対象外（同じセクションに複数の異なる記事へのリンクは許容）</li>
         </ul>
         <p style="margin-top:12px;">同一URLが見つかった場合は、<strong>そのセクションへの挿入をスキップ</strong>し、スキップ件数（P 列）を増やします。</p>
