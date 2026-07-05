@@ -40,10 +40,10 @@ def _load_sites() -> dict:
             pass
     return {}
 
-PROJECT_DIR   = Path(__file__).parent
-LOG_FILE      = PROJECT_DIR / "logs" / "latest.log"
-STOP_FLAG     = PROJECT_DIR / "stop.flag"
-_SENTINEL_MAC = PROJECT_DIR / ".runner_done"
+PROJECT_DIR = Path(__file__).parent
+LOG_FILE    = PROJECT_DIR / "logs" / "latest.log"
+STOP_FLAG   = PROJECT_DIR / "stop.flag"
+_SENTINEL   = PROJECT_DIR / ".runner_done"
 PORT = 8765
 
 IS_MAC = platform.system() == "Darwin"
@@ -61,20 +61,21 @@ def _open_terminal_mac(bash_script: str) -> None:
         f'tell application "Terminal" to activate\ntell application "Terminal" to do script "bash {tmp_path}"'
     ])
 
-def _sentinel_cleanup(path: Path) -> None:
+
+def _sentinel_cleanup() -> None:
     """sentinel ファイルが残留していれば削除する。"""
     try:
-        path.unlink()
+        _SENTINEL.unlink()
     except FileNotFoundError:
         pass
 
 
-def _wait_for_sentinel(path: Path, interval: float = 2.0) -> None:
+def _wait_for_sentinel(interval: float = 2.0) -> None:
     """sentinel ファイルが作成されるまでポーリングし、作成後に削除する。"""
-    while not path.exists():
+    while not _SENTINEL.exists():
         time.sleep(interval)
     try:
-        path.unlink()
+        _SENTINEL.unlink()
     except Exception:
         pass
 
@@ -188,6 +189,7 @@ class Handler(BaseHTTPRequestHandler):
             site_arg  = f' --site "{site}"' if site else ""
             count_arg = f' --count {count}' if count else ""
             is_test   = count == "1"
+            _sentinel_cleanup()
             if IS_MAC:
                 if link:
                     link_select = f'linkMode="{link}"\n'
@@ -208,18 +210,16 @@ class Handler(BaseHTTPRequestHandler):
                     )
                 else:
                     done_msg = f'echo ""\necho "WP挿入完了。このウィンドウを閉じてください。"\n'
-                _sentinel_cleanup(_SENTINEL_MAC)
                 bash_script = (
                     f'#!/bin/bash\n'
                     f'cd "{PROJECT_DIR}"\n'
                     f'{link_select}'
                     f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}{count_arg}\n'
                     f'{done_msg}'
-                    f'touch "{_SENTINEL_MAC}"\n'
+                    f'touch "{_SENTINEL}"\n'
                     f'read -p "Enterキーを押して終了..." dummy\n'
                 )
                 _open_terminal_mac(bash_script)
-                _wait_for_sentinel(_SENTINEL_MAC)
             else:
                 if link:
                     link_select = f'$linkMode = "{link}"; '
@@ -245,13 +245,13 @@ class Handler(BaseHTTPRequestHandler):
                     f'{link_select}'
                     f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}{count_arg}; '
                     f'{done_msg}'
-                    f'pause'
+                    f'New-Item -ItemType File -Path "{_SENTINEL}" -Force | Out-Null; '
+                    f'Read-Host "Enterキーを押して終了..."'
                 )
-                proc = subprocess.Popen(
-                    ["powershell", "-Command", ps_cmd],
-                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                subprocess.Popen(
+                    ["cmd", "/c", "start", "powershell", "-NoExit", "-Command", ps_cmd],
                 )
-                proc.wait()
+            _wait_for_sentinel()
         finally:
             with _lock:
                 _running = False
@@ -273,9 +273,8 @@ class Handler(BaseHTTPRequestHandler):
             if api:
                 args.append("--api")
             args_str = " ".join(f'"{a}"' for a in args)
-
+            _sentinel_cleanup()
             if IS_MAC:
-                _sentinel_cleanup(_SENTINEL_MAC)
                 bash_script = (
                     f'#!/bin/bash\n'
                     f'cd "{PROJECT_DIR}"\n'
@@ -284,11 +283,10 @@ class Handler(BaseHTTPRequestHandler):
                     f'echo "内部リンクエージェントの処理は完了しました。"\n'
                     f'echo "WordPressへの挿入はCoworkの画面から操作してください。"\n'
                     f'echo ""\n'
-                    f'touch "{_SENTINEL_MAC}"\n'
+                    f'touch "{_SENTINEL}"\n'
                     f'read -p "Enterキーを押して終了..." dummy\n'
                 )
                 _open_terminal_mac(bash_script)
-                _wait_for_sentinel(_SENTINEL_MAC)
             else:
                 ps_cmd = (
                     f'cd "{PROJECT_DIR}"; '
@@ -297,13 +295,13 @@ class Handler(BaseHTTPRequestHandler):
                     f'Write-Host "内部リンクエージェントの処理は完了しました。" -ForegroundColor Green; '
                     f'Write-Host "WordPressへの挿入はCoworkの画面から操作してください。" -ForegroundColor Cyan; '
                     f'Write-Host ""; '
-                    f'pause'
+                    f'New-Item -ItemType File -Path "{_SENTINEL}" -Force | Out-Null; '
+                    f'Read-Host "Enterキーを押して終了..."'
                 )
-                proc = subprocess.Popen(
-                    ["powershell", "-Command", ps_cmd],
-                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                subprocess.Popen(
+                    ["cmd", "/c", "start", "powershell", "-NoExit", "-Command", ps_cmd],
                 )
-                proc.wait()
+            _wait_for_sentinel()
         finally:
             with _lock:
                 _running = False
