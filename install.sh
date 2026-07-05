@@ -519,7 +519,20 @@ fi
 # STEP 11: Cowork プロジェクトの作成
 # ============================================================
 show_header "[11/$STEP_TOTAL]" "[手動] Cowork プロジェクトの作成"
-
+echo ""
+echo "  Cowork（Claude Desktop Pro）でエージェント用プロジェクトを作成します。"
+echo ""
+echo "  【手順】"
+show_step "1. Cowork を起動する（まだ開いていない場合）"
+show_step "2. 左サイドバーの「Projects」をクリックする"
+show_step "3. 「+ New project」をクリックする"
+show_step "4. プロジェクト名に「内部リンクエージェント」と入力して作成する"
+show_step "5. 「Project instructions」の入力欄を開く"
+show_step "6. 下に表示される指示文をコピーして貼り付ける（Command+V）"
+show_step "7. 保存する"
+echo ""
+echo "  ─── ここから指示文（全文コピーして貼り付け）───────────"
+echo ""
 INSTRUCTION_TEXT="# 内部リンク構築AIエージェント — Cowork実行手順
 
 ## プロジェクト設定（パスを変更する場合はここを編集）
@@ -681,21 +694,6 @@ http://127.0.0.1:8765/stop
 - ランナーサーバーに接続できない場合は、ユーザーに手動起動を案内するだけでよい。自分でサーバーを構築しようとしてはならない
 - URLのパラメータ名は必ず mid と api（内部リンク）、link（WP挿入）を使うこと
 - レビューを省略した連続実行はリスクがある旨をユーザーに伝えること"
-
-echo ""
-echo "  Cowork（Claude Desktop Pro）でエージェント用プロジェクトを作成します。"
-echo ""
-echo "  【手順】"
-show_step "1. Cowork を起動する（まだ開いていない場合）"
-show_step "2. 左サイドバーの「Projects」をクリックする"
-show_step "3. 「+ New project」をクリックする"
-show_step "4. プロジェクト名に「内部リンクエージェント」と入力して作成する"
-show_step "5. 「Project instructions」の入力欄を開く"
-show_step "6. 下に表示される指示文をコピーして貼り付ける（Command+V）"
-show_step "7. 保存する"
-echo ""
-echo "  ─── ここから指示文（全文コピーして貼り付け）───────────"
-echo ""
 echo "$INSTRUCTION_TEXT"
 echo ""
 echo "  ─── 指示文ここまで ────────────────────────────────"

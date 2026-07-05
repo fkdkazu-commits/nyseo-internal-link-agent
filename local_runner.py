@@ -202,6 +202,7 @@ class Handler(BaseHTTPRequestHandler):
             is_test   = count == "1"
             _sentinel_cleanup()
             if IS_MAC:
+                _sa_path = os.environ.get("GOOGLE_SERVICE_ACCOUNT", "")
                 if link:
                     link_select = f'linkMode="{link}"\n'
                 else:
@@ -223,6 +224,7 @@ class Handler(BaseHTTPRequestHandler):
                     done_msg = f'echo ""\necho "WP挿入完了。このウィンドウを閉じてください。"\n'
                 bash_script = (
                     f'#!/bin/bash\n'
+                    f'export GOOGLE_SERVICE_ACCOUNT="{_sa_path}"\n'
                     f'cd "{PROJECT_DIR}"\n'
                     f'{link_select}'
                     f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}{count_arg}\n'
@@ -293,8 +295,10 @@ class Handler(BaseHTTPRequestHandler):
             args_str = " ".join(f'"{a}"' for a in args)
             _sentinel_cleanup()
             if IS_MAC:
+                _sa_path = os.environ.get("GOOGLE_SERVICE_ACCOUNT", "")
                 bash_script = (
                     f'#!/bin/bash\n'
+                    f'export GOOGLE_SERVICE_ACCOUNT="{_sa_path}"\n'
                     f'cd "{PROJECT_DIR}"\n'
                     f'{PYTHON_CMD} main.py {args_str}\n'
                     f'echo ""\n'
