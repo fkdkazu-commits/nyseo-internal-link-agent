@@ -31,15 +31,17 @@ def insert_links(
     headings_and_targets: list[tuple[str, str, str]],
     editor: str,
     link_format: str,
+    rendered_content: str = "",
 ) -> tuple[str, int, int]:
     """
     記事コンテンツに内部リンクを挿入する。
 
     Args:
-        content: 記事のHTMLコンテンツ
+        content: 記事の raw コンテンツ
         headings_and_targets: [(見出しテキスト, リンク先URL, リンクテキスト), ...]
         editor: "classic" または "gutenberg"
         link_format: "url" または "atag"
+        rendered_content: レンダリング済みHTML（投稿IDで埋め込まれたリンクの重複検知に使用）
 
     Returns:
         (更新後コンテンツ, 挿入件数, セクション既存リンクによるスキップ件数)
@@ -48,9 +50,9 @@ def insert_links(
     skipped  = 0
     for heading_text, target_url, link_text in headings_and_targets:
         if editor == "gutenberg":
-            new_content, status = _insert_gutenberg(content, heading_text, target_url, link_text, link_format)
+            new_content, status = _insert_gutenberg(content, heading_text, target_url, link_text, link_format, rendered_content)
         else:
-            new_content, status = _insert_classic(content, heading_text, target_url, link_text, link_format)
+            new_content, status = _insert_classic(content, heading_text, target_url, link_text, link_format, rendered_content)
 
         if status == _INSERTED:
             content = new_content
@@ -81,6 +83,7 @@ def _insert_classic(
     target_url: str,
     link_text: str,
     link_format: str,
+    rendered_content: str = "",
 ) -> tuple[str, str]:
     """クラシックエディタ用: 指定見出しと同レベルの次の見出し手前にリンクを挿入する。"""
     pattern = re.compile(
@@ -125,6 +128,8 @@ def _insert_classic(
             section_content = section_content[last_child.start():]
     if _section_has_url(section_content, target_url):
         return content, _SECTION_HAS_LINK
+    if _section_has_url_in_rendered(rendered_content, heading_text, level, target_url):
+        return content, _SECTION_HAS_LINK
 
     link_html = _build_link_html(target_url, link_text, link_format)
     new_content = content[:insert_pos] + link_html + "\n" + content[insert_pos:]
@@ -141,6 +146,7 @@ def _insert_gutenberg(
     target_url: str,
     link_text: str,
     link_format: str,
+    rendered_content: str = "",
 ) -> tuple[str, str]:
     """Gutenberg用: 指定見出し以降のセクション末尾にリンクブロックを挿入する。"""
     pattern = re.compile(
@@ -172,6 +178,8 @@ def _insert_gutenberg(
 
     if _section_has_url(section, target_url):
         return content, _SECTION_HAS_LINK
+    if _section_has_url_in_rendered(rendered_content, heading_text, level, target_url):
+        return content, _SECTION_HAS_LINK
 
     block = _build_gutenberg_block(target_url, link_text, link_format)
     new_content = content[:insert_pos] + "\n" + block + content[insert_pos:]
@@ -195,6 +203,33 @@ def _log_available_headings(content: str, editor: str) -> None:
 def _section_has_url(section_content: str, target_url: str) -> bool:
     """セクション内に対象URLが既に存在するか確認する。"""
     return target_url in section_content
+
+
+def _section_has_url_in_rendered(
+    rendered: str,
+    heading_text: str,
+    level: int,
+    target_url: str,
+) -> bool:
+    """rendered コンテンツのセクション内に target_url が href として存在するか確認する。
+    SWELL ブログカードなど投稿IDで埋め込まれたリンクの重複検知に使用する。
+    rendered が空の場合は False を返す（raw のみのチェックに委ねる）。
+    """
+    if not rendered:
+        return False
+    pattern = re.compile(r'(<h[2-5][^>]*>)(.*?)(</h[2-5]>)', re.IGNORECASE | re.DOTALL)
+    match = _find_heading_match(pattern, rendered, heading_text)
+    if not match:
+        return False
+    level_m = re.search(r'<h([2-5])', match.group(1), re.IGNORECASE)
+    actual_level = int(level_m.group(1)) if level_m else level
+    heading_end = match.end()
+    after = rendered[heading_end:]
+    levels_str = ''.join(str(l) for l in range(2, actual_level + 1))
+    next_boundary = re.search(rf'<h[{levels_str}][^>]*>', after, re.IGNORECASE)
+    section = after[:next_boundary.start()] if next_boundary else after
+    hrefs = re.findall(r'href=["\']([^"\']*)["\']', section, re.IGNORECASE)
+    return any(target_url in href for href in hrefs)
 
 
 def _find_heading_match(pattern: re.Pattern, content: str, heading_text: str):

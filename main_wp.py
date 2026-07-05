@@ -124,7 +124,12 @@ def main(
                 continue
 
             # context=edit で取得した raw（ブロックマークアップ）を使用
-            content = post.get("content", {}).get("raw", "") or post.get("content", {}).get("rendered", "")
+            raw_content      = post.get("content", {}).get("raw", "")
+            rendered_content = post.get("content", {}).get("rendered", "")
+            content = raw_content or rendered_content
+            # raw が取得できた場合のみ rendered を重複チェックに使う
+            # （raw が空で rendered を使っている場合は二重チェックしない）
+            extra_rendered = rendered_content if raw_content else ""
 
             # エディタ形式を自動判定（autoの場合）
             actual_editor = detect_editor(content) if editor == "auto" else editor
@@ -136,6 +141,7 @@ def main(
                 [(cand_heading, tgt_url, tgt_title)],
                 editor=actual_editor,
                 link_format=link_format,
+                rendered_content=extra_rendered,
             )
 
             if count > 0:
