@@ -287,19 +287,40 @@ if [ -n "$BUNDLED_JSON" ]; then
     show_ok "JSON ファイルをコピーしました: $SECRETS_DIR/$JSON_NAME"
     DEFAULT_JSON_PATH="$SECRETS_DIR/$JSON_NAME"
 else
-    # ダウンロード・デスクトップ・ドキュメントを自動検索
+    # サービスアカウントJSONかどうかを検証するヘルパー関数
+    # 引数: JSONファイルのパス
+    # 出力: client_email の値（空なら非該当）
+    _get_sa_email() {
+        python3 -c "
+import json, sys
+try:
+    d = json.load(open('$1', encoding='utf-8'))
+    print(d.get('client_email', ''))
+except Exception:
+    print('')
+" 2>/dev/null
+    }
+
+    # ダウンロード・デスクトップ・ドキュメントを自動検索（サービスアカウントJSONのみ）
     AUTO_JSON=""
+    AUTO_JSON_EMAIL=""
     for search_dir in "$HOME/Downloads" "$HOME/Desktop" "$HOME/Documents"; do
-        FOUND=$(find "$search_dir" -maxdepth 2 -name "*.json" 2>/dev/null | head -1)
-        if [ -n "$FOUND" ]; then
-            AUTO_JSON="$FOUND"
-            break
-        fi
+        while IFS= read -r FOUND; do
+            EMAIL=$(_get_sa_email "$FOUND")
+            if [ -n "$EMAIL" ]; then
+                AUTO_JSON="$FOUND"
+                AUTO_JSON_EMAIL="$EMAIL"
+                break 2
+            fi
+        done < <(find "$search_dir" -maxdepth 2 -name "*.json" 2>/dev/null)
     done
 
     if [ -n "$AUTO_JSON" ]; then
         echo ""
-        show_ok "JSON ファイルを検出しました: $AUTO_JSON"
+        show_ok "Google サービスアカウント JSON を検出しました:"
+        echo "    ファイル: $AUTO_JSON"
+        echo "    アカウント: $AUTO_JSON_EMAIL"
+        echo ""
         read -r -p "  このファイルを使用しますか？ [Y/N]: " USE_AUTO
         if [ "$USE_AUTO" = "Y" ] || [ "$USE_AUTO" = "y" ]; then
             JSON_NAME=$(basename "$AUTO_JSON")
@@ -311,7 +332,7 @@ else
 
     if [ -z "$DEFAULT_JSON_PATH" ]; then
         echo ""
-        show_warn "JSON ファイルが見つかりませんでした。"
+        show_warn "Google サービスアカウント JSON が見つかりませんでした。"
         echo ""
         echo "  【手順】"
         show_step "1. 管理者から受け取った .json ファイルを Mac の「ダウンロード」フォルダに入れる"
@@ -320,11 +341,21 @@ else
         echo ""
         wait_enter "JSON ファイルをダウンロードフォルダに入れたら Enter を押してください"
 
-        AUTO_JSON=$(find "$HOME/Downloads" -maxdepth 2 -name "*.json" 2>/dev/null | head -1)
+        AUTO_JSON=""
+        AUTO_JSON_EMAIL=""
+        while IFS= read -r FOUND; do
+            EMAIL=$(_get_sa_email "$FOUND")
+            if [ -n "$EMAIL" ]; then
+                AUTO_JSON="$FOUND"
+                AUTO_JSON_EMAIL="$EMAIL"
+                break
+            fi
+        done < <(find "$HOME/Downloads" -maxdepth 2 -name "*.json" 2>/dev/null)
+
         if [ -n "$AUTO_JSON" ]; then
             JSON_NAME=$(basename "$AUTO_JSON")
             cp "$AUTO_JSON" "$SECRETS_DIR/$JSON_NAME"
-            show_ok "コピーしました: $SECRETS_DIR/$JSON_NAME"
+            show_ok "コピーしました: $SECRETS_DIR/$JSON_NAME ($AUTO_JSON_EMAIL)"
             DEFAULT_JSON_PATH="$SECRETS_DIR/$JSON_NAME"
         else
             show_warn "まだ見つかりません。インストール完了後に手動で配置してください: $SECRETS_DIR"
