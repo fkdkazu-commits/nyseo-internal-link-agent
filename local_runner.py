@@ -18,6 +18,7 @@ Cowork (Claude in Chrome) から main.py / main_wp.py を起動するための�
 """
 
 import json
+import logging
 import os
 import platform
 import subprocess
@@ -25,6 +26,7 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -52,15 +54,13 @@ PYTHON_CMD = "python3" if IS_MAC else "py"
 
 
 def _open_terminal_mac(bash_script: str) -> None:
-    """macOS: 一時bashスクリプトをTerminal.appで実行する"""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False, encoding="utf-8") as f:
+    """macOS: 一時.commandファイルをopenコマンドで実行する（Apple Events権限不要）"""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".command", delete=False, encoding="utf-8") as f:
+        f.write("#!/bin/bash\n")
         f.write(bash_script)
         tmp_path = f.name
     os.chmod(tmp_path, 0o755)
-    subprocess.Popen([
-        "osascript", "-e",
-        f'tell application "Terminal" to activate\ntell application "Terminal" to do script "bash {tmp_path}"'
-    ])
+    subprocess.Popen(["open", tmp_path])
 
 
 def _sentinel_cleanup() -> None:
@@ -91,6 +91,18 @@ _running = False
 _lock = threading.Lock()
 
 LOG_FILE.parent.mkdir(exist_ok=True)
+
+logging.basicConfig(
+    filename=str(LOG_FILE),
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    encoding="utf-8",
+)
+
+
+def _log(msg: str):
+    print(msg, flush=True)
+    logging.info(msg)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -346,9 +358,21 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer(("127.0.0.1", PORT), Handler)
-    print(f"NYSEO Runner: http://127.0.0.1:{PORT}", flush=True)
+    _log(f"起動を試みています（PORT={PORT}）...")
+    try:
+        server = HTTPServer(("127.0.0.1", PORT), Handler)
+    except OSError as e:
+        logging.error(f"起動失敗: ポート{PORT}を使用できませんでした ({e})")
+        sys.exit(1)
+    except Exception:
+        logging.error("起動時に予期しないエラーが発生しました:\n" + traceback.format_exc())
+        sys.exit(1)
+
+    _log(f"NYSEO Runner: http://127.0.0.1:{PORT}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("停止しました。")
+        _log("停止しました。")
+    except Exception:
+        logging.error("実行中に予期しないエラーで停止しました:\n" + traceback.format_exc())
+        raise
