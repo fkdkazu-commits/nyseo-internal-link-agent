@@ -460,9 +460,11 @@ $batContent   = "@echo off`r`nstart `"`" /min `"$pyPath`" `"$runnerScript`"`r`n"
 [System.IO.File]::WriteAllText($startupBat, $batContent, [System.Text.Encoding]::GetEncoding(932))
 Show-Ok "Windows 起動時の自動起動を登録しました"
 
-# 既存プロセスを停止
+# 既存プロセスを停止（他プロジェクトの同名 local_runner.py を巻き込まないよう、
+# このプロジェクトの絶対パスで厳密に絞り込む）
+$runnerScriptPattern = "*" + [System.Management.Automation.WildcardPattern]::Escape($runnerScript) + "*"
 Get-Process -Name "python", "py" -ErrorAction SilentlyContinue |
-    Where-Object { $_.CommandLine -like "*local_runner*" } |
+    Where-Object { $_.CommandLine -like $runnerScriptPattern } |
     Stop-Process -Force -ErrorAction SilentlyContinue
 
 # 起動
