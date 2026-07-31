@@ -47,6 +47,9 @@ def _load_wp_credentials(site_key: str = "") -> tuple[str, str, str]:
                 user = entry.get("wp_user", "")
                 pwd  = entry.get("wp_app_password", "")
                 if url and user and pwd:
+                    if url.startswith("http://"):
+                        url = "https://" + url[len("http://"):]
+                        logger.warning(f"wp_url が http:// のため https:// に自動変換しました: {url}")
                     return url.rstrip("/"), user, pwd
         except Exception as e:
             logger.warning(f"nyseo_sites.json 読み込み失敗: {e}")
@@ -133,6 +136,10 @@ class WPClient:
             timeout=60,
         )
         if r.status_code == 200:
+            returned = r.json().get("content", {}).get("raw", "")
+            if returned and new_content.strip() not in returned:
+                logger.warning(f"記事更新失敗（APIは200を返したが内容が保存されていません）: ID={post_id}")
+                return False
             logger.info(f"記事更新成功: ID={post_id}")
             return True
         logger.warning(f"記事更新失敗: ID={post_id} status={r.status_code} {r.text[:200]}")
