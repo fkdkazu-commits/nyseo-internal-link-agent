@@ -70,9 +70,11 @@ Spreadsheetのレビュー・承認が完了している前提で実行する。
 **確認②：リンク形式**
 > 「挿入するリンクの形式を教えてください：
 > ・URL挿入（Gutenberg・クラシック自動判定。URLを挿入しWordPressのoEmbedでブログカード表示を試みる。表示結果はテーマに依存します）
-> ・aタグ（`<a href="URL">記事タイトル</a>` の形式。Gutenberg・クラシック両対応。確実にテキストリンク）」
+> ・aタグ（`<a href="URL">記事タイトル</a>` の形式。Gutenberg・クラシック両対応。確実にテキストリンク）
+> ・ショートコード（`[related id={id} label=xxx]` のような独自形式。`{id}` にスプレッドシートA列の投稿IDが自動で入る。テンプレートはターミナルで入力）」
 
 ※エディタ形式（クラシック / Gutenberg）は記事ごとに自動判定されるため確認不要。
+※ショートコードを選択した場合、ターミナルでテンプレート文字列の入力を求められる。
 
 **確認③：実行範囲 ← 必ず確認①②の後に聞く。スキップ禁止。**
 > 「まず1記事のみテスト実行しますか？それとも一括実行しますか？
@@ -101,9 +103,10 @@ Spreadsheetのレビュー・承認が完了している前提で実行する。
 GET http://127.0.0.1:8765/run?url=<SpreadsheetURL>
 
 # WordPress挿入ツール起動（v1.3〜）
-GET http://127.0.0.1:8765/run-wp?url=<SpreadsheetURL>&link=<url|atag>&site=<domain>&count=<1|省略>
+GET http://127.0.0.1:8765/run-wp?url=<SpreadsheetURL>&link=<url|atag|shortcode>&site=<domain>&count=<1|省略>
 # count=1: 先頭の未処理行を1件のみ処理（テスト実行）
 # count省略: 全未処理行を一括処理
+# link=shortcode の場合: ターミナルでテンプレート文字列の入力を求められる（{id} にA列の投稿IDが入る）
 
 # 登録済みWordPressサイト一覧取得
 GET http://127.0.0.1:8765/sites

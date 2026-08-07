@@ -37,10 +37,11 @@ def main(
     force_row: "int | None" = None,
     limit: "int | None" = None,
     count_limit: "int | None" = None,
+    template: str = "",
 ):
     logger.info("=" * 50)
     logger.info("WordPress内部リンク挿入ツール 開始")
-    _link_label = {"url": "url（URL挿入・自動判定）", "atag": "atag（テキストリンク）"}.get(link_format, link_format)
+    _link_label = {"url": "url（URL挿入・自動判定）", "atag": "atag（テキストリンク）"}.get(link_format, f"shortcode（{template}）" if link_format == "shortcode" else link_format)
     logger.info(f"エディタ: {'自動判定' if editor == 'auto' else editor} / リンク形式: {_link_label}")
     if site_key:
         logger.info(f"対象サイト: {site_key}")
@@ -104,6 +105,15 @@ def main(
         if not target_title:
             target_title = wp.get_post_title(target_url)
 
+        # shortcode形式の場合: A列(No.=WP投稿ID)で {id} を解決しておく
+        if link_format == "shortcode":
+            if not template:
+                logger.warning(f"[NO {no_val}] link_format=shortcode ですが --template が未指定です。スキップします。")
+                continue
+            resolved_shortcode = template.replace("{id}", no_val)
+        else:
+            resolved_shortcode = ""
+
         # 挿入する (見出し, リンク先URL, リンクテキスト) のリスト
         insertions: list[tuple[str, str, str]] = []
         for col_url, col_heading in _LINK_PAIRS:
@@ -111,7 +121,8 @@ def main(
             cand_head = row[col_heading].strip()  if len(row) > col_heading else ""
             if not cand_url or not cand_head:
                 continue
-            insertions.append((cand_url, cand_head, target_url, target_title))
+            link_text = resolved_shortcode if link_format == "shortcode" else target_title
+            insertions.append((cand_url, cand_head, target_url, link_text))
 
         total_inserted = 0
         total_skipped  = 0
@@ -225,13 +236,14 @@ if __name__ == "__main__":
         print("使い方: py main_wp.py <SpreadsheetURL> [--editor auto|classic|gutenberg] [--link url|atag|blogcard] [--site <domain>] [--row N] [--limit N]")
         sys.exit(1)
 
-    _url     = args[0]
-    _editor  = "auto"
-    _link    = "url"
-    _site    = ""
-    _row     = None
-    _limit   = None
-    _count   = None
+    _url      = args[0]
+    _editor   = "auto"
+    _link     = "url"
+    _site     = ""
+    _row      = None
+    _limit    = None
+    _count    = None
+    _template = ""
 
     i = 1
     while i < len(args):
@@ -247,7 +259,9 @@ if __name__ == "__main__":
             _limit = int(args[i + 1]); i += 2
         elif args[i] == "--count" and i + 1 < len(args):
             _count = int(args[i + 1]); i += 2
+        elif args[i] == "--template" and i + 1 < len(args):
+            _template = args[i + 1]; i += 2
         else:
             i += 1
 
-    main(_url, editor=_editor, link_format=_link, site_key=_site, force_row=_row, limit=_limit, count_limit=_count)
+    main(_url, editor=_editor, link_format=_link, site_key=_site, force_row=_row, limit=_limit, count_limit=_count, template=_template)

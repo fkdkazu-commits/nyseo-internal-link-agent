@@ -263,6 +263,13 @@ def _build_gutenberg_block(url: str, link_text: str, link_format: str) -> str:
             f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
             f'<!-- /wp:paragraph -->'
         )
+    elif link_format == "shortcode":
+        # link_text にはテンプレート解決済みのショートコード文字列が入る
+        return (
+            f'<!-- wp:shortcode -->\n'
+            f'{link_text}\n'
+            f'<!-- /wp:shortcode -->'
+        )
     else:  # url: wp:embedブロックとして挿入（テーマ側でブログカード表示）
         return (
             f'<!-- wp:embed {{"url":"{url}"}} -->\n'
@@ -280,5 +287,8 @@ def _build_link_html(url: str, link_text: str, link_format: str) -> str:
     if link_format == "atag":
         safe_text = link_text or url
         return f'<p><a href="{url}" target="_blank" rel="noopener noreferrer">{safe_text}</a></p>\n'
+    elif link_format == "shortcode":
+        # link_text にはテンプレート解決済みのショートコード文字列が入る
+        return f'{link_text}\n'
     else:  # url: URLをそのまま挿入（WordPressのoEmbed処理に委ねる）
         return f'<p>{url}</p>\n'

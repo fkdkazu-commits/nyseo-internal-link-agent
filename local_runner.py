@@ -180,12 +180,13 @@ class Handler(BaseHTTPRequestHandler):
                 return
             _running = True
 
-        params = parse_qs(parsed.query)
-        url    = params.get("url",    [""])[0]
-        editor = params.get("editor", ["auto"])[0]
-        link   = params.get("link",   [""])[0]
-        site   = params.get("site",   [""])[0]
-        count  = params.get("count",  [""])[0]
+        params   = parse_qs(parsed.query)
+        url      = params.get("url",      [""])[0]
+        editor   = params.get("editor",   ["auto"])[0]
+        link     = params.get("link",     [""])[0]
+        site     = params.get("site",     [""])[0]
+        count    = params.get("count",    [""])[0]
+        template = params.get("template", [""])[0]
 
         if not url:
             with _lock:
@@ -203,10 +204,10 @@ class Handler(BaseHTTPRequestHandler):
                 self._respond(200, json.dumps({"status": "site_required", "sites": keys}, ensure_ascii=False))
                 return
 
-        self._respond(200, json.dumps({"status": "started", "editor": editor, "link": link, "site": site, "count": count}, ensure_ascii=False))
-        threading.Thread(target=self._execute_wp, args=(url, editor, link, site, count), daemon=True).start()
+        self._respond(200, json.dumps({"status": "started", "editor": editor, "link": link, "site": site, "count": count, "template": template}, ensure_ascii=False))
+        threading.Thread(target=self._execute_wp, args=(url, editor, link, site, count, template), daemon=True).start()
 
-    def _execute_wp(self, url: str, editor: str, link: str, site: str = "", count: str = ""):
+    def _execute_wp(self, url: str, editor: str, link: str, site: str = "", count: str = "", template: str = ""):
         global _running
         try:
             site_arg  = f' --site "{site}"' if site else ""
@@ -249,16 +250,30 @@ class Handler(BaseHTTPRequestHandler):
                 _open_terminal_mac(bash_script)
             else:
                 if link:
-                    link_select = f'$linkMode = "{link}"; '
+                    if link == "shortcode":
+                        if template:
+                            escaped = template.replace('"', '`"')
+                            link_select = f'$linkMode = "shortcode"; $templateArg = "--template `"{escaped}`""; '
+                        else:
+                            link_select = (
+                                f'$linkMode = "shortcode"; '
+                                f'$tmpl = Read-Host "ショートコードテンプレートを入力（例: [related id={{id}} label=あわせて読みたい]）"; '
+                                f'$templateArg = "--template `"$tmpl`""; '
+                            )
+                    else:
+                        link_select = f'$linkMode = "{link}"; $templateArg = ""; '
                 else:
                     link_select = (
                         f'Write-Host ""; '
                         f'Write-Host "リンク形式を選択してください：" -ForegroundColor Cyan; '
                         f'Write-Host "  1. URL挿入（Gutenberg/クラシック自動判定）"; '
                         f'Write-Host "  2. aタグ形式（テキストリンク）"; '
+                        f'Write-Host "  3. ショートコード（カスタム）"; '
                         f'Write-Host ""; '
-                        f'$linkAns = Read-Host "番号を入力 [1/2]"; '
-                        f'if ($linkAns -eq "2") {{ $linkMode = "atag" }} else {{ $linkMode = "url" }}; '
+                        f'$linkAns = Read-Host "番号を入力 [1/2/3]"; '
+                        f'if ($linkAns -eq "2") {{ $linkMode = "atag"; $templateArg = "" }} '
+                        f'elseif ($linkAns -eq "3") {{ $linkMode = "shortcode"; $tmpl = Read-Host "ショートコードテンプレートを入力（例: [related id={{id}} label=あわせて読みたい]）"; $templateArg = "--template `"$tmpl`"" }} '
+                        f'else {{ $linkMode = "url"; $templateArg = "" }}; '
                     )
                 if is_test:
                     done_msg = (
@@ -272,7 +287,7 @@ class Handler(BaseHTTPRequestHandler):
                 ps_cmd = (
                     f'cd "{PROJECT_DIR}"; '
                     f'{link_select}'
-                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode{site_arg}{count_arg}; '
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode $templateArg{site_arg}{count_arg}; '
                     f'{done_msg}'
                     f'New-Item -ItemType File -Path "{_SENTINEL}" -Force | Out-Null; '
                     f'Read-Host "Enterキーを押して終了..."'
