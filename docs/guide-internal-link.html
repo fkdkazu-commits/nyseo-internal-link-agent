@@ -353,13 +353,16 @@ http://127.0.0.1:8765/sites
   ・site-a.com
   ・site-b.com」
 
-**STEP 2：リンク形式の確認**
+**STEP 2：リンク形式の確認（必ず以下の3択を提示すること）**
 
-&gt; 挿入するリンクの形式を教えてください：
-&gt; 1. URL挿入（Gutenberg/クラシック自動判定）※ブログカード表示はテーマ依存
-&gt; 2. aタグ（テキストリンク・Gutenberg/クラシック両対応）
+ユーザーに次の3択を選ばせる：
+
+1. **URL挿入** — URLをそのまま挿入。WordPressのoEmbedでブログカード表示を試みる（表示結果はテーマ依存）
+2. **aタグ** — テキストリンク形式。Gutenberg・クラシック両対応で確実にリンクが入る
+3. **ショートコード** — カスタムショートコード形式。ターミナルでテンプレート文字列を入力してもらう
 
 ※エディタ形式（クラシック / Gutenberg）は記事ごとに自動判定されるため確認不要。
+※ショートコードを選択した場合、ターミナルでテンプレート文字列の入力を求められる。
 
 **STEP 3：実行範囲の確認**
 
@@ -376,6 +379,8 @@ http://127.0.0.1:8765/sites
 | 1. URL挿入 | 一括 | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=url |
 | 2. aタグ | 1記事のみ | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=atag&amp;count=1 |
 | 2. aタグ | 一括 | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=atag |
+| 3. ショートコード | 1記事のみ | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=shortcode&amp;count=1 |
+| 3. ショートコード | 一括 | http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=shortcode |
 
 複数サイトの場合は末尾に &amp;site=&lt;domain&gt; を追加する：
 例）http://127.0.0.1:8765/run-wp?url=&lt;URL&gt;&amp;link=url&amp;site=example.com

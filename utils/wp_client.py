@@ -9,7 +9,7 @@ import json
 import os
 import re
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 
 import requests
 
@@ -47,7 +47,10 @@ def _load_wp_credentials(site_key: str = "") -> tuple[str, str, str]:
                 user = entry.get("wp_user", "")
                 pwd  = entry.get("wp_app_password", "")
                 if url and user and pwd:
-                    if url.startswith("http://"):
+                    # ローカル開発環境（.local / localhost / 127.0.0.1）は変換しない
+                    _host = urlparse(url).hostname or ""
+                    _is_local = _host in ("localhost", "127.0.0.1") or _host.endswith(".local")
+                    if url.startswith("http://") and not _is_local:
                         url = "https://" + url[len("http://"):]
                         logger.warning(f"wp_url が http:// のため https:// に自動変換しました: {url}")
                     return url.rstrip("/"), user, pwd
@@ -94,26 +97,71 @@ class WPClient:
 
     def get_post_by_url(self, article_url: str) -> "dict | None":
         """記事URLからWordPress投稿を取得する。"""
-        slug = self._url_to_slug(article_url)
-        if not slug:
-            logger.warning(f"スラッグ抽出失敗: {article_url}")
-            return None
+        # ?p=ID 形式の URL は直接 ID で取得
+        m = re.search(r"[?&]p=(\d+)", article_url)
+        if m:
+            post_id = int(m.group(1))
+            for post_type in ("posts", "pages"):
+                r = requests.get(
+                    f"{self._api}/{post_type}/{post_id}",
+                    headers=self.headers,
+                    params={"context": "edit", "_fields": "id,title,content,link,status"},
+                    timeout=60,
+                )
+                logger.debug(f"?p=ID検索: {self._api}/{post_type}/{post_id} → {r.status_code}")
+                if r.status_code == 200:
+                    post = r.json()
+                    logger.info(f"記事取得成功（?p=ID）: {post.get('link')} (ID:{post.get('id')})")
+                    return post
 
-        # まずslugで検索（context=edit で content.raw を取得）
-        for post_type in ("posts", "pages"):
-            r = requests.get(
-                f"{self._api}/{post_type}",
-                headers=self.headers,
-                params={"slug": slug, "context": "edit", "_fields": "id,title,content,link,status"},
-                timeout=60,
-            )
-            if r.status_code == 200:
-                posts = r.json()
-                if posts:
-                    logger.info(f"記事取得成功: {posts[0]['link']} (ID:{posts[0]['id']})")
-                    return posts[0]
+        slug = self._url_to_slug(article_url)
+
+        # slug が取れた場合はまず slug 検索（context=edit で content.raw を取得）
+        if slug:
+            for post_type in ("posts", "pages"):
+                r = requests.get(
+                    f"{self._api}/{post_type}",
+                    headers=self.headers,
+                    params={"slug": slug, "context": "edit", "_fields": "id,title,content,link,status"},
+                    timeout=60,
+                )
+                logger.debug(f"slug検索: /{post_type}?slug=... → {r.status_code}")
+                if r.status_code == 200:
+                    posts = r.json()
+                    if posts:
+                        logger.info(f"記事取得成功（slug）: {posts[0]['link']} (ID:{posts[0]['id']})")
+                        return posts[0]
+            logger.debug(f"slug検索で見つからず、shortlink経由で再試行: {article_url} (slug: {slug})")
+
+        # フォールバック: 記事HTMLのshortlink（?p=ID）からIDを取得して直接引く
+        post_id = self._extract_post_id_from_html(article_url)
+        if post_id:
+            for post_type in ("posts", "pages"):
+                r = requests.get(
+                    f"{self._api}/{post_type}/{post_id}",
+                    headers=self.headers,
+                    params={"context": "edit", "_fields": "id,title,content,link,status"},
+                    timeout=60,
+                )
+                if r.status_code == 200:
+                    post = r.json()
+                    logger.info(f"記事取得成功（ID直接）: {post.get('link')} (ID:{post.get('id')})")
+                    return post
 
         logger.warning(f"記事が見つかりません: {article_url} (slug: {slug})")
+        return None
+
+    def _extract_post_id_from_html(self, article_url: str) -> "int | None":
+        """記事HTMLの shortlink タグから投稿IDを抽出する。"""
+        try:
+            r = requests.get(article_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=30, allow_redirects=True)
+            if r.status_code != 200:
+                return None
+            m = re.search(r"[?&]p=(\d+)", r.text)
+            if m:
+                return int(m.group(1))
+        except Exception as e:
+            logger.debug(f"shortlink取得失敗: {e}")
         return None
 
     def get_post_title(self, article_url: str) -> str:
@@ -153,4 +201,5 @@ class WPClient:
     def _url_to_slug(url: str) -> str:
         """URLからスラッグ（最後のパス要素）を抽出する。"""
         path = urlparse(url).path.rstrip("/")
-        return path.split("/")[-1] if path else ""
+        slug = path.split("/")[-1] if path else ""
+        return unquote(slug)

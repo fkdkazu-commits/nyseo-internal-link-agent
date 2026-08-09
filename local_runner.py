@@ -253,15 +253,14 @@ class Handler(BaseHTTPRequestHandler):
                     if link == "shortcode":
                         if template:
                             escaped = template.replace('"', '`"')
-                            link_select = f'$linkMode = "shortcode"; $templateArg = "--template `"{escaped}`""; '
+                            link_select = f'$linkMode = "shortcode"; $tmpl = "{escaped}"; '
                         else:
                             link_select = (
                                 f'$linkMode = "shortcode"; '
                                 f'$tmpl = Read-Host "ショートコードテンプレートを入力（例: [related id={{id}} label=あわせて読みたい]）"; '
-                                f'$templateArg = "--template `"$tmpl`""; '
                             )
                     else:
-                        link_select = f'$linkMode = "{link}"; $templateArg = ""; '
+                        link_select = f'$linkMode = "{link}"; $tmpl = ""; '
                 else:
                     link_select = (
                         f'Write-Host ""; '
@@ -271,9 +270,9 @@ class Handler(BaseHTTPRequestHandler):
                         f'Write-Host "  3. ショートコード（カスタム）"; '
                         f'Write-Host ""; '
                         f'$linkAns = Read-Host "番号を入力 [1/2/3]"; '
-                        f'if ($linkAns -eq "2") {{ $linkMode = "atag"; $templateArg = "" }} '
-                        f'elseif ($linkAns -eq "3") {{ $linkMode = "shortcode"; $tmpl = Read-Host "ショートコードテンプレートを入力（例: [related id={{id}} label=あわせて読みたい]）"; $templateArg = "--template `"$tmpl`"" }} '
-                        f'else {{ $linkMode = "url"; $templateArg = "" }}; '
+                        f'if ($linkAns -eq "2") {{ $linkMode = "atag"; $tmpl = "" }} '
+                        f'elseif ($linkAns -eq "3") {{ $linkMode = "shortcode"; $tmpl = Read-Host "ショートコードテンプレートを入力（例: [related id={{id}} label=あわせて読みたい]）" }} '
+                        f'else {{ $linkMode = "url"; $tmpl = "" }}; '
                     )
                 if is_test:
                     done_msg = (
@@ -287,7 +286,7 @@ class Handler(BaseHTTPRequestHandler):
                 ps_cmd = (
                     f'cd "{PROJECT_DIR}"; '
                     f'{link_select}'
-                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode $templateArg{site_arg}{count_arg}; '
+                    f'{PYTHON_CMD} main_wp.py "{url}" --editor {editor} --link $linkMode --template "$tmpl"{site_arg}{count_arg}; '
                     f'{done_msg}'
                     f'New-Item -ItemType File -Path "{_SENTINEL}" -Force | Out-Null; '
                     f'Read-Host "Enterキーを押して終了..."'
@@ -351,10 +350,16 @@ class Handler(BaseHTTPRequestHandler):
                     f'New-Item -ItemType File -Path "{_SENTINEL}" -Force | Out-Null; '
                     f'Read-Host "Enterキーを押して終了..."'
                 )
-                subprocess.Popen(
+                _log(f"PowerShell起動コマンド: {ps_cmd[:200]}")
+                proc = subprocess.Popen(
                     ["cmd", "/c", "start", "powershell", "-NoExit", "-Command", ps_cmd],
                 )
+                _log(f"Popen完了: PID={proc.pid}")
             _wait_for_sentinel()
+        except Exception as e:
+            _log(f"_execute エラー: {e}")
+            import traceback as _tb
+            _log(_tb.format_exc())
         finally:
             with _lock:
                 _running = False
