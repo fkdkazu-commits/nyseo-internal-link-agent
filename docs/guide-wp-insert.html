@@ -312,7 +312,7 @@
             <li>Spreadsheet の H〜M 列を確認・承認する（問題のある行は H 列を空白にしてスキップ）</li>
             <li>Cowork を開き、内部リンクエージェント プロジェクトを選択する</li>
             <li>「WordPress に挿入してほしい」と送信し、Spreadsheet URL を伝える</li>
-            <li>エージェントがサイト（複数登録時）・リンク形式（2種類）・実行範囲（1記事のみ / 一括）を順に確認してくるので選択する</li>
+            <li>エージェントがサイト（複数登録時）・リンク形式（3種類）・実行範囲（1記事のみ / 一括）を順に確認してくるので選択する</li>
             <li>Chrome が自動で起動し、Cowork 上に「Allow」ボタンが表示されたらクリックする</li>
             <li>PowerShell ウィンドウが開き、処理が進む（完了まで閉じないでください）</li>
             <li>1記事のみを選択した場合は、完了後に Spreadsheet と WordPress のプレビューで表示を確認してから「一括実行」を依頼する</li>
@@ -388,8 +388,21 @@
               <td>表示結果を確実にしたい場合。サイトのテーマに依存しない</td>
               <td><span class="badge b-green">テキストリンク推奨</span></td>
             </tr>
+            <tr>
+              <td><strong>ショートコード</strong><br><span class="ic">--link shortcode</span></td>
+              <td>テーマ独自のショートコード形式で挿入される。テンプレート文字列（例：<code>[related id={id} label=関連記事]</code>）を実行時に入力する</td>
+              <td>テーマ専用のショートコードを使って内部リンクを挿入したい場合</td>
+              <td><span class="badge" style="background:#6c757d;color:#fff;">カスタム</span></td>
+            </tr>
           </tbody>
         </table>
+        <div class="callout info" style="margin-top:12px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>
+            <strong>ショートコードの <code>{id}</code> には Spreadsheet の A 列（No.）の値が自動的に入ります。</strong><br>
+            A 列の値が WordPress の投稿 ID と一致していることをあらかじめご確認ください。
+          </div>
+        </div>
         <div class="callout warn" style="margin-top:12px;">
           <span class="callout-icon">⚠️</span>
           <div>
