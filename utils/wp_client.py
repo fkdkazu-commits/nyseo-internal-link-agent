@@ -176,8 +176,8 @@ class WPClient:
     # 記事更新
     # ------------------------------------------------------------------ #
 
-    def update_post_content(self, post_id: int, new_content: str) -> bool:
-        """投稿のcontentを更新する。"""
+    def update_post_content(self, post_id: int, new_content: str) -> "str | None":
+        """投稿のcontentを更新する。成功時はNone、失敗時はエラー文字列を返す。"""
         r = requests.post(
             f"{self._api}/posts/{post_id}",
             headers=self.headers,
@@ -190,12 +190,14 @@ class WPClient:
                 def _norm(s: str) -> str:
                     return s.replace("\r\n", "\n").replace("\r", "\n").strip()
                 if _norm(new_content) not in _norm(returned):
-                    logger.warning(f"記事更新失敗（APIは200を返したが内容が保存されていません）: ID={post_id}")
-                    return False
+                    msg = f"保存検証失敗（API 200だが内容不一致）: ID={post_id}"
+                    logger.warning(msg)
+                    return msg
             logger.info(f"記事更新成功: ID={post_id}")
-            return True
-        logger.warning(f"記事更新失敗: ID={post_id} status={r.status_code} {r.text[:200]}")
-        return False
+            return None
+        msg = f"APIエラー HTTP {r.status_code}: ID={post_id}"
+        logger.warning(f"記事更新失敗: {msg} {r.text[:200]}")
+        return msg
 
     # ------------------------------------------------------------------ #
     # ユーティリティ

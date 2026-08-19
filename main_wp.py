@@ -156,11 +156,11 @@ def main(
             )
 
             if count > 0:
-                ok = wp.update_post_content(post["id"], new_content)
-                if ok:
+                err = wp.update_post_content(post["id"], new_content)
+                if err is None:
                     total_inserted += 1
                 else:
-                    errors.append(f"更新失敗: {cand_url}")
+                    errors.append(f"更新失敗（{err}）: {cand_url}")
             elif skipped > 0:
                 total_skipped += 1
                 logger.info(f"  スキップ: {cand_url} 見出し「{cand_heading[:30]}」")
