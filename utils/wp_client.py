@@ -186,9 +186,12 @@ class WPClient:
         )
         if r.status_code == 200:
             returned = r.json().get("content", {}).get("raw", "")
-            if returned and new_content.strip() not in returned:
-                logger.warning(f"記事更新失敗（APIは200を返したが内容が保存されていません）: ID={post_id}")
-                return False
+            if returned:
+                def _norm(s: str) -> str:
+                    return s.replace("\r\n", "\n").replace("\r", "\n").strip()
+                if _norm(new_content) not in _norm(returned):
+                    logger.warning(f"記事更新失敗（APIは200を返したが内容が保存されていません）: ID={post_id}")
+                    return False
             logger.info(f"記事更新成功: ID={post_id}")
             return True
         logger.warning(f"記事更新失敗: ID={post_id} status={r.status_code} {r.text[:200]}")
