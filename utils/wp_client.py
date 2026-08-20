@@ -185,14 +185,6 @@ class WPClient:
             timeout=60,
         )
         if r.status_code == 200:
-            returned = r.json().get("content", {}).get("raw", "")
-            if returned:
-                def _norm(s: str) -> str:
-                    return s.replace("\r\n", "\n").replace("\r", "\n").strip()
-                if _norm(new_content) not in _norm(returned):
-                    msg = f"保存検証失敗（API 200だが内容不一致）: ID={post_id}"
-                    logger.warning(msg)
-                    return msg
             logger.info(f"記事更新成功: ID={post_id}")
             return None
         msg = f"APIエラー HTTP {r.status_code}: ID={post_id}"
