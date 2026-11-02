@@ -249,7 +249,8 @@
     <a class="nav-item" href="#step8"><span class="nav-badge">8</span> WordPress サイト設定</a>
     <a class="nav-item" href="#step9"><span class="nav-badge">9</span> ライブラリのインストール</a>
     <a class="nav-item" href="#step10"><span class="nav-badge">10</span> ランナーサーバー起動</a>
-    <a class="nav-item" href="#step11"><span class="nav-badge">11</span> Cowork 再起動</a>
+    <a class="nav-item" href="#step11"><span class="nav-badge">11</span> Cowork プロジェクト作成</a>
+    <a class="nav-item" href="#step12"><span class="nav-badge">12</span> Spreadsheet の準備</a>
     <a class="nav-item" href="#verify"><span class="nav-badge">✓</span> 動作確認</a>
 
     <div class="nav-group">機能別 導入手順</div>
@@ -389,7 +390,7 @@
         </table>
         <div class="callout warn" style="margin-top:14px;">
           <span class="callout-icon">⚠️</span>
-          <div>Spreadsheet にはサービスアカウントのメールアドレスの<strong>編集権限を付与</strong>する必要があります。メールアドレスは install.bat の STEP 11 で自動表示されます。</div>
+          <div>Spreadsheet にはサービスアカウントのメールアドレスの<strong>編集権限を付与</strong>する必要があります。メールアドレスは install.bat の STEP 12 で自動表示されます。</div>
         </div>
       </div>
     </section>
@@ -594,7 +595,7 @@
         </ul>
         <div class="callout info">
           <span class="callout-icon">ℹ️</span>
-          <div>Cowork には <strong>内部リンクエージェント プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成は install.bat の STEP 10 で案内します。</div>
+          <div>Cowork には <strong>内部リンクエージェント プロジェクト</strong>が設定済みである必要があります。プロジェクトの作成は install.bat の STEP 11 で案内します。</div>
         </div>
       </div>
     </section>
@@ -854,7 +855,7 @@
           <div>以下のような表示が出れば完了です。</div>
         </div>
         <div class="terminal" style="margin-top:8px;">
-          <span class="t-yellow">━━━━━━ [9/11] ランナーサーバー登録・起動 ━━━━━━</span><br>
+          <span class="t-yellow">━━━━━━ [10/12] ランナーサーバーの登録・起動 ━━━━━━</span><br>
           <span class="t-green">✔ スタートアップへの登録が完了しました</span><br>
           <span class="t-green">✔ ランナーサーバーを起動しました（http://127.0.0.1:8765）</span>
         </div>
@@ -873,27 +874,111 @@
       </div>
     </section>
 
-    <!-- ═══ STEP 11: Cowork 再起動 ═══ -->
+    <!-- ═══ STEP 11: Cowork プロジェクト ═══ -->
     <section class="section" id="step11">
       <div class="section-header">
         <div class="step-circle">11</div>
         <div>
-          <h2>Cowork の再起動</h2>
-          <div class="sub">環境変数の設定を反映させます</div>
+          <h2>Cowork プロジェクトの作成</h2>
+          <div class="sub">install.bat が指示文を表示・クリップボードにコピーします</div>
         </div>
       </div>
 
       <div class="card">
+        <p>install.bat がプロジェクトフォルダのパスを埋め込んだ<strong>指示文を表示</strong>し、クリップボードにコピーします。以下の手順でプロジェクトを作成してください。</p>
+        <ol style="line-height:2.3;">
+          <li>Cowork（Claude Desktop Pro）を起動する（まだ開いていない場合）</li>
+          <li>左サイドバーの「<strong>Projects</strong>」をクリックする</li>
+          <li>「<strong>+ New project</strong>」をクリックする</li>
+          <li>プロジェクト名に「<strong>内部リンクエージェント</strong>」と入力して作成する</li>
+          <li>「<strong>Project instructions</strong>」の入力欄を開く</li>
+          <li>画面に表示された指示文を全文コピーして貼り付ける（<kbd>Ctrl</kbd> + <kbd>V</kbd>）<br>
+            <span style="font-size:12.5px; color:var(--text-secondary);">クリップボードに自動コピーされている場合はそのまま貼り付けできます</span></li>
+          <li>保存する</li>
+        </ol>
+        <div class="callout info" style="margin-top:10px;">
+          <span class="callout-icon">ℹ️</span>
+          <div>指示文にはランナーサーバーの起動方法・WP 挿入の手順・各パラメータの説明が含まれています。Cowork はこの指示文をもとにエージェントを正しく操作します。</div>
+        </div>
+        <div class="callout warn" style="margin-top:10px;">
+          <span class="callout-icon">⚠️</span>
+          <div>貼り付け前に、画面に表示される<strong>プロジェクトフォルダのパス</strong>が実際の場所と合っているか確認してください。</div>
+        </div>
+        <p style="margin-top:14px;">貼り付けが終わったら、install.bat の画面で <kbd>Enter</kbd> を押して STEP 12 へ進みます。</p>
+      </div>
+
+      <div class="card">
         <h3>Cowork を再起動する</h3>
+        <p>環境変数の設定を反映させるため、Cowork を再起動します。</p>
         <ol style="line-height:2.3;">
           <li>Cowork（Claude Desktop Pro）を<strong>完全に閉じる</strong><br>
             <span style="color:var(--text-secondary); font-size:12.5px;">タスクトレイ（画面右下の通知領域）にアイコンがある場合は右クリックして「終了」してください</span>
           </li>
           <li>Cowork を<strong>再起動</strong>する</li>
         </ol>
-        <div class="callout ok" style="margin-top:12px;">
+      </div>
+    </section>
+
+    <!-- ═══ STEP 12: Spreadsheet ═══ -->
+    <section class="section" id="step12">
+      <div class="section-header">
+        <div class="step-circle">12</div>
+        <div>
+          <h2>Google Spreadsheet の準備</h2>
+          <div class="sub">ツールが読み込む Spreadsheet を新規作成して共有します</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>① Spreadsheet を新規作成する</h3>
+        <ol style="line-height:2.3;">
+          <li>ブラウザで Google ドライブ（drive.google.com）を開く</li>
+          <li>「+ 新規」→「Google スプレッドシート」をクリック</li>
+          <li>シート名は任意でOK（例：内部リンク管理）</li>
+        </ol>
+        <p>作成したら、install.bat の画面で <kbd>Enter</kbd> を押してください。</p>
+      </div>
+
+      <div class="card">
+        <h3>② 列構成を確認する</h3>
+        <p>記事データのインポート方法は管理者から別途案内があります。インポート後、以下の列順になっているか確認してください。</p>
+        <table class="tbl" style="margin-top:8px;">
+          <thead><tr><th>列</th><th>内容</th><th>備考</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A</strong></td><td>NO</td><td>記事番号</td></tr>
+            <tr><td><strong>B</strong></td><td>記事URL</td><td>処理対象のURL</td></tr>
+            <tr><td><strong>C</strong></td><td>メインKW</td><td>キーワード（空欄可）</td></tr>
+            <tr><td><strong>D</strong></td><td>発リンク数</td><td></td></tr>
+            <tr><td><strong>E</strong></td><td>被リンク数</td><td>1 以下の記事が処理対象</td></tr>
+            <tr><td><strong>F</strong></td><td>クリック数</td><td></td></tr>
+            <tr><td><strong>G</strong></td><td>表示回数</td><td></td></tr>
+            <tr><td><strong>H〜M</strong></td><td>出力欄</td><td>ツールが自動入力（空欄のままでOK）</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn" style="margin-top:10px;">
+          <span class="callout-icon">⚠️</span>
+          <div>列の順番が違う場合は列を並び替えてから次へ進んでください。確認できたら install.bat の画面で <kbd>Enter</kbd> を押します。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>③ サービスアカウントに編集権限を付与する</h3>
+        <p>install.bat が自動的にサービスアカウントのメールアドレスを表示し、クリップボードにコピーします。</p>
+        <ol style="line-height:2.3;">
+          <li>Spreadsheet 右上の「<strong>共有</strong>」ボタンをクリック</li>
+          <li>表示されたメールアドレスを入力して追加する（<kbd>Ctrl</kbd> + <kbd>V</kbd> で貼り付け）</li>
+          <li>権限を「<strong>閲覧者</strong>」→「<strong>編集者</strong>」に変更する</li>
+          <li>「<strong>送信</strong>」をクリック（通知メールは送らなくてOK）</li>
+        </ol>
+        <p>完了したら、install.bat の画面で <kbd>Enter</kbd> を押してください。</p>
+      </div>
+
+      <div class="card">
+        <h3>④ Spreadsheet の URL をコピーする</h3>
+        <p>ブラウザのアドレスバーの URL をコピーしておいてください。</p>
+        <div class="callout ok" style="margin-top:8px;">
           <span class="callout-icon">✅</span>
-          <div>これで初期インストールは完了です。続けて各機能の導入手順書でプロジェクトの作成と動作確認を行ってください。</div>
+          <div>この URL を Cowork のチャットに貼り付けると処理が始まります。これで初期インストールは完了です。続けて各機能の導入手順書で動作確認を行ってください。</div>
         </div>
       </div>
     </section>
